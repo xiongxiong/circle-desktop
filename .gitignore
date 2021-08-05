@@ -1,5 +1,11 @@
-node_modules
-dist
-packages
-.webpack
-out
+.idea/
+.vscode/
+.webpack/
+node_modules/
+build/
+dist/
+out/
+packages/
+tmp/
+temp/
+db/
