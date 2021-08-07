@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
-      "~/*": ["./*"]
+      "@/*": ["./electron/*"],
+      "~/*": ["./src/*"]
     },
     "target": "es5",
     "module": "commonjs",
@@ -22,5 +23,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false
-  }
+  },
+  "include": ["electron/**/*", "src/**/*"],
+  "exclude": []
 }

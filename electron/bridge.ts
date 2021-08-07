@@ -1,17 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import { IBridgeMsg } from './interface/BridgeMsg'
 
 export const api = {
   /**
    * Here you can expose functions to the renderer process
    * so they can interact with the main (electron) side
    * without security problems.
-   *
-   * The function below can accessed using `window.Main.sayHello`
    */
 
-  sendMessage: (message: string) => { 
-    ipcRenderer.send('message', message)
-  },
+  send: (message: IBridgeMsg) => ipcRenderer.send(message.channel, message.message),
+
+  sendSync: (message: IBridgeMsg) => ipcRenderer.sendSync(message.channel, message.message),
+
+  invoke: (message: IBridgeMsg) => ipcRenderer.invoke(message.channel, message.message),
 
   /**
    * Provide an easier way to listen to events

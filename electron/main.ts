@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
 import 'reflect-metadata';
-import { logger } from '~/utils/log';
-import { todoService as dbService } from '~/utils/sqlite'
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { logger } from '@/utils/log';
+import { todoService } from './service/TodoService';
+import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 
 let mainWindow: BrowserWindow | null;
 
@@ -37,16 +38,30 @@ async function registerListeners() {
 	/**
    * This comes from bridge integration, check bridge.ts
    */
-	ipcMain.on('message', (_, message) => {
-		console.log(message);
+	ipcMain.on('todo', (event, message) => {
+		const result = todoService.on(message);
+		if (result instanceof Promise) {
+			result.then((data) => event.reply('todo', data)).catch((e) => {
+				console.error(e);
+				event.reply('todo', undefined);
+			});
+		} else {
+			event.returnValue = result;
+		}
 	});
+	ipcMain.handle('todo', async (event, message) => todoService.on(message));
 }
 
 app
 	.on('ready', createWindow)
 	.whenReady()
+	.then(() =>
+		installExtension(REACT_DEVELOPER_TOOLS)
+			.then((name) => console.log(`Add Extension [SUCCESS]: ${name}`))
+			.catch((err) => console.log('Add Extension [FAILURE]: ', err))
+	)
 	.then(registerListeners)
-	.then(() => logger().withTags('DATABASE CONNECT').log(dbService.open))
+	.then(() => logger().withTags('DATABASE CONNECT').log(todoService.open))
 	.catch((e) => console.error(e));
 
 app.on('window-all-closed', () => {
@@ -55,7 +70,7 @@ app.on('window-all-closed', () => {
 	}
 });
 
-app.on('will-quit', () => logger().withTags('DATABASE DISCONNECT').log(dbService.close));
+app.on('will-quit', () => logger().withTags('DATABASE DISCONNECT').log(todoService.close));
 
 app.on('activate', () => {
 	if (BrowserWindow.getAllWindows().length === 0) {

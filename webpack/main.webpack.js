@@ -3,10 +3,11 @@ const path = require('path');
 module.exports = {
 	resolve: {
 		extensions: [ '.ts', '.js' ],
-		modules: ['node_modules'],
+		modules: [ 'node_modules' ],
 		alias: {
-			'~': 'src'
-		},
+			'@': path.resolve(__dirname, '..', 'electron'),
+			'~': path.resolve(__dirname, '..', 'src')
+		}
 	},
 	entry: './electron/main.ts',
 	module: {

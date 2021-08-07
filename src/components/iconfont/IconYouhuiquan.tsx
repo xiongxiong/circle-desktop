@@ -1,0 +1,33 @@
+/* tslint:disable */
+/* eslint-disable */
+
+import React, { CSSProperties, SVGAttributes, FunctionComponent } from 'react';
+import { getIconColor } from './helper';
+
+interface Props extends Omit<SVGAttributes<SVGElement>, 'color'> {
+  size?: number;
+  color?: string | string[];
+}
+
+const DEFAULT_STYLE: CSSProperties = {
+  display: 'block',
+};
+
+const IconYouhuiquan: FunctionComponent<Props> = ({ size, color, style: _style, ...rest }) => {
+  const style = _style ? { ...DEFAULT_STYLE, ..._style } : DEFAULT_STYLE;
+
+  return (
+    <svg viewBox="0 0 1024 1024" width={size + 'px'} height={size + 'px'} style={style} {...rest}>
+      <path
+        d="M616.853333 90.517333a42.666667 42.666667 0 0 0-60.309333-0.042666L90.453333 556.544a42.752 42.752 0 0 0 0.042667 60.309333l58.858667 58.837334a149.333333 149.333333 0 0 1 198.933333 198.933333l58.837333 58.858667a42.666667 42.666667 0 0 0 60.309334 0.042666L933.546667 467.456a42.752 42.752 0 0 0-0.042667-60.309333l-45.013333-45.013334a149.333333 149.333333 0 0 1-205.290667-205.290666l-66.346667-66.325334zM963.626667 376.981333a85.418667 85.418667 0 0 1 0.042666 120.661334L497.642667 963.690667a85.333333 85.333333 0 0 1-120.661334-0.042667l-83.072-83.072a106.666667 106.666667 0 0 0-150.464-150.464l-83.093333-83.093333a85.418667 85.418667 0 0 1-0.042667-120.661334L526.357333 60.309333a85.333333 85.333333 0 0 1 120.661334 0.042667l93.738666 93.738667a106.666667 106.666667 0 1 0 150.464 150.464l72.426667 72.426666z m-435.050667-29.397333l-181.013333 181.013333a21.333333 21.333333 0 0 0 30.165333 30.165334l181.013333-181.013334a21.333333 21.333333 0 0 0-30.165333-30.165333z m117.653333 128l-170.666666 170.666667a21.333333 21.333333 0 0 0 30.165333 30.165333l170.666667-170.666667a21.333333 21.333333 0 0 0-30.165334-30.165333z"
+        fill={getIconColor(color, 0, '#3D3D3D')}
+      />
+    </svg>
+  );
+};
+
+IconYouhuiquan.defaultProps = {
+  size: 18,
+};
+
+export default IconYouhuiquan;

@@ -1,0 +1,33 @@
+/* tslint:disable */
+/* eslint-disable */
+
+import React, { CSSProperties, SVGAttributes, FunctionComponent } from 'react';
+import { getIconColor } from './helper';
+
+interface Props extends Omit<SVGAttributes<SVGElement>, 'color'> {
+  size?: number;
+  color?: string | string[];
+}
+
+const DEFAULT_STYLE: CSSProperties = {
+  display: 'block',
+};
+
+const IconFaxian: FunctionComponent<Props> = ({ size, color, style: _style, ...rest }) => {
+  const style = _style ? { ...DEFAULT_STYLE, ..._style } : DEFAULT_STYLE;
+
+  return (
+    <svg viewBox="0 0 1024 1024" width={size + 'px'} height={size + 'px'} style={style} {...rest}>
+      <path
+        d="M512 128C170.666667 128 42.666667 512 42.666667 512s128 383.978667 469.333333 384c341.333333 0.021333 469.333333-384 469.333333-384S853.333333 128 512 128z m0.042667 725.333333H512c-126.976 0-237.141333-58.432-327.488-173.610666C130.474667 610.794667 99.584 540.693333 88.213333 512 113.941333 447.104 239.637333 170.666667 512 170.666667c126.976 0 237.141333 58.410667 327.488 173.610666 54.037333 68.906667 84.928 139.029333 96.298667 167.722667-11.392 28.736-42.282667 98.837333-96.298667 167.744C749.162667 794.944 638.997333 853.333333 512.042667 853.333333zM512 256c-141.376 0-256 114.624-256 256s114.624 256 256 256 256-114.624 256-256-114.624-256-256-256z m0 469.333333c-117.632 0-213.333333-95.701333-213.333333-213.333333s95.701333-213.333333 213.333333-213.333333 213.333333 95.701333 213.333333 213.333333-95.701333 213.333333-213.333333 213.333333z m0-362.666666a21.333333 21.333333 0 0 0 0 42.666666c58.816 0 106.666667 47.850667 106.666667 106.666667a21.333333 21.333333 0 0 0 42.666666 0c0-82.346667-66.986667-149.333333-149.333333-149.333333z"
+        fill={getIconColor(color, 0, '#3D3D3D')}
+      />
+    </svg>
+  );
+};
+
+IconFaxian.defaultProps = {
+  size: 18,
+};
+
+export default IconFaxian;
