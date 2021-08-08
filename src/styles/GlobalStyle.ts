@@ -12,7 +12,7 @@ export const GlobalStyle = createGlobalStyle`
     font-size: 16px;
     color: black;
     background-color: white;
-    font-family: 'alibaba';
+    /* font-family: 'alibaba'; */
   }
 
   @font-face {

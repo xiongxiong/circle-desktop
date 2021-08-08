@@ -19,10 +19,12 @@ class TodoService implements ITodoService {
 		console.log('message:', message);
 		const { action, body } = message;
 		switch (action) {
-			case Actions.TodoNew:
+			case Actions.TodoCreate:
 				return dbService.create(body);
+			case Actions.TodoUpdate:
+				return dbService.update(body);
 			case Actions.TodoList:
-				return dbService.selectList();
+				return dbService.selectList(body);
 			default:
 				console.error('NOT SUPPORTED ACTION IN [ TodoService ]');
 		}

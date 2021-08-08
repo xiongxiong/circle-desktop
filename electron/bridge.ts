@@ -8,17 +8,29 @@ export const api = {
    * without security problems.
    */
 
-  send: (message: IBridgeMsg) => ipcRenderer.send(message.channel, message.message),
+  send: (message: IBridgeMsg) => {
+    console.log("[MESSAGE] SEND : ", message);
+    ipcRenderer.send(message.channel, message.message);
+  },
 
-  sendSync: (message: IBridgeMsg) => ipcRenderer.sendSync(message.channel, message.message),
+  sendSync: (message: IBridgeMsg) => {
+    console.log("[MESSAGE] SEND_SYNC : ", message);
+    return ipcRenderer.sendSync(message.channel, message.message);
+  },
 
-  invoke: (message: IBridgeMsg) => ipcRenderer.invoke(message.channel, message.message),
+  invoke: (message: IBridgeMsg) => {
+    console.log("[MESSAGE] INVOKE : ", message);
+    return ipcRenderer.invoke(message.channel, message.message);
+  },
 
   /**
    * Provide an easier way to listen to events
    */
   on: (channel: string, callback: Function) => {
-    ipcRenderer.on(channel, (_, data) => callback(data))
+    ipcRenderer.on(channel, (_, data) => {
+      console.log("[MESSAGE] RECEIVE : ", data);
+      callback(data);
+    });
   }
 }
 

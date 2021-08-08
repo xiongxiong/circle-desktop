@@ -1,68 +1,79 @@
-import { List, ListProps, Breadcrumb, Input, InputProps } from 'antd';
+import { List, ListProps, Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent } from 'styled-components';
-import { ITodoNew, ITodo } from '@/interface/Todo';
-import { MsgTodoList, MsgTodoNew } from '@/interface/BridgeMsg';
+import { ITodoNew, ITodo, ITodoNavNode } from '@/interface/Todo';
+import { MsgTodoList, MsgTodoCreate } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { ListItemProps } from 'antd/lib/list';
+import { useState } from 'react';
+import { useEffect } from 'react';
+import IconFangzi from '~/components/@iconfont/IconFangzi';
+import { TodoNav } from '~/components/TodoNav';
 
-export class Todos extends React.Component<ITodosProps, ITodosState> {
+export interface ITodosProps {
 
-    constructor(props: ITodosProps) {
-        super(props)
-        this.state = {
-            parentTodos: [],
-            todos: [],
-            currentTodo: undefined,
-            newTodo: newTodo
+}
+
+export const Todos = (props: ITodosProps) => {
+
+    const [navNodes, setNavNodes] = useState([nodeHome] as ITodoNavNode[]);
+    const [todos, setTodos] = useState([] as ITodo[]);
+    const [currentNode, setCurrentNode] = useState(undefined as (ITodo | undefined));
+    const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined));
+    const [newTodo, setNewTodo] = useState(todoBlank);
+
+    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
+
+    const selectTodoList = () => {
+        window.Main.invoke(new MsgTodoList(currentNode)).then((todos) => {
+            console.log("todos : ", todos);
+            setTodos(todos);
+        });
+    }
+
+    useEffect(selectTodoList, [currentNode]);
+
+    const createTodo = () => {
+        if (newTodo.content.trim().length > 0) {
+            window.Main.invoke(new MsgTodoCreate({ ...newTodo, parent: currentNode })).then(() => setNewTodo(todoBlank)).then(selectTodoList);
         }
     }
 
-    componentDidMount = () => this.selectTodoList();
-
-    onChange = (event: React.ChangeEvent<HTMLInputElement>) => this.setState({ newTodo: { content: event.target.value } });
-
-    selectTodoList = () => {
-        window.Main.invoke(new MsgTodoList()).then((todos: ITodo[]) => this.setState({ todos }));
+    const toNextLev = (todo: ITodo) => {
+        setNavNodes(navNodes.concat([todo]));
+        setCurrentNode(todo);
     }
 
-    createTodo = (e: any) => {
-        const { newTodo, newTodo: { content }, currentTodo } = this.state
-        if (content.trim().length > 0) {
-            window.Main.invoke(new MsgTodoNew(newTodo)).then(() => this.setState({ newTodo: { content: '' } })).then(this.selectTodoList);
-        }
+    const toPrevLev = (todo: ITodoNavNode) => {
+        setNavNodes(navNodes.slice(0, navNodes.indexOf(todo) + 1));
+        setCurrentNode(isHomeNode(todo) ? undefined : todo as ITodo);
     }
 
-    render() {
-        return (
-            <Container>
-                <Header>
-                    <Breadcrumb>
-                        {this.state.parentTodos.map(item => (
-                            <Breadcrumb.Item key={item.id}>{item.content}</Breadcrumb.Item>
-                        ))}
-                    </Breadcrumb>
-                </Header>
-                <TodoList bordered dataSource={this.state.todos} renderItem={item => (
-                    <TodoListItem>
-                        <TodoItem {...item} />
-                    </TodoListItem>
-                )} />
-                <TodoInput size='large' value={this.state.newTodo.content} onChange={this.onChange} onPressEnter={this.createTodo} />
-            </Container>
+    const navNodeRender = (node: ITodoNavNode, index: number, nodes: ITodoNavNode[]) => {
+        const isHead = index === 0;
+        const isTail = index === nodes.length - 1;
+        return isTail ? (
+            <span>{node.content}</span>
+        ) : (
+            <TodoNode onClick={() => toPrevLev(node)}>{node.content}</TodoNode>
         );
     }
-}
 
-interface ITodosProps {
+    const listItemRender = (item: ITodo) => (
+        <TodoListItem key={item.id} onClick={() => setCurrentTodo(item)}>
+            <TodoItem {...{ todo: item, isSelected: item === currentTodo, toSubList: toNextLev }} />
+        </TodoListItem>
+    )
 
-}
-
-interface ITodosState {
-    parentTodos: ITodo[],
-    todos: ITodo[],
-    currentTodo?: ITodo,
-    newTodo: ITodoNew
+    return (
+        <Container>
+            <Header>
+                <TodoNav renderItem={navNodeRender} nodes={navNodes}/>
+            </Header>
+            <TodoList bordered dataSource={todos} renderItem={listItemRender} />
+            <TodoInput size='large' value={newTodo.content} onChange={onChange} onPressEnter={createTodo} />
+        </Container>
+    );
 }
 
 const Container = styled.div`
@@ -71,11 +82,12 @@ const Container = styled.div`
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+    background-color: ${props => props.theme._0};
 `
 
 const Header = styled.div`
-    padding: 10px 25px;
-    background-color: #ddd;
+    padding: 10px 10px;
+    background-color: ${props => props.theme._1};
 `
 
 const TodoList: StyledComponent<React.ComponentType<ListProps<ITodo>>, any> = styled(List)`
@@ -88,13 +100,28 @@ const TodoListItem: StyledComponent<React.ComponentType<ListItemProps>, any> = s
 `
 
 const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(Input)`
-    padding: 10px;
-    background-color: #ddd;
+    padding: 15px 10px;
+    background-color: ${props => props.theme._2};
     border: none;
     border-radius: 4px;
 `
 
-const newTodo = {
-    content: ''
-}
+const TodoNode = styled.a`
+
+    &:hover {
+        cursor: pointer;
+        color: ${props => props.theme._0};
+    }
+`
+
+const HomeNodeBox = styled.div`
+    display: flex;
+    align-items: center;
+`
+
+const isHomeNode = (todo: ITodoNavNode) => todo.id === 0;
+
+const nodeHome: ITodoNavNode = { id: 0, content: 'Home' };
+
+const todoBlank: ITodoNew = { content: '' };
 

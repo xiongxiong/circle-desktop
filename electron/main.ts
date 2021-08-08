@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { logger } from '@/utils/log';
 import { todoService } from './service/TodoService';

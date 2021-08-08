@@ -1,4 +1,4 @@
-import {ITodoNew} from './Todo'
+import {ITodo, ITodoNew} from './Todo'
 
 export interface IBridgeMsg {
     channel: string,
@@ -11,7 +11,8 @@ export interface IActionMsg {
 }
 
 export enum Actions {
-    TodoNew = "TodoNew",
+    TodoCreate = "TodoCreate",
+    TodoUpdate = "TodoUpdate",
     TodoList = "TodoList"
 }
 
@@ -20,23 +21,34 @@ abstract class MsgTodo implements IBridgeMsg {
     message: IActionMsg;
 }
 
-export class MsgTodoNew extends MsgTodo {
+export class MsgTodoCreate extends MsgTodo {
     constructor(todoNew: ITodoNew) {
         super();
         const now = Date.now();
         this.message = {
-            action: Actions.TodoNew,
+            action: Actions.TodoCreate,
             body: {...todoNew, createdAt: now, updatedAt: now}
         };
     }
 }
 
+export class MsgTodoUpdate extends MsgTodo {
+    constructor(todo: ITodo) {
+        super();
+        const now = Date.now();
+        this.message = {
+            action: Actions.TodoUpdate,
+            body: {...todo, updatedAt: now}
+        };
+    }
+}
+
 export class MsgTodoList extends MsgTodo {
-    constructor() {
+    constructor(todo?: ITodo) {
         super();
         this.message = {
             action: Actions.TodoList,
-            body: undefined
+            body: todo
         };
     }
 }
