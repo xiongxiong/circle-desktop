@@ -16,8 +16,11 @@ export class Todo {
     @Column()
     updatedAt: Date;
 
+    @Column()
+    childrenCount: number;
+
     @TreeChildren()
-    children: Todo[];
+    children?: Todo[];
 
     @TreeParent()
     parent?: Todo;

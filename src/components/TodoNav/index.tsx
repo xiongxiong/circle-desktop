@@ -45,10 +45,12 @@ export const TodoNav = (props: ITodoNavProps) => {
 const NodeContainer = styled.div`
     display: flex;
     align-items: center;
+    height: 26px;
 `
 
 const Container = styled(NodeContainer)`
     flex-wrap: wrap;
+    font-size: 14px;
 `
 
 const ItemContainer = styled.div`

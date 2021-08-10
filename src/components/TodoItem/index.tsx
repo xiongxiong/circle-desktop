@@ -46,7 +46,7 @@ export const TodoItem = (props: ITodoItem) => {
 const ContainerBase = styled.div`
   display: flex;
   align-items: center;
-  padding: 4px 8px;
+  padding: 8px 8px;
   margin: 1px;
   border-radius: 4px;
 `
@@ -59,9 +59,17 @@ const Container = styled(ContainerBox)`
 
 const Content = styled.input`
   flex: 1;
-  padding: 8px 8px;
+  padding: 4px 8px;
   background-color: transparent;
   border: none;
+  font-size: 12px;
+
+  &:focus {
+    background-color: ${props => props.theme._1};
+    outline: none;
+    border: none;
+    border-radius: 4px;
+  }
 `
 
 const Icon = styled(IconLiebiao)`

@@ -1,6 +1,6 @@
 import { List, ListProps, Input, InputProps } from 'antd';
 import React from 'react';
-import styled, { StyledComponent } from 'styled-components';
+import styled, { StyledComponent, ThemeContext } from 'styled-components';
 import { ITodoNew, ITodo, ITodoNavNode } from '@/interface/Todo';
 import { MsgTodoList, MsgTodoCreate } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
@@ -9,6 +9,9 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import IconFangzi from '~/components/@iconfont/IconFangzi';
 import { TodoNav } from '~/components/TodoNav';
+import IconZengjia from '~/components/@iconfont/IconZengjia';
+import { useContext } from 'react';
+import { Empty } from '~/components/Empty';
 
 export interface ITodosProps {
 
@@ -21,6 +24,8 @@ export const Todos = (props: ITodosProps) => {
     const [currentNode, setCurrentNode] = useState(undefined as (ITodo | undefined));
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined));
     const [newTodo, setNewTodo] = useState(todoBlank);
+
+    const theme = useContext(ThemeContext);
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
 
@@ -70,8 +75,15 @@ export const Todos = (props: ITodosProps) => {
             <Header>
                 <TodoNav renderItem={navNodeRender} nodes={navNodes}/>
             </Header>
-            <TodoList bordered dataSource={todos} renderItem={listItemRender} />
-            <TodoInput size='large' value={newTodo.content} onChange={onChange} onPressEnter={createTodo} />
+            {todos.length === 0 ? (
+                <Empty width="30%" />
+            ) : (
+                <TodoList dataSource={todos} renderItem={listItemRender} />
+            )}
+            <InputContainer>
+                <IconZengjia color={theme._1} />
+                <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onChange={onChange} onPressEnter={createTodo} />
+            </InputContainer>
         </Container>
     );
 }
@@ -99,11 +111,29 @@ const TodoListItem: StyledComponent<React.ComponentType<ListItemProps>, any> = s
     list-style-type: none;
 `
 
-const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(Input)`
-    padding: 15px 10px;
+const InputContainer = styled.div`
+    display: flex;
+    align-items: center;
+    padding: 8px 8px;
     background-color: ${props => props.theme._2};
-    border: none;
     border-radius: 4px;
+`
+
+const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(Input)`
+    flex: 1;
+    border: none;
+    padding: 8px 8px 6px;
+    color: ${props => props.theme._1};
+    background-color: transparent;
+
+    &:focus {
+        outline: none;
+        border: none;
+    }
+
+    &::placeholder {
+        color: ${props => props.theme._3};
+    }
 `
 
 const TodoNode = styled.a`

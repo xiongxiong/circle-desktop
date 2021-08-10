@@ -15,7 +15,7 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: path.resolve(__dirname, '../assets/fonts'), to: path.resolve(__dirname, '../.webpack/renderer/assets/fonts') },
+        { from: path.resolve(__dirname, '../assets'), to: path.resolve(__dirname, '../.webpack/renderer/assets') },
       ],
     }),
   ]

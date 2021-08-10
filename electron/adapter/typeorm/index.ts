@@ -1,5 +1,5 @@
 import { ITodo, ITodoNew } from '@/interface/Todo';
-import { Connection, createConnection, FindConditions, getCustomRepository, IsNull } from 'typeorm';
+import { Connection, createConnection, FindConditions, getCustomRepository, IsNull, Transaction, TransactionRepository } from 'typeorm';
 import { Todo } from './entity/Todo';
 import { TodoRepository } from './repository/TodoRepository';
 
@@ -28,15 +28,25 @@ class DbService {
 		return repo.find(options);
 	};
 
-	create = async (todo: ITodoNew) => {
-		const repo = getCustomRepository(TodoRepository);
+	@Transaction()
+	create(todo: ITodoNew, @TransactionRepository() repo: TodoRepository) {
 		const todoNew = repo.create(todo);
+		if (todo.parent) {
+			const {id} = todo.parent;
+			repo.increment({id}, "childrenCount", 1);
+		}
 		return repo.save(todoNew);
 	};
 
-	update = async (todo: ITodo) => {
-		const repo = getCustomRepository(TodoRepository);
+	@Transaction()
+	update(todo: ITodo, @TransactionRepository() repo: TodoRepository) {
 		return repo.save(todo);
+	}
+
+	@Transaction()
+	delete(todo: ITodo, @TransactionRepository() repo: TodoRepository) {
+		const {id} = todo;
+		return repo.delete({id});
 	}
 }
 
