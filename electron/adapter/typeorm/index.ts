@@ -1,4 +1,5 @@
 import { ITodo, ITodoNew } from '@/interface/Todo';
+import { env } from '@/utils/env';
 import { Connection, createConnection, FindConditions, getCustomRepository, IsNull, Transaction, TransactionRepository } from 'typeorm';
 import { Todo } from './entity/Todo';
 import { TodoRepository } from './repository/TodoRepository';
@@ -9,7 +10,7 @@ class DbService {
 	open = async () => {
 		this.conn = await createConnection({
 			type: 'better-sqlite3',
-			database: 'db/circle.db',
+			database: env.database(),
 			synchronize: true,
 			logging: true,
 			entities: [ Todo ],
@@ -29,24 +30,28 @@ class DbService {
 	};
 
 	@Transaction()
-	create(todo: ITodoNew, @TransactionRepository() repo: TodoRepository) {
-		const todoNew = repo.create(todo);
-		if (todo.parent) {
+	create(todo: ITodoNew, @TransactionRepository() repo?: TodoRepository) {
+		const todoNew = repo?.create({...todo, childrenCount: 0});
+		if (todo.parent !== undefined) {
 			const {id} = todo.parent;
-			repo.increment({id}, "childrenCount", 1);
+			repo?.increment({id}, "childrenCount", 1);
 		}
-		return repo.save(todoNew);
+		return (todoNew !== undefined) && repo?.save(todoNew);
 	};
 
 	@Transaction()
-	update(todo: ITodo, @TransactionRepository() repo: TodoRepository) {
-		return repo.save(todo);
+	update(todo: ITodo, @TransactionRepository() repo?: TodoRepository) {
+		return repo?.save(todo);
 	}
 
 	@Transaction()
-	delete(todo: ITodo, @TransactionRepository() repo: TodoRepository) {
+	delete(todo: ITodo, @TransactionRepository() repo?: TodoRepository) {
+		if (todo.parent !== undefined) {
+			const {id} = todo.parent;
+			repo?.decrement({id}, "childrenCount", 1);
+		}
 		const {id} = todo;
-		return repo.delete({id});
+		return repo?.delete({id});
 	}
 }
 

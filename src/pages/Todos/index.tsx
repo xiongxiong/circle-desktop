@@ -2,7 +2,7 @@ import { List, ListProps, Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
 import { ITodoNew, ITodo, ITodoNavNode } from '@/interface/Todo';
-import { MsgTodoList, MsgTodoCreate } from '@/interface/BridgeMsg';
+import { MsgTodoList, MsgTodoCreate, MsgTodoDelete } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { ListItemProps } from 'antd/lib/list';
 import { useState } from 'react';
@@ -44,6 +44,10 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
+    const deleteTodo = (todo: ITodo) => {
+        window.Main.invoke(new MsgTodoDelete(todo)).then(selectTodoList);
+    }
+
     const toNextLev = (todo: ITodo) => {
         setNavNodes(navNodes.concat([todo]));
         setCurrentNode(todo);
@@ -66,15 +70,13 @@ export const Todos = (props: ITodosProps) => {
 
     const listItemRender = (item: ITodo) => (
         <TodoListItem key={item.id} onClick={() => setCurrentTodo(item)}>
-            <TodoItem {...{ todo: item, isSelected: item === currentTodo, toSubList: toNextLev }} />
+            <TodoItem {...{ todo: item, isSelected: item === currentTodo, toFolder: toNextLev, toDelete: deleteTodo }} />
         </TodoListItem>
     )
 
     return (
         <Container>
-            <Header>
-                <TodoNav renderItem={navNodeRender} nodes={navNodes}/>
-            </Header>
+            {navNodes.length <= 1 ? undefined : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
             {todos.length === 0 ? (
                 <Empty width="30%" />
             ) : (
@@ -95,11 +97,6 @@ const Container = styled.div`
 	flex-direction: column;
 	justify-content: center;
     background-color: ${props => props.theme._0};
-`
-
-const Header = styled.div`
-    padding: 10px 10px;
-    background-color: ${props => props.theme._1};
 `
 
 const TodoList: StyledComponent<React.ComponentType<ListProps<ITodo>>, any> = styled(List)`

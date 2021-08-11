@@ -23,6 +23,8 @@ class TodoService implements ITodoService {
 				return dbService.create(body);
 			case Actions.TodoUpdate:
 				return dbService.update(body);
+			case Actions.TodoDelete:
+				return dbService.delete(body);
 			case Actions.TodoList:
 				return dbService.selectList(body);
 			default:

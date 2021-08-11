@@ -42,15 +42,19 @@ export const TodoNav = (props: ITodoNavProps) => {
     );
 }
 
+const Container = styled.div`
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 14px;
+    padding: 10px 10px;
+    background-color: ${props => props.theme._1};
+`
+
 const NodeContainer = styled.div`
     display: flex;
     align-items: center;
     height: 26px;
-`
-
-const Container = styled(NodeContainer)`
-    flex-wrap: wrap;
-    font-size: 14px;
 `
 
 const ItemContainer = styled.div`

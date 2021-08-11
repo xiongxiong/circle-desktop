@@ -13,6 +13,7 @@ export interface IActionMsg {
 export enum Actions {
     TodoCreate = "TodoCreate",
     TodoUpdate = "TodoUpdate",
+    TodoDelete = "TodoDelete",
     TodoList = "TodoList"
 }
 
@@ -39,6 +40,16 @@ export class MsgTodoUpdate extends MsgTodo {
         this.message = {
             action: Actions.TodoUpdate,
             body: {...todo, updatedAt: now}
+        };
+    }
+}
+
+export class MsgTodoDelete extends MsgTodo {
+    constructor(todo: ITodo) {
+        super();
+        this.message = {
+            action: Actions.TodoDelete,
+            body: todo
         };
     }
 }
