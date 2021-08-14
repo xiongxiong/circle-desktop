@@ -1,8 +1,8 @@
 import { List, ListProps, Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodoNew, ITodo, ITodoNavNode } from '@/interface/Todo';
-import { MsgTodoList, MsgTodoCreate, MsgTodoDelete } from '@/interface/BridgeMsg';
+import { ITodoInsert, ITodo, ITodoBasic } from '@/interface/Todo';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoDelete } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { ListItemProps } from 'antd/lib/list';
 import { useState } from 'react';
@@ -19,9 +19,9 @@ export interface ITodosProps {
 
 export const Todos = (props: ITodosProps) => {
 
-    const [navNodes, setNavNodes] = useState([nodeHome] as ITodoNavNode[]);
+    const [navNodes, setNavNodes] = useState([nodeHome] as ITodoBasic[]);
     const [todos, setTodos] = useState([] as ITodo[]);
-    const [currentNode, setCurrentNode] = useState(undefined as (ITodo | undefined));
+    const [currentNode, setCurrentNode] = useState(nodeHome as ITodoBasic);
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined));
     const [newTodo, setNewTodo] = useState(todoBlank);
 
@@ -30,7 +30,8 @@ export const Todos = (props: ITodosProps) => {
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
 
     const selectTodoList = () => {
-        window.Main.invoke(new MsgTodoList(currentNode)).then((todos) => {
+        const {id} = currentNode || {};
+        window.Main.invoke(new MsgTodoSelectList({parentId: id})).then((todos) => {
             console.log("todos : ", todos);
             setTodos(todos);
         });
@@ -38,9 +39,10 @@ export const Todos = (props: ITodosProps) => {
 
     useEffect(selectTodoList, [currentNode]);
 
-    const createTodo = () => {
+    const insertTodo = () => {
+        const {id} = currentNode || {};
         if (newTodo.content.trim().length > 0) {
-            window.Main.invoke(new MsgTodoCreate({ ...newTodo, parent: currentNode })).then(() => setNewTodo(todoBlank)).then(selectTodoList);
+            window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id })).then(() => setNewTodo(todoBlank)).then(selectTodoList);
         }
     }
 
@@ -53,12 +55,12 @@ export const Todos = (props: ITodosProps) => {
         setCurrentNode(todo);
     }
 
-    const toPrevLev = (todo: ITodoNavNode) => {
+    const toPrevLev = (todo: ITodoBasic) => {
         setNavNodes(navNodes.slice(0, navNodes.indexOf(todo) + 1));
-        setCurrentNode(isHomeNode(todo) ? undefined : todo as ITodo);
+        setCurrentNode(isHomeNode(todo) ? nodeHome : todo as ITodo);
     }
 
-    const navNodeRender = (node: ITodoNavNode, index: number, nodes: ITodoNavNode[]) => {
+    const navNodeRender = (node: ITodoBasic, index: number, nodes: ITodoBasic[]) => {
         const isHead = index === 0;
         const isTail = index === nodes.length - 1;
         return isTail ? (
@@ -84,13 +86,14 @@ export const Todos = (props: ITodosProps) => {
             )}
             <InputContainer>
                 <IconZengjia color={theme._1} />
-                <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onChange={onChange} onPressEnter={createTodo} />
+                <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onChange={onChange} onPressEnter={insertTodo} />
             </InputContainer>
         </Container>
     );
 }
 
 const Container = styled.div`
+    flex: 1;
 	height: 100vh;
 	padding: 25px;
 	display: flex;
@@ -122,6 +125,7 @@ const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(
     padding: 8px 8px 6px;
     color: ${props => props.theme._1};
     background-color: transparent;
+    font-family: inherit;
 
     &:focus {
         outline: none;
@@ -137,7 +141,7 @@ const TodoNode = styled.a`
 
     &:hover {
         cursor: pointer;
-        color: ${props => props.theme._0};
+        color: ${props => props.theme._6};
     }
 `
 
@@ -146,9 +150,9 @@ const HomeNodeBox = styled.div`
     align-items: center;
 `
 
-const isHomeNode = (todo: ITodoNavNode) => todo.id === 0;
+const isHomeNode = (todo: ITodoBasic) => todo.id === 0;
 
-const nodeHome: ITodoNavNode = { id: 0, content: 'Home' };
+const nodeHome: ITodoBasic = { id: 0, content: 'Home' };
 
-const todoBlank: ITodoNew = { content: '' };
+const todoBlank: ITodoInsert = { content: '' };
 

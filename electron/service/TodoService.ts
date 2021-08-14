@@ -1,7 +1,7 @@
 import { Actions, IActionMsg } from '@/interface/BridgeMsg';
-import { ITodoNew, ITodo } from '@/interface/Todo';
+import { ITodoInsert, ITodo } from '@/interface/Todo';
 import { IpcMainEvent } from 'electron';
-import { dbService } from '../adapter/typeorm';
+import { dbService } from '../adapter/better-sqlite3';
 
 export interface ITodoService {
 	open: () => void;
@@ -19,14 +19,14 @@ class TodoService implements ITodoService {
 		console.log('message:', message);
 		const { action, body } = message;
 		switch (action) {
-			case Actions.TodoCreate:
-				return dbService.create(body);
+			case Actions.TodoInsert:
+				return await dbService.todoInsert(body);
 			case Actions.TodoUpdate:
-				return dbService.update(body);
+				return dbService.todoUpdate(body);
 			case Actions.TodoDelete:
-				return dbService.delete(body);
-			case Actions.TodoList:
-				return dbService.selectList(body);
+				return dbService.todoDelete(body);
+			case Actions.TodoSelectList:
+				return dbService.todoSelectList(body);
 			default:
 				console.error('NOT SUPPORTED ACTION IN [ TodoService ]');
 		}

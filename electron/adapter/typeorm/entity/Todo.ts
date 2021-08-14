@@ -1,27 +1,36 @@
 import {Entity, Tree, Column, PrimaryGeneratedColumn, TreeChildren, TreeParent, TreeLevelColumn} from "typeorm";
 
-@Entity({name: 't_todo'})
-@Tree("closure-table")
+@Entity({name: 'todo'})
+@Tree('closure-table', {ancestorColumnName: () => 'idAncestor', descendantColumnName: () => 'idDescendant'})
 export class Todo {
 
-    @PrimaryGeneratedColumn({name: 'c_id'})
+    @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({name: 'c_content'})
+    @Column()
     content: string;
 
-    @Column({name: 'c_created_at'})
+    @Column()
     createdAt: Date;
 
-    @Column({name: 'c_updated_at'})
+    @Column()
     updatedAt: Date;
 
-    @Column({name: 'c_children_count'})
+    @Column({default: false})
+    isFinish: boolean;
+
+    @Column({default: 0})
     childrenCount: number;
+
+    @Column({default: 0})
+    childrenFinish: number;
 
     @TreeChildren()
     children?: Todo[];
 
     @TreeParent({onDelete: 'CASCADE'})
     parent?: Todo;
+
+    @TreeLevelColumn()
+    level: number;
 }

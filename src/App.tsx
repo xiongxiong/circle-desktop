@@ -1,15 +1,18 @@
 
 import { GlobalStyle } from './styles/GlobalStyle';
-import { Todos } from './pages/Todos';
 import { ThemeProvider } from 'styled-components';
 import { themeDefault } from './styles/Themes';
+import { Todos } from './pages/Todos';
+import { FlexBoxProject } from './components/FlexBoxProject';
 
 export function App() {
   return (
     <>
       <GlobalStyle />
       <ThemeProvider theme={themeDefault}>
-        <Todos />
+        <FlexBoxProject>
+          <Todos />
+        </FlexBoxProject>
       </ThemeProvider>
     </>
   );

@@ -13,7 +13,6 @@
 		"lint": "eslint . --ext js,ts",
 		"test": "jest",
 		"rebuild": "electron-rebuild -f -w better-sqlite3",
-		"typeorm": "node --require ts-node/register --require better-sqlite3 ./node_modules/typeorm/cli.js",
 		"iconfont": "iconfont-h5"
 	},
 	"keywords": [],
@@ -25,8 +24,7 @@
 		"react-dom": "17.0.2",
 		"react-hot-loader": "4.13.0",
 		"reflect-metadata": "^0.1.13",
-		"styled-components": "5.3.0",
-		"typeorm": "^0.2.36"
+		"styled-components": "5.3.0"
 	},
 	"devDependencies": {
 		"@babel/core": "7.14.6",

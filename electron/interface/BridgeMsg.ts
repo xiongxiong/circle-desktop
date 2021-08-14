@@ -1,4 +1,4 @@
-import {ITodo, ITodoNew} from './Todo'
+import {ITodo, ITodoHasId, ITodoHasParentId, ITodoInsert, ITodoUpdate} from './Todo'
 
 export interface IBridgeMsg {
     channel: string,
@@ -11,10 +11,10 @@ export interface IActionMsg {
 }
 
 export enum Actions {
-    TodoCreate = "TodoCreate",
+    TodoInsert = "TodoInsert",
     TodoUpdate = "TodoUpdate",
     TodoDelete = "TodoDelete",
-    TodoList = "TodoList"
+    TodoSelectList = "TodoList"
 }
 
 abstract class MsgTodo implements IBridgeMsg {
@@ -22,43 +22,41 @@ abstract class MsgTodo implements IBridgeMsg {
     message: IActionMsg;
 }
 
-export class MsgTodoCreate extends MsgTodo {
-    constructor(todoNew: ITodoNew) {
-        super();
-        const now = Date.now();
-        this.message = {
-            action: Actions.TodoCreate,
-            body: {...todoNew, createdAt: now, updatedAt: now}
-        };
-    }
-}
-
-export class MsgTodoUpdate extends MsgTodo {
-    constructor(todo: ITodo) {
-        super();
-        const now = Date.now();
-        this.message = {
-            action: Actions.TodoUpdate,
-            body: {...todo, updatedAt: now}
-        };
-    }
-}
-
-export class MsgTodoDelete extends MsgTodo {
-    constructor(todo: ITodo) {
+export class MsgTodoSelectList extends MsgTodo {
+    constructor(todo?: ITodoHasParentId) {
         super();
         this.message = {
-            action: Actions.TodoDelete,
+            action: Actions.TodoSelectList,
             body: todo
         };
     }
 }
 
-export class MsgTodoList extends MsgTodo {
-    constructor(todo?: ITodo) {
+export class MsgTodoInsert extends MsgTodo {
+    constructor(todo: ITodoInsert) {
         super();
         this.message = {
-            action: Actions.TodoList,
+            action: Actions.TodoInsert,
+            body: todo
+        };
+    }
+}
+
+export class MsgTodoUpdate extends MsgTodo {
+    constructor(todo: ITodoUpdate) {
+        super();
+        this.message = {
+            action: Actions.TodoUpdate,
+            body: todo
+        };
+    }
+}
+
+export class MsgTodoDelete extends MsgTodo {
+    constructor(todo: ITodoHasId) {
+        super();
+        this.message = {
+            action: Actions.TodoDelete,
             body: todo
         };
     }

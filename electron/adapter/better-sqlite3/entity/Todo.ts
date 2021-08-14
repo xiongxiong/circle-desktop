@@ -1,4 +1,4 @@
-import {Entity, Tree, Column, PrimaryGeneratedColumn, TreeChildren, TreeParent, TreeLevelColumn} from "typeorm";
+
 
 export class Todo {
 
@@ -10,9 +10,11 @@ export class Todo {
 
     updatedAt: Date;
 
+    isFinish: boolean;
+
+    parentId?: number;
+
     childrenCount: number;
 
-    parent?: Todo;
-
-    children?: Todo[];
+    childrenFinish: number;
 }

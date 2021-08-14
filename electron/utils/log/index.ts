@@ -1,6 +1,6 @@
 interface ILog {
 	withTags: (...tags: (string | number)[]) => ILog;
-	log: (...data: any[]) => ILog;
+	log: (...data: any[]) => Promise<ILog>;
 }
 
 class Log implements ILog {
@@ -11,21 +11,16 @@ class Log implements ILog {
         return this;
 	}
 
-	log(...data: any[]) {
+    async log(...data: any[]) {
         const tagStr = this.tags?.reduce((s, tag) => s + ' >> ' + tag, '\n');
         for (let item of data) {
             switch (typeof item) {
                 case 'function':
                     try {
-                        console.log(tagStr, '-- PREPARE')
-                        const result = item()
-                        if (result instanceof Promise) {
-                            result.then(r => console.log(tagStr, '-- SUCCESS', r))
-                        } else {
-                            console.log(tagStr, '-- SUCCESS', result)
-                        }
+                        console.log(tagStr, '-- PREPARE');
+                        console.log(tagStr, '-- SUCCESS', await item());
                     } catch (e) {
-                        console.error(tagStr, '-- FAILURE', e)
+                        console.error(tagStr, '-- FAILURE', e);
                     }
                     break;
                 default:

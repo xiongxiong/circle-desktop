@@ -2,11 +2,12 @@ import { MsgTodoUpdate } from '@/interface/BridgeMsg';
 import { ITodo } from '@/interface/Todo';
 import React, { useContext, useState } from 'react';
 import styled, { StyledComponent, ThemeContext, ThemedStyledProps } from 'styled-components';
+import { IClassName } from '~/interfaces/Component';
 import IconLiebiao from '../@iconfont/IconLiebiao';
 import IconShanchu from '../@iconfont/IconShanchu';
 import IconZengjia from '../@iconfont/IconZengjia';
 
-export interface ITodoItem {
+export interface ITodoItem extends IClassName {
   todo: ITodo,
   isSelected?: boolean,
   toFolder: (todo: ITodo) => void,
@@ -15,7 +16,7 @@ export interface ITodoItem {
 
 export const TodoItem = (props: ITodoItem) => {
 
-  const { todo, todo: {content: initContent}, isSelected = false, toFolder, toDelete } = props;
+  const { todo, todo: {content: initContent, childrenCount}, isSelected = false, toFolder, toDelete, className } = props;
 
   const [content, setContent] = useState(initContent);
 
@@ -40,27 +41,26 @@ export const TodoItem = (props: ITodoItem) => {
   const iconSize = 20;
 
   return (
-    <Container isSelected={isSelected}>
+    <Container className={className} isSelected={isSelected}>
       <Content value={content} onChange={onChange} onFocus={onFocus} onBlur={onBlur} onKeyPress={onKeyPress} />
       <IconGroup>
-        <IconShanchu size={iconSize} onClick={() => toDelete(todo)} />
-        <IconLiebiao size={iconSize} onClick={() => toFolder(todo)} />
+        {/* <IconShanchu size={iconSize} onClick={() => toDelete(todo)} /> */}
+        {childrenCount > 0 ? (
+          <IconLiebiao size={iconSize} onClick={() => toFolder(todo)} />
+        ) : (
+          <IconZengjia size={iconSize} onClick={() => toFolder(todo)} />
+        )}
       </IconGroup>
     </Container>
   );
 }
 
-const ContainerBase = styled.div`
+const Container = styled.div.attrs({} as {isSelected: boolean})`
   display: flex;
   align-items: center;
   padding: 8px 8px;
   margin: 1px;
   border-radius: 4px;
-`
-
-const ContainerBox = (props: {isSelected: boolean, className?: string, children?: React.ReactNode}) => (<ContainerBase className={props.className}>{props.children}</ContainerBase>);
-
-const Container = styled(ContainerBox)`
   background-color: ${props => props.isSelected ? props.theme._3 : props.theme._1};
 `
 
@@ -70,6 +70,7 @@ const Content = styled.input`
   background-color: transparent;
   border: none;
   font-size: 12px;
+  font-family: inherit;
 
   &:focus {
     background-color: ${props => props.theme._1};

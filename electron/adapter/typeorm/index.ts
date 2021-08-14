@@ -1,4 +1,4 @@
-import { ITodo, ITodoNew } from '@/interface/Todo';
+import { ITodo, ITodoInsert } from '@/interface/Todo';
 import { env } from '@/utils/env';
 import { Connection, createConnection, FindConditions, getCustomRepository, IsNull, Transaction, TransactionRepository } from 'typeorm';
 import { Todo } from './entity/Todo';
@@ -30,7 +30,7 @@ class DbService {
 	};
 
 	@Transaction()
-	create(todo: ITodoNew, @TransactionRepository() repo?: TodoRepository) {
+	create(todo: ITodoInsert, @TransactionRepository() repo?: TodoRepository) {
 		const todoNew = repo?.create({...todo, childrenCount: 0});
 		if (todo.parent !== undefined) {
 			const {id} = todo.parent;
