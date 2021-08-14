@@ -3,16 +3,16 @@ import { GlobalStyle } from './styles/GlobalStyle';
 import { ThemeProvider } from 'styled-components';
 import { themeDefault } from './styles/Themes';
 import { Todos } from './pages/Todos';
-import { FlexBoxProject } from './components/FlexBoxProject';
+import { FlexBox } from './components/FlexBox';
 
 export function App() {
   return (
     <>
       <GlobalStyle />
       <ThemeProvider theme={themeDefault}>
-        <FlexBoxProject>
+        <FlexBox boxRender={() => undefined} stairs={['30%']}>
           <Todos />
-        </FlexBoxProject>
+        </FlexBox>
       </ThemeProvider>
     </>
   );

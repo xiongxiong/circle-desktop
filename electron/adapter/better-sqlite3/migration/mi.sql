@@ -34,6 +34,7 @@ create trigger onTodoInsert after insert on todo
 drop trigger if exists onTodoUpdateParentId;
 
 create trigger onTodoUpdateParentId after update of parentId on todo
+    when new.parentId != old.parentId
 	begin
     	delete from todo_closure where idDescendant in (select idDescendant from (select idDescendant from todo_closure where idAncestor = new.id)) and idAncestor in (select idAncestor from (select idAncestor from todo_closure where idDescendant = new.id and idAncestor != idDescendant));
     	insert into todo_closure (idAncestor, idDescendant, length) select p_tree.idAncestor, c_tree.idDescendant, p_tree.length + c_tree.length + 1 from todo_closure p_tree cross join todo_closure c_tree where p_tree.idDescendant = new.parentId and c_tree.idAncestor = new.id;
@@ -42,6 +43,7 @@ create trigger onTodoUpdateParentId after update of parentId on todo
 drop trigger if exists onTodoUpdateisFinish;
 
 create trigger onTodoUpdateisFinish after update of isFinish on todo
+    when new.isFinish != old.isFinish
 	begin
     	update todo set childrenFinish = childrenFinish - 1 where id = new.parentId and 0 = new.isFinish;
         update todo set childrenFinish = childrenFinish + 1 where id = new.parentId and 1 = new.isFinish;
@@ -50,6 +52,7 @@ create trigger onTodoUpdateisFinish after update of isFinish on todo
 drop trigger if exists onTodoUpdateChildrenCount;
 
 create trigger onTodoUpdateChildrenCount after update of childrenCount on todo
+    when new.childrenCount != old.childrenCount
 	begin
     	update todo set isFinish = 0 where id = new.id and childrenFinish < childrenCount;
         update todo set isFinish = 1 where id = new.id and childrenFinish = childrenCount;
@@ -58,16 +61,18 @@ create trigger onTodoUpdateChildrenCount after update of childrenCount on todo
 drop trigger if exists onTodoUpdateChildrenFinish;
 
 create trigger onTodoUpdateChildrenFinish after update of childrenFinish on todo
+    when new.childrenFinish != old.childrenFinish
 	begin
-    	update todo set isFinish = 0 where id = id and childrenFinish < childrenCount;
-        update todo set isFinish = 1 where id = id and childrenFinish = childrenCount;
+    	update todo set isFinish = 0 where id = new.id and childrenFinish < childrenCount;
+        update todo set isFinish = 1 where id = new.id and childrenFinish = childrenCount;
     end;
 
 drop trigger if exists onTodoDelete;
 
 create trigger onTodoDelete after delete on todo
 	begin
-    	delete from todo_closure where idDescendant in (select idDescendant from (select idDescendant from todo_closure where idAncestor = old.id)) and idAncestor in (select idAncestor from (select idAncestor from todo_closure where idDescendant = new.id));
+        update todo set childrenCount = childrenCount - 1 where id = old.parentId;
+    	delete from todo_closure where idDescendant in (select idDescendant from (select idDescendant from todo_closure where idAncestor = old.id)) and idAncestor in (select idAncestor from (select idAncestor from todo_closure where idDescendant = old.id));
     end;
 
 

@@ -6,6 +6,7 @@ import BetterSqlite3, {Database, Statement} from "better-sqlite3";
 class DbService {
 
 	private db: Database;
+	private stmtMap = new Map();
 
 	open = () => {
 		const options = env.isDeve() || env.isTest() ? {verbose: console.log} : {};
@@ -22,46 +23,39 @@ class DbService {
 
 	}
 
-	private stmtTodoSelectList: Statement;
+	private stmt = (name: string, sql: string) => {
+		if (!this.stmtMap.get(name)) {
+			this.stmtMap.set(name, this.db.prepare(sql));
+		}
+		return this.stmtMap.get(name);
+	}
 
 	todoSelectList = (todo: ITodoHasParentId) => {
-		if (!this.stmtTodoSelectList) {
-			this.stmtTodoSelectList = this.db.prepare('select id, content, createdAt, updatedAt, isFinish, parentId, childrenCount, childrenFinish, priority from todo where parentId = @parentId');
-		}
 		const {parentId} = todo || {};
-		return this.stmtTodoSelectList.all({parentId});
+		return this.stmt('stmtTodoSelectList', 'select id, content, createdAt, updatedAt, isFinish, parentId, childrenCount, childrenFinish, priority from todo where parentId = @parentId').all({parentId});
 	}
-
-	private stmtTodoInsert: Statement;
 
 	todoInsert = (todo: ITodoInsert) => {
-		if (!this.stmtTodoInsert) {
-			this.stmtTodoInsert = this.db.prepare('insert into todo (content, createdAt, updatedAt, parentId) values (@content, @createdAt, @updatedAt, @parentId)');
-		}
 		const now = Date.now();
 		const {content, parentId} = todo || {};
-		return this.db.transaction(() => this.stmtTodoInsert.run({content, parentId, createdAt: now, updatedAt: now}).changes > 0).immediate();
+		return this.db.transaction(() => this.stmt('stmtTodoInsert', 'insert into todo (content, createdAt, updatedAt, parentId) values (@content, @createdAt, @updatedAt, @parentId)').run({content, parentId, createdAt: now, updatedAt: now}).changes > 0).immediate();
 	}
-
-	private stmtTodoUpdate: Statement;
 
 	todoUpdate = (todo: ITodoUpdate) => {
-		if (!this.stmtTodoUpdate) {
-			this.stmtTodoUpdate = this.db.prepare('update todo set content = @content, updatedAt = @updatedAt, isFinished = @isFinished, parentId = @parentId where id = @parentId');
-		}
 		const now = Date.now();
-		const {content, isFinish, parentId} = todo || {};
-		return this.db.transaction(() => this.stmtTodoUpdate.run({content, isFinish, parentId, updatedAt: now}).changes > 0).immediate();
+		const {id, content, isFinish, parentId} = todo || {};
+		return this.db.transaction(() => this.stmt('stmtTodoUpdate', 'update todo set content = @content, updatedAt = @updatedAt, isFinish = @isFinish, parentId = @parentId where id = @id').run({id, content, isFinish: isFinish ? 1 : 0, parentId, updatedAt: now}).changes > 0).immediate();
 	}
 
-	private stmtTodoDelete: Statement;
+	todoUpdateIsFinish = (todo: ITodoUpdate) => {
+		const now = Date.now();
+		const {id, isFinish} = todo || {};
+		return this.db.transaction(() => this.stmt('stmtTodoUpdateIsFinish', 'update todo set updatedAt = @updatedAt, isFinish = @isFinish where id = @id').run({id, isFinish: isFinish ? 1 : 0, updatedAt: now}).changes > 0).immediate();
+	}
 
 	todoDelete = (todo: ITodoHasId) => {
-		if (!this.stmtTodoDelete) {
-			this.stmtTodoDelete = this.db.prepare('delete from todo where id = @id');
-		}
 		const {id} = todo || {};
-		return this.db.transaction(() => this.stmtTodoDelete.run({id}).changes > 0).immediate();
+		return this.db.transaction(() => this.stmt('stmtTodoDelete', 'delete from todo where id = @id').run({id}).changes > 0).immediate();
 	}
 }
 

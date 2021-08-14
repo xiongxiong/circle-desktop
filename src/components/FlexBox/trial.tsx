@@ -2,7 +2,8 @@
 import { GlobalStyle } from '../../styles/GlobalStyle';
 import styled, { ThemeProvider } from 'styled-components';
 import { themeDefault } from '../../styles/Themes';
-import { FlexBox } from '.';
+import { FlexBox, IFlexBoxRef } from '.';
+import { createRef } from 'react';
 
 export function App() {
 
@@ -12,13 +13,20 @@ export function App() {
     </Head>
   );
 
+  const theRef: React.ForwardedRef<IFlexBoxRef> = createRef();
+
+  const stairs = ['30%', '50%'];
+
+  let stairIndex = 0;
+  const changeStair = () => theRef.current?.stairTo((stairIndex += 1) % stairs.length);
+
   return (
     <>
       <GlobalStyle />
       <ThemeProvider theme={themeDefault}>
         <Container>
-          <FlexBoxContainer direction='row' boxRender={boxRender} stairs={['10%', '50%']} stairNext={1} stairPrev={0}>
-            <Tail></Tail>
+          <FlexBoxContainer ref={theRef} direction='row' boxRender={boxRender} stairs={stairs} stairAt={0}>
+            <Tail onClick={changeStair}></Tail>
           </FlexBoxContainer>
         </Container>
       </ThemeProvider>

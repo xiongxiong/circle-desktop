@@ -20,9 +20,11 @@ class TodoService implements ITodoService {
 		const { action, body } = message;
 		switch (action) {
 			case Actions.TodoInsert:
-				return await dbService.todoInsert(body);
+				return dbService.todoInsert(body);
 			case Actions.TodoUpdate:
 				return dbService.todoUpdate(body);
+			case Actions.TodoUpdateIsFinish:
+				return dbService.todoUpdateIsFinish(body);
 			case Actions.TodoDelete:
 				return dbService.todoDelete(body);
 			case Actions.TodoSelectList:

@@ -1,8 +1,8 @@
 import { List, ListProps, Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodoInsert, ITodo, ITodoBasic } from '@/interface/Todo';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoDelete } from '@/interface/BridgeMsg';
+import { ITodoInsert, ITodo, ITodoBasic, ITodoUpdateIsFinish } from '@/interface/Todo';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoDelete, MsgTodoUpdateIsFinish } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { ListItemProps } from 'antd/lib/list';
 import { useState } from 'react';
@@ -12,6 +12,10 @@ import { TodoNav } from '~/components/TodoNav';
 import IconZengjia from '~/components/@iconfont/IconZengjia';
 import { useContext } from 'react';
 import { Empty } from '~/components/Empty';
+import { FlexBox, IFlexBoxRef } from '~/components/FlexBox';
+import IconJinrujiantou from '~/components/@iconfont/IconJinrujiantou';
+import IconShanchu from '~/components/@iconfont/IconShanchu';
+import { createRef } from 'react';
 
 export interface ITodosProps {
 
@@ -25,11 +29,13 @@ export const Todos = (props: ITodosProps) => {
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined));
     const [newTodo, setNewTodo] = useState(todoBlank);
 
-    const theme = useContext(ThemeContext);
+    /**
+     * 查询待办列表
+     * @param clearBeforeRequest 是否在查询发起前清空当前待办列表
+     */
+    const selectTodoList = (clearBeforeRequest: boolean = false) => {
+        clearBeforeRequest && setTodos([]);
 
-    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
-
-    const selectTodoList = () => {
         const {id} = currentNode || {};
         window.Main.invoke(new MsgTodoSelectList({parentId: id})).then((todos) => {
             console.log("todos : ", todos);
@@ -37,22 +43,54 @@ export const Todos = (props: ITodosProps) => {
         });
     }
 
-    useEffect(selectTodoList, [currentNode]);
+    useEffect(() => selectTodoList(true), [currentNode]);
+
+    useEffect(() => {
+        currentTodo ? openDetailBox() : closeDetailBox();
+    }, [currentTodo]);
+
+    const theme = useContext(ThemeContext);
+
+    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
 
     const insertTodo = () => {
         const {id} = currentNode || {};
         if (newTodo.content.trim().length > 0) {
-            window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id })).then(() => setNewTodo(todoBlank)).then(selectTodoList);
+            window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id })).then((ok) => {
+                if (ok) {
+                    setNewTodo(todoBlank);
+                    selectTodoList();
+                }
+            });
         }
     }
 
-    const deleteTodo = (todo: ITodo) => {
-        window.Main.invoke(new MsgTodoDelete(todo)).then(selectTodoList);
+    const updateTodoIsFinish = (todo: ITodoUpdateIsFinish) => {
+        window.Main.invoke(new MsgTodoUpdateIsFinish(todo)).then(ok => ok && selectTodoList());
     }
 
-    const toNextLev = (todo: ITodo) => {
+    const deleteTodo = (todo?: ITodo) => {
+        if (todo) {
+            window.Main.invoke(new MsgTodoDelete(todo)).then(ok => {
+                if (ok) {
+                    clearSelect();
+                    selectTodoList();
+                }
+            });
+        }
+    }
+
+    const selectTodo = (event: React.MouseEvent, todo: ITodo) => {
+        event.stopPropagation();
+        setCurrentTodo(todo);
+    }
+
+    const clearSelect = () => setCurrentTodo(undefined);
+
+    const toNextLev = (todo: ITodoBasic) => {
         setNavNodes(navNodes.concat([todo]));
         setCurrentNode(todo);
+        clearSelect();
     }
 
     const toPrevLev = (todo: ITodoBasic) => {
@@ -70,25 +108,45 @@ export const Todos = (props: ITodosProps) => {
         );
     }
 
+    const detailRef: React.ForwardedRef<IFlexBoxRef> = createRef();
+
+    const openDetailBox = () => detailRef.current?.stairTo(1);
+
+    const closeDetailBox = () => detailRef.current?.stairTo(0);
+
+    const todoDetailBox = () => (
+        <DetailContainer>
+            <DetailContent>
+
+            </DetailContent>
+            <DetailFooter>
+                <IconJinrujiantou onClick={closeDetailBox}/>
+                <IconShanchu onClick={() => deleteTodo(currentTodo)}/>
+            </DetailFooter>
+        </DetailContainer>
+    );
+
     const listItemRender = (item: ITodo) => (
-        <TodoListItem key={item.id} onClick={() => setCurrentTodo(item)}>
-            <TodoItem {...{ todo: item, isSelected: item === currentTodo, toFolder: toNextLev, toDelete: deleteTodo }} />
+        <TodoListItem key={item.id} onClick={(event) => selectTodo(event, item)}>
+            <TodoItem todo={item} isSelected={item === currentTodo} toFolder={toNextLev} toFinish={updateTodoIsFinish} />
         </TodoListItem>
     )
 
     return (
-        <Container>
-            {navNodes.length <= 1 ? undefined : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
-            {todos.length === 0 ? (
-                <Empty width="30%" />
-            ) : (
-                <TodoList dataSource={todos} renderItem={listItemRender} />
-            )}
-            <InputContainer>
-                <IconZengjia color={theme._1} />
-                <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onChange={onChange} onPressEnter={insertTodo} />
-            </InputContainer>
-        </Container>
+        <FlexBox ref={detailRef} direction='row-reverse' boxRender={todoDetailBox} stairs={['30%']}>
+            <Container onClick={clearSelect}>
+                {navNodes.length <= 1 ? undefined : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
+                {todos.length === 0 ? (
+                    <Empty width="30%" />
+                ) : (
+                    <TodoList dataSource={todos} renderItem={listItemRender} />
+                )}
+                <InputContainer>
+                    <IconZengjia color={theme._1} />
+                    <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={clearSelect} onChange={onChange} onPressEnter={insertTodo} />
+                </InputContainer>
+            </Container>
+        </FlexBox>
     );
 }
 
@@ -148,6 +206,22 @@ const TodoNode = styled.a`
 const HomeNodeBox = styled.div`
     display: flex;
     align-items: center;
+`
+
+const DetailContainer = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+`
+
+const DetailContent = styled.div`
+    flex: 1;
+`
+
+const DetailFooter = styled.div`
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
 `
 
 const isHomeNode = (todo: ITodoBasic) => todo.id === 0;

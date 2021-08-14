@@ -1,22 +1,23 @@
 import { MsgTodoUpdate } from '@/interface/BridgeMsg';
-import { ITodo } from '@/interface/Todo';
-import React, { useContext, useState } from 'react';
-import styled, { StyledComponent, ThemeContext, ThemedStyledProps } from 'styled-components';
+import { ITodo, ITodoBasic, ITodoUpdateIsFinish } from '@/interface/Todo';
+import React, { useState } from 'react';
+import styled from 'styled-components';
 import { IClassName } from '~/interfaces/Component';
+import IconDuigouWeigouxuan from '../@iconfont/IconDuigouWeigouxuan';
+import IconDuigouzhong from '../@iconfont/IconDuigouzhong';
 import IconLiebiao from '../@iconfont/IconLiebiao';
-import IconShanchu from '../@iconfont/IconShanchu';
 import IconZengjia from '../@iconfont/IconZengjia';
 
 export interface ITodoItem extends IClassName {
   todo: ITodo,
   isSelected?: boolean,
-  toFolder: (todo: ITodo) => void,
-  toDelete: (todo: ITodo) => void
+  toFolder: (todo: ITodoBasic) => void,
+  toFinish: (todo: ITodoUpdateIsFinish) => void
 }
 
 export const TodoItem = (props: ITodoItem) => {
 
-  const { todo, todo: {content: initContent, childrenCount}, isSelected = false, toFolder, toDelete, className } = props;
+  const { todo, todo: {content: initContent, isFinish, childrenCount}, isSelected = false, toFolder = (todo: ITodo) => {}, toFinish = (todo: ITodoUpdateIsFinish) => {}, className } = props;
 
   const [content, setContent] = useState(initContent);
 
@@ -36,15 +37,31 @@ export const TodoItem = (props: ITodoItem) => {
     }
   };
 
+  const finishTodo = () => {
+    const {id} = todo;
+    toFinish({id, isFinish: true});
+  };
+
+  const unFinishTodo = () => {
+    const {id} = todo;
+    toFinish({id, isFinish: false});
+  };
+
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setContent(event.target.value);
 
-  const iconSize = 20;
+  const iconSize = 24;
 
   return (
     <Container className={className} isSelected={isSelected}>
       <Content value={content} onChange={onChange} onFocus={onFocus} onBlur={onBlur} onKeyPress={onKeyPress} />
-      <IconGroup>
-        {/* <IconShanchu size={iconSize} onClick={() => toDelete(todo)} /> */}
+      <IconGroup onClick={(e) => e.stopPropagation()}>
+        {childrenCount === 0 ? (
+          isFinish ? (
+            <IconDuigouzhong size={iconSize} onClick={unFinishTodo} />
+          ) : (
+            <IconDuigouWeigouxuan size={iconSize} onClick={finishTodo} />
+          )
+        ) : undefined}
         {childrenCount > 0 ? (
           <IconLiebiao size={iconSize} onClick={() => toFolder(todo)} />
         ) : (
