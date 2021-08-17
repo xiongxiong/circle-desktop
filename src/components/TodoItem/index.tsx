@@ -3,10 +3,7 @@ import { ITodo, ITodoBasic, ITodoUpdateIsFinish } from '@/interface/Todo';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { IClassName } from '~/interfaces/Component';
-import IconDuigouWeigouxuan from '../@iconfont/IconDuigouWeigouxuan';
-import IconDuigouzhong from '../@iconfont/IconDuigouzhong';
-import IconLiebiao from '../@iconfont/IconLiebiao';
-import IconZengjia from '../@iconfont/IconZengjia';
+import { IconButton } from '../IconButton';
 
 export interface ITodoItem extends IClassName {
   todo: ITodo,
@@ -49,7 +46,7 @@ export const TodoItem = (props: ITodoItem) => {
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setContent(event.target.value);
 
-  const iconSize = 24;
+  const iconSize = 16;
 
   return (
     <Container className={className} isSelected={isSelected}>
@@ -57,15 +54,21 @@ export const TodoItem = (props: ITodoItem) => {
       <IconGroup onClick={(e) => e.stopPropagation()}>
         {childrenCount === 0 ? (
           isFinish ? (
-            <IconDuigouzhong size={iconSize} onClick={unFinishTodo} />
+            <IconButton name="duigouzhong" size={iconSize} onClick={unFinishTodo} />
           ) : (
-            <IconDuigouWeigouxuan size={iconSize} onClick={finishTodo} />
+            <IconButton name="duigouweigouxuan" size={iconSize} onClick={finishTodo} />
           )
-        ) : undefined}
-        {childrenCount > 0 ? (
-          <IconLiebiao size={iconSize} onClick={() => toFolder(todo)} />
         ) : (
-          <IconZengjia size={iconSize} onClick={() => toFolder(todo)} />
+          isFinish ? (
+            <IconButton name="duigouzhong" size={iconSize} disabled={true} />
+          ) : (
+            <IconButton name="duigouweigouxuan" size={iconSize} disabled={true} />
+          )
+        )}
+        {childrenCount > 0 ? (
+          <IconButton name="liebiao" size={iconSize} onClick={() => toFolder(todo)} />
+        ) : (
+          <IconButton name="zengjia" size={iconSize} onClick={() => toFolder(todo)} />
         )}
       </IconGroup>
     </Container>
@@ -100,15 +103,12 @@ const Content = styled.input`
 const IconGroup = styled.div`
   display: flex;
   align-items: center;
-  margin: 0px 8px;
+  margin: 0px 4px 0px 8px;
 
   & > * {
-    padding: 4px;
+    padding: 2px;
+    margin: 0px 2px;
     border-radius: 2px;
-  }
-
-  & > *:hover {
-    cursor: pointer;
   }
 `
 

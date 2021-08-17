@@ -1,11 +1,11 @@
 import { Actions, IActionMsg } from '@/interface/BridgeMsg';
-import { ITodoInsert, ITodo } from '@/interface/Todo';
-import { IpcMainEvent } from 'electron';
 import { dbService } from '../adapter/better-sqlite3';
 
 export interface ITodoService {
 	open: () => void;
 	close: () => void;
+	backup: () => Promise<any>;
+	restore: () => Promise<any>;
 	on: (message: any) => any;
 }
 
@@ -14,6 +14,10 @@ class TodoService implements ITodoService {
 	open = dbService.open;
 
 	close = dbService.close;
+
+	backup = dbService.backup;
+
+	restore = dbService.restore;
 
 	on: (message: any) => any = async (message: IActionMsg) => {
 		console.log('message:', message);

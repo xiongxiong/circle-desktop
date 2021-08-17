@@ -1,4 +1,4 @@
-import {ITodo, ITodoHasId, ITodoHasParentId, ITodoInsert, ITodoUpdate, ITodoUpdateIsFinish} from './Todo'
+import {ITodo, ITodoHasId, ITodoHasParentId, ITodoInsert, ITodoList, ITodoUpdate, ITodoUpdateIsFinish} from './Todo'
 
 export interface IBridgeMsg {
     channel: string,
@@ -24,7 +24,7 @@ abstract class MsgTodo implements IBridgeMsg {
 }
 
 export class MsgTodoSelectList extends MsgTodo {
-    constructor(todo?: ITodoHasParentId) {
+    constructor(todo?: ITodoList) {
         super();
         this.message = {
             action: Actions.TodoSelectList,

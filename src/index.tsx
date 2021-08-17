@@ -8,12 +8,12 @@ const loadFonts = () => {
     head.appendChild(style);
 }
 
-const isTrial: boolean = false;
-
-Promise.resolve(isTrial)
+Promise.resolve(window.Main.env.isTrial())
 .then((trial) => {
+    console.log(`TRIAL MODE -- ${trial}`);
+    
     if (trial) {
-        import("./components/FlexBox/trial").then(({App}) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
+        import("./components/ButtonGroup/trial").then(({App}) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
     } else {
         import("./App").then(({App}) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
     }

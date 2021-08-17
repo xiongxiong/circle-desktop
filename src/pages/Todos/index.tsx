@@ -16,6 +16,7 @@ import { FlexBox, IFlexBoxRef } from '~/components/FlexBox';
 import IconJinrujiantou from '~/components/@iconfont/IconJinrujiantou';
 import IconShanchu from '~/components/@iconfont/IconShanchu';
 import { createRef } from 'react';
+import { ButtonGroup, IButton } from '~/components/ButtonGroup';
 
 export interface ITodosProps {
 
@@ -28,6 +29,18 @@ export const Todos = (props: ITodosProps) => {
     const [currentNode, setCurrentNode] = useState(nodeHome as ITodoBasic);
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined));
     const [newTodo, setNewTodo] = useState(todoBlank);
+    const [finishStatus, setFinishStatus] = useState(false);
+
+    const finishStatusBtns: IButton[] = [
+        {
+            name: '未完成',
+            func: () => setFinishStatus(false)
+        },
+        {
+            name: '已完成',
+            func: () => setFinishStatus(true)
+        }
+    ];
 
     /**
      * 查询待办列表
@@ -37,13 +50,13 @@ export const Todos = (props: ITodosProps) => {
         clearBeforeRequest && setTodos([]);
 
         const {id} = currentNode || {};
-        window.Main.invoke(new MsgTodoSelectList({parentId: id})).then((todos) => {
+        window.Main.invoke(new MsgTodoSelectList({parentId: id, isFinish: finishStatus})).then((todos) => {
             console.log("todos : ", todos);
             setTodos(todos);
         });
     }
 
-    useEffect(() => selectTodoList(true), [currentNode]);
+    useEffect(() => selectTodoList(true), [currentNode, finishStatus]);
 
     useEffect(() => {
         currentTodo ? openDetailBox() : closeDetailBox();
@@ -135,7 +148,10 @@ export const Todos = (props: ITodosProps) => {
     return (
         <FlexBox ref={detailRef} direction='row-reverse' boxRender={todoDetailBox} stairs={['30%']}>
             <Container onClick={clearSelect}>
-                {navNodes.length <= 1 ? undefined : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
+                <Header>
+                {navNodes.length <= 1 ? <div /> : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
+                <ButtonGroup buttons={finishStatusBtns} radio />
+                </Header>
                 {todos.length === 0 ? (
                     <Empty width="30%" />
                 ) : (
@@ -153,11 +169,19 @@ export const Todos = (props: ITodosProps) => {
 const Container = styled.div`
     flex: 1;
 	height: 100vh;
-	padding: 25px;
+	padding: 10px 20px;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
     background-color: ${props => props.theme._0};
+`
+
+const Header = styled.div`
+    height: 36px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 `
 
 const TodoList: StyledComponent<React.ComponentType<ListProps<ITodo>>, any> = styled(List)`
@@ -198,7 +222,7 @@ const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(
 const TodoNode = styled.a`
 
     &:hover {
-        cursor: pointer;
+        cursor: default;
         color: ${props => props.theme._6};
     }
 `

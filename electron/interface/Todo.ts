@@ -10,13 +10,17 @@ export interface ITodoHasParentId {
     parentId?: number
 }
 
+export interface ITodoIsFinish {
+    isFinish: boolean
+}
+
+export interface ITodoList extends ITodoHasParentId, ITodoIsFinish {}
+
 export interface ITodoInsert extends ITodoHasContent, ITodoHasParentId {}
 
 export interface ITodoBasic extends ITodoHasId, ITodoHasContent {}
 
-export interface ITodoUpdateIsFinish extends ITodoHasId {
-    isFinish: boolean
-}
+export interface ITodoUpdateIsFinish extends ITodoHasId, ITodoIsFinish {}
 
 export interface ITodoUpdate extends ITodoInsert, ITodoBasic, ITodoUpdateIsFinish {}
 

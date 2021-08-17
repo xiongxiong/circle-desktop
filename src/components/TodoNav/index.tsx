@@ -55,6 +55,7 @@ const NodeContainer = styled.div`
     display: flex;
     align-items: center;
     height: 26px;
+    font-size: 12px;
 `
 
 const ItemContainer = styled.div`

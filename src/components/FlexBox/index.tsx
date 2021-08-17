@@ -20,7 +20,7 @@ export type Direction = "row" | "row-reverse" | "column" | "column-reverse";
 
 const FlexBoxBase = (props: IFlexBoxProps, ref: React.ForwardedRef<IFlexBoxRef>) => {
 
-    const { direction = 'row', boxRender = () => undefined, stairs: initStairs = [], stairAt = 0, animTime = 300, className, children } = props;
+    const { direction = 'row', boxRender = () => undefined, stairs: initStairs = [], stairAt = 0, animTime = 200, className, children } = props;
 
     const stairs = ['0px'].concat(initStairs);
 
@@ -66,12 +66,10 @@ const Container = styled.div.attrs({} as { direction: Direction })`
 `
 
 const HeadBox = styled.div.attrs({} as { stairs: string[], stairNext: number, stairPrev: number, animTime: number, animation: (stairs: string[], stairNext: number, stairPrev: number) => Keyframes })`
-    display: ${props => props.stairNext === 0 ? 'none' : 'flex'};
-    animation: ${props => props.animation(props.stairs, props.stairNext, props.stairPrev)} ${props => props.animTime}ms linear;
-
-    ${props => props.stairNext > 0 && css`
-        width: ${props.stairs[props.stairNext]};
-    `}
+    display: flex;
+    overflow: hidden;
+    width: ${props => props.stairs[props.stairNext]};
+    animation: ${props => props.animation(props.stairs, props.stairNext, props.stairPrev)} ${props => props.animTime}ms ease-out;
 `;
 
 const TailBox = styled.div`

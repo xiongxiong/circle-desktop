@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IBridgeMsg } from './interface/BridgeMsg'
+import { env } from './utils/env';
 
 export const api = {
   /**
@@ -7,6 +8,8 @@ export const api = {
    * so they can interact with the main (electron) side
    * without security problems.
    */
+
+  env: env,
 
   send: (message: IBridgeMsg) => {
     console.log("[MESSAGE] SEND : ", message);

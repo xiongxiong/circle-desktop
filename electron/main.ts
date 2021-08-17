@@ -1,9 +1,10 @@
 import 'reflect-metadata';
 
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { logger } from '@/utils/log';
 import { todoService } from './service/TodoService';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
+import { asyncLog, syncLog } from './utils/log';
+import { env } from './utils/env';
 
 let mainWindow: BrowserWindow | null;
 
@@ -20,7 +21,6 @@ function createWindow() {
 		// icon: path.join(assetsPath, 'assets', 'icon.png'),
 		width: 900,
 		height: 600,
-		backgroundColor: '#191622',
 		webPreferences: {
 			nodeIntegration: false,
 			contextIsolation: true,
@@ -61,8 +61,13 @@ app
 			.then((name) => console.log(`Add Extension [SUCCESS]: ${name}`))
 			.catch((err) => console.log('Add Extension [FAILURE]: ', err))
 	)
-	.then(registerListeners)
-	.then(() => logger().withTags('DATABASE CONNECT').log(todoService.open))
+	.then(() => {
+		if (!env.isTrial()) {
+			registerListeners();
+			syncLog(todoService.open, 'DATABASE CONNECT');
+			// return asyncLog(todoService.backup, 'DATABASE BACKUP');
+		}
+	})
 	.catch((e) => console.error(e));
 
 app.on('window-all-closed', () => {
@@ -71,7 +76,11 @@ app.on('window-all-closed', () => {
 	}
 });
 
-app.on('will-quit', () => logger().withTags('DATABASE DISCONNECT').log(todoService.close));
+app.on('will-quit', () => {
+	if (!env.isTrial()) {
+		syncLog(todoService.close, 'DATABASE DISCONNECT');
+	}
+});
 
 app.on('activate', () => {
 	if (BrowserWindow.getAllWindows().length === 0) {

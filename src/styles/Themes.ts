@@ -21,5 +21,5 @@ export const themeDefault: ITheme = {
     _6: '#8FB7D6',
     _7: '',
     _8: '',
-    _9: '',
+    _9: '#000000',
 }

@@ -72,6 +72,7 @@ drop trigger if exists onTodoDelete;
 create trigger onTodoDelete after delete on todo
 	begin
         update todo set childrenCount = childrenCount - 1 where id = old.parentId;
+        delete from todo where parentId = old.id;
     	delete from todo_closure where idDescendant in (select idDescendant from (select idDescendant from todo_closure where idAncestor = old.id)) and idAncestor in (select idAncestor from (select idAncestor from todo_closure where idDescendant = old.id));
     end;
 

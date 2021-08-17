@@ -1,37 +1,11 @@
-interface ILog {
-	withTags: (...tags: (string | number)[]) => ILog;
-	log: (...data: any[]) => Promise<ILog>;
-}
-
-class Log implements ILog {
-    private tags?: (string | number)[] | undefined;
-
-    withTags(...tags: (string | number)[]) {
-		this.tags = tags;
-        return this;
-	}
-
-    async log(...data: any[]) {
-        const tagStr = this.tags?.reduce((s, tag) => s + ' >> ' + tag, '\n');
-        for (let item of data) {
-            switch (typeof item) {
-                case 'function':
-                    try {
-                        console.log(tagStr, '-- PREPARE');
-                        console.log(tagStr, '-- SUCCESS', await item());
-                    } catch (e) {
-                        console.error(tagStr, '-- FAILURE', e);
-                    }
-                    break;
-                default:
-                    console.log(data);
-                    break;
-            }
-        }
-        return this;
+export const syncLog = (func: () => any, desc: string) => {
+    try {
+        console.log(`${desc} [PREPARE]`);
+        const result = func();
+        console.log(`${desc} [SUCCESS] : `, result);
+    } catch (err) {
+        console.log(`${desc} [FAILURE] : `, err);
     }
 }
 
-export const logger: () => ILog = () => new Log();
-
-export const log = logger().log;
+export const asyncLog = (func: () => Promise<any>, desc: string) => Promise.resolve(console.log(`${desc} [PREPARE]`)).then(() => func()).then((res) => console.log(`${desc} [SUCCESS] : `, res)).catch(() => console.log(`${desc} [FAILURE]`));

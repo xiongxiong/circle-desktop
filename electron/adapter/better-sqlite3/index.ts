@@ -1,4 +1,4 @@
-import { ITodo, ITodoHasId, ITodoHasParentId, ITodoInsert, ITodoUpdate } from "@/interface/Todo";
+import { ITodo, ITodoHasId, ITodoHasParentId, ITodoInsert, ITodoList, ITodoUpdate } from "@/interface/Todo";
 import { env } from "@/utils/env";
 import BetterSqlite3, {Database, Statement} from "better-sqlite3";
 
@@ -9,15 +9,19 @@ class DbService {
 	private stmtMap = new Map();
 
 	open = () => {
-		const options = env.isDeve() || env.isTest() ? {verbose: console.log} : {};
-		this.db = new BetterSqlite3(env.database(), options);
+		const options = env.isDev() || env.isTest() ? {verbose: console.log} : {};
+		this.db = new BetterSqlite3(env.dbFile(), options);
 
 		this.migration();
-	};
+	}
 
 	close = () => {
 		this.db.close();
-	};
+	}
+
+	backup = () => this.db.backup(env.dbFileBackup());
+
+	restore = async () => {}
 
 	private migration = () => {
 
@@ -30,9 +34,9 @@ class DbService {
 		return this.stmtMap.get(name);
 	}
 
-	todoSelectList = (todo: ITodoHasParentId) => {
-		const {parentId} = todo || {};
-		return this.stmt('stmtTodoSelectList', 'select id, content, createdAt, updatedAt, isFinish, parentId, childrenCount, childrenFinish, priority from todo where parentId = @parentId').all({parentId});
+	todoSelectList = (todo: ITodoList) => {
+		const {parentId, isFinish} = todo || {};
+		return this.stmt('stmtTodoSelectList', 'select id, content, createdAt, updatedAt, isFinish, parentId, childrenCount, childrenFinish, priority from todo where parentId = @parentId and isFinish = @isFinish').all({parentId, isFinish: isFinish ? 1 : 0});
 	}
 
 	todoInsert = (todo: ITodoInsert) => {
