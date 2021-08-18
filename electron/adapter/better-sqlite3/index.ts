@@ -1,6 +1,8 @@
 import { ITodoHasId, ITodoInsert, ITodoList, ITodoUpdate, ITodoUpdateIsDelete, ITodoUpdateIsFinish } from "@/interface/Todo";
 import { env } from "@/utils/env";
+import { uLog } from "@/utils/log";
 import BetterSqlite3, {Database} from "better-sqlite3";
+import {initSQL} from './init';
 
 
 class DbService {
@@ -10,8 +12,6 @@ class DbService {
 
 	open = () => {
 		this.db = new BetterSqlite3(env.dbFile(), env.dbOptions());
-
-		this.migration();
 	}
 
 	close = () => {
@@ -22,7 +22,17 @@ class DbService {
 
 	restore = async () => {}
 
-	private migration = () => {
+	init = () => {
+		const {count = 0} = this.stmt('_tableCount', 'SELECT COUNT(*) AS count FROM (SELECT type,name,sql,tbl_name FROM "main".sqlite_master)').get();
+		console.log("DATABASE TABLE COUNT -- ", count);
+		
+		if (count === 0) {
+			console.log("DATABASE EMPTY > INIT");
+			this.db.transaction(() => this.db.exec(initSQL)).immediate();
+		}
+	}
+
+	migrate = () => {
 
 	}
 

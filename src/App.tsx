@@ -10,7 +10,7 @@ export function App() {
         <>
             <GlobalStyle />
             <ThemeProvider theme={themeDefault}>
-                <Container stairs={['30%']}>
+                <Container stairs={['60px', '200px']} stairAt={1}>
                     <Todos />
                 </Container>
             </ThemeProvider>

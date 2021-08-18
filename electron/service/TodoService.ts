@@ -4,15 +4,22 @@ import { dbService } from '../adapter/better-sqlite3';
 export interface ITodoService {
 	open: () => void;
 	close: () => void;
+	init: () => void;
+	migrate: () => void;
 	backup: () => Promise<any>;
 	restore: () => Promise<any>;
 	on: (message: any) => any;
 }
 
 class TodoService implements ITodoService {
+
 	open = dbService.open;
 
 	close = dbService.close;
+
+	init = dbService.init;
+
+	migrate = dbService.migrate;
 
 	backup = dbService.backup;
 

@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { todoService } from './service/TodoService';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
-import { asyncLog, syncLog } from './utils/log';
+import { uLog } from './utils/log';
 import { env } from './utils/env';
 
 let mainWindow: BrowserWindow | null;
@@ -57,17 +57,13 @@ app
 	.on('ready', createWindow)
 	.whenReady()
 	.then(() =>
-		installExtension(REACT_DEVELOPER_TOOLS)
-			.then((name) => console.log(`Add Extension [SUCCESS]: ${name}`))
-			.catch((err) => console.log('Add Extension [FAILURE]: ', err))
+		uLog(() => installExtension(REACT_DEVELOPER_TOOLS), 'INSTALL EXTENSION REACT_DEVELOPER_TOOLS')
 	)
-	.then(() => {
-		if (!env.isTrial()) {
-			registerListeners();
-			syncLog(todoService.open, 'DATABASE CONNECT');
-			return asyncLog(todoService.backup, 'DATABASE BACKUP');
-		}
-	})
+	.then(() => uLog(todoService.open, 'DATABASE CONNECT'))
+	.then(() => uLog(todoService.init, 'DATABASE INIT'))
+	.then(() => uLog(todoService.migrate, 'DATABASE MIGRATE'))
+	.then(() => uLog(todoService.backup, 'DATABASE BACKUP'))
+	.then(() => uLog(registerListeners, 'REGISTER LISTENERS'))
 	.catch((e) => console.error(e));
 
 app.on('window-all-closed', () => {
@@ -78,7 +74,7 @@ app.on('window-all-closed', () => {
 
 app.on('will-quit', () => {
 	if (!env.isTrial()) {
-		syncLog(todoService.close, 'DATABASE DISCONNECT');
+		uLog(todoService.close, 'DATABASE DISCONNECT');
 	}
 });
 

@@ -1,3 +1,5 @@
+export const initSQL = 
+`
 
 drop table if exists "todo";
 
@@ -102,5 +104,6 @@ create trigger onTodoDelete after delete on todo
     	delete from todo_closure where idDescendant in (select idDescendant from (select idDescendant from todo_closure where idAncestor = old.id)) and idAncestor in (select idAncestor from (select idAncestor from todo_closure where idDescendant = old.id));
     end;
 
+`
 
 

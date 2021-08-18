@@ -22,6 +22,8 @@ export interface ITodosProps {
 
 export const Todos = (props: ITodosProps) => {
 
+    const theme = useContext(ThemeContext);
+
     const [todos, setTodos] = useState([] as ITodo[]);
     const [currentNode, setCurrentNode] = useState(nodeHome);
     const [navNodes, setNavNodes] = useState([nodeHome]);
@@ -29,6 +31,14 @@ export const Todos = (props: ITodosProps) => {
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined));
     const [newTodo, setNewTodo] = useState(todoBlank);
     const [finishStatus, setFinishStatus] = useState(false);
+
+    useEffect(() => {
+        selectTodoListAndTodoStat(true);
+    }, [currentNode, finishStatus]);
+
+    useEffect(() => {
+        currentTodo ? openDetail() : closeDetail();
+    }, [currentTodo]);
 
     const finishStatusBtns = () => {
         const {childrenCount = 0, childrenFinish = 0} = todoStat || {};
@@ -48,7 +58,7 @@ export const Todos = (props: ITodosProps) => {
      * 查询待办列表
      * @param clearBeforeRequest 是否在查询发起前清空当前待办列表
      */
-    const selectTodoList = (clearBeforeRequest: boolean = false) => {
+    const selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false) => {
         clearBeforeRequest && setTodos([]);
 
         const {id} = currentNode || {};
@@ -56,27 +66,14 @@ export const Todos = (props: ITodosProps) => {
             console.log("todos : ", todos);
             setTodos(todos);
         });
-    }
 
-    useEffect(() => {
-        selectNode();
-        selectTodoList(true);
-    }, [currentNode, finishStatus]);
-
-    useEffect(() => {
-        currentTodo ? openDetail() : closeDetail();
-    }, [currentTodo]);
-
-    const theme = useContext(ThemeContext);
-
-    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
-
-    const selectNode = () => {
         window.Main.invoke(new MsgTodoSelect(currentNode)).then(node => {
             const {childrenCount, childrenFinish} = node || {};
             setTodoStat({childrenCount, childrenFinish});
         });
     }
+
+    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
 
     const insertTodo = () => {
         const {id} = currentNode || {};
@@ -84,14 +81,14 @@ export const Todos = (props: ITodosProps) => {
             window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id })).then((ok) => {
                 if (ok) {
                     setNewTodo(todoBlank);
-                    selectTodoList();
+                    selectTodoListAndTodoStat();
                 }
             });
         }
     }
 
     const updateTodoIsFinish = (todo: ITodoUpdateIsFinish) => {
-        window.Main.invoke(new MsgTodoUpdateIsFinish(todo)).then(ok => ok && selectTodoList());
+        window.Main.invoke(new MsgTodoUpdateIsFinish(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
     const updateTodoIsDelete = (event: React.MouseEvent, todo?: ITodoUpdateIsDelete) => {
@@ -99,7 +96,7 @@ export const Todos = (props: ITodosProps) => {
             window.Main.invoke(new MsgTodoUpdateIsDelete(todo)).then(ok => {
                 if (ok) {
                     todoSelectedClear();
-                    selectTodoList();
+                    selectTodoListAndTodoStat();
                 }
             });
         }
