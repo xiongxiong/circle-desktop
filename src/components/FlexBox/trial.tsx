@@ -7,12 +7,6 @@ import { createRef } from 'react';
 
 export function App() {
 
-  const boxRender = () => (
-    <Head>
-
-    </Head>
-  );
-
   const theRef: React.ForwardedRef<IFlexBoxRef> = createRef();
 
   const stairs = ['30%', '50%'];
@@ -25,7 +19,8 @@ export function App() {
       <GlobalStyle />
       <ThemeProvider theme={themeDefault}>
         <Container>
-          <FlexBoxContainer ref={theRef} direction='row' boxRender={boxRender} stairs={stairs} stairAt={0}>
+          <FlexBoxContainer ref={theRef} direction='row' stairs={stairs} stairAt={0}>
+            <Head />
             <Tail onClick={changeStair}></Tail>
           </FlexBoxContainer>
         </Container>
@@ -45,7 +40,8 @@ const FlexBoxContainer = styled(FlexBox)`
 `
 
 const Head = styled.div`
-  background-color: aliceblue;
+  flex: 1;
+  background-color: cyan;
 `
 
 const Tail = styled.div`

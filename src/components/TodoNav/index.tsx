@@ -48,7 +48,7 @@ const Container = styled.div`
     flex-wrap: wrap;
     font-size: 14px;
     padding: 10px 10px;
-    color: ${props => props.theme._1};
+    color: ${props => props.theme.color1};
 `
 
 const NodeContainer = styled.div`

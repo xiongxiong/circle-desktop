@@ -13,7 +13,7 @@ Promise.resolve(window.Main.env.isTrial())
     console.log(`TRIAL MODE -- ${trial}`);
     
     if (trial) {
-        import("./components/ButtonGroup/trial").then(({App}) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
+        import("./components/FlexBox/trial").then(({App}) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
     } else {
         import("./App").then(({App}) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
     }

@@ -61,8 +61,8 @@ const ButtonBox = styled.div.attrs({} as {checked: boolean})`
     cursor: default;
     padding: 4px 8px;
     font-size: 11px;
-    color: ${props => props.checked ? props.theme._1 : props.theme._2};
-    background-color: ${props => props.checked ? props.theme._3 : props.theme._1};
+    color: ${props => props.checked ? props.theme.color1 : props.theme.color2};
+    background-color: ${props => props.checked ? props.theme.color3 : props.theme.color1};
 
     ${props => {
         if (props.checked) {
@@ -73,8 +73,8 @@ const ButtonBox = styled.div.attrs({} as {checked: boolean})`
             return css`
                 &:hover {
                     cursor: pointer;
-                    color: ${props.theme._1};
-                    background-color: ${props.theme._3};
+                    color: ${props.theme.color1};
+                    background-color: ${props.theme.color3};
                 }
             `
         }

@@ -1,7 +1,7 @@
 import { MsgTodoUpdate } from '@/interface/BridgeMsg';
 import { ITodo, ITodoBasic, ITodoUpdateIsFinish } from '@/interface/Todo';
-import React, { useState } from 'react';
-import styled from 'styled-components';
+import React, { useContext, useState } from 'react';
+import styled, { ThemeContext } from 'styled-components';
 import { IClassName } from '~/interfaces/Component';
 import { IconButton } from '../IconButton';
 
@@ -17,6 +17,8 @@ export const TodoItem = (props: ITodoItem) => {
   const { todo, todo: {content: initContent, isFinish, childrenCount}, isSelected = false, toFolder = (todo: ITodo) => {}, toFinish = (todo: ITodoUpdateIsFinish) => {}, className } = props;
 
   const [content, setContent] = useState(initContent);
+
+  const theme = useContext(ThemeContext);
 
   const onFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     if (!isSelected) event.target.blur();
@@ -46,29 +48,27 @@ export const TodoItem = (props: ITodoItem) => {
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setContent(event.target.value);
 
-  const iconSize = 16;
-
   return (
     <Container className={className} isSelected={isSelected}>
       <Content value={content} onChange={onChange} onFocus={onFocus} onBlur={onBlur} onKeyPress={onKeyPress} />
       <IconGroup onClick={(e) => e.stopPropagation()}>
         {childrenCount === 0 ? (
           isFinish ? (
-            <IconButton name="duigouzhong" size={iconSize} onClick={unFinishTodo} />
+            <IconButton name="duigouzhong" size={theme.iconSize0} onClick={unFinishTodo} />
           ) : (
-            <IconButton name="duigouweigouxuan" size={iconSize} onClick={finishTodo} />
+            <IconButton name="duigouweigouxuan" size={theme.iconSize0} onClick={finishTodo} />
           )
         ) : (
           isFinish ? (
-            <IconButton name="duigouzhong" size={iconSize} disabled={true} />
+            <IconButton name="duigouzhong" size={theme.iconSize0} disabled={true} />
           ) : (
-            <IconButton name="duigouweigouxuan" size={iconSize} disabled={true} />
+            <IconButton name="duigouweigouxuan" size={theme.iconSize0} disabled={true} />
           )
         )}
         {childrenCount > 0 ? (
-          <IconButton name="liebiao" size={iconSize} onClick={() => toFolder(todo)} />
+          <IconButton name="liebiao" size={theme.iconSize0} onClick={() => toFolder(todo)} />
         ) : (
-          <IconButton name="zengjia" size={iconSize} onClick={() => toFolder(todo)} />
+          <IconButton name="zengjia" size={theme.iconSize0} onClick={() => toFolder(todo)} />
         )}
       </IconGroup>
     </Container>
@@ -81,7 +81,7 @@ const Container = styled.div.attrs({} as {isSelected: boolean})`
   padding: 8px 8px;
   margin: 1px;
   border-radius: 4px;
-  background-color: ${props => props.isSelected ? props.theme._3 : props.theme._1};
+  background-color: ${props => props.isSelected ? props.theme.color3 : props.theme.color1};
 `
 
 const Content = styled.input`
@@ -93,7 +93,7 @@ const Content = styled.input`
   font-family: inherit;
 
   &:focus {
-    background-color: ${props => props.theme._1};
+    background-color: ${props => props.theme.color1};
     outline: none;
     border: none;
     border-radius: 4px;

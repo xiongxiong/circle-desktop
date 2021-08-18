@@ -65,7 +65,7 @@ app
 		if (!env.isTrial()) {
 			registerListeners();
 			syncLog(todoService.open, 'DATABASE CONNECT');
-			// return asyncLog(todoService.backup, 'DATABASE BACKUP');
+			return asyncLog(todoService.backup, 'DATABASE BACKUP');
 		}
 	})
 	.catch((e) => console.error(e));

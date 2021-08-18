@@ -1,25 +1,17 @@
 interface IEnv {
-    isDev: () => boolean,
-    isTest: () => boolean,
-    isProd: () => boolean,
     isTrial: () => boolean,
     dbFile: () => string,
+    dbOptions: () => any,
     dbFileBackup: () => string,
 }
 
 class Env implements IEnv {
 
-    private mode = () => process.env.MODE?.toUpperCase();
+    isTrial = () => !!process.env.TRIAL;
 
-    isDev = () => !(this.isTest() || this.isProd() || this.isTrial());
+    dbFile = () => process.env.DBFILE ? process.env.DBFILE : 'db/circle.db';
 
-    isTest = () => this.mode() === 'TEST';
-
-    isProd = () => this.mode() === 'PROD';
-
-    isTrial = () => this.mode() === 'TRIAL';
-
-    dbFile = () => this.isProd() ? 'db/circle.db' : (this.isTest() ? ':memory:' : 'db/cc.db');
+    dbOptions = () => ({verbose: console.log});
 
     dbFileBackup = () => `db/backup-${Date.now()}.db`;
 }

@@ -7,7 +7,8 @@
 	"scripts": {
 		"start": "electron-forge start",
 		"debug": "electron-forge start --inspect-electron",
-		"trial": "cross-env MODE=trial electron-forge start",
+		"snap": "cross-env DBFILE=db/cc.db electron-forge start",
+		"trial": "cross-env TRIAL=true electron-forge start",
 		"package": "electron-forge package",
 		"make": "electron-forge make",
 		"release": "electron-forge publish",

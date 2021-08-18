@@ -6,7 +6,6 @@ import { IComponent } from "~/interfaces/Component";
 
 export interface IFlexBoxProps extends IComponent {
     direction?: Direction,
-    boxRender: () => React.ReactNode,
     stairs: string[],
     stairAt?: number,
     animTime?: number
@@ -20,9 +19,10 @@ export type Direction = "row" | "row-reverse" | "column" | "column-reverse";
 
 const FlexBoxBase = (props: IFlexBoxProps, ref: React.ForwardedRef<IFlexBoxRef>) => {
 
-    const { direction = 'row', boxRender = () => undefined, stairs: initStairs = [], stairAt = 0, animTime = 200, className, children } = props;
+    const { direction = 'row', stairs: initStairs = [], stairAt = 0, animTime = 200, className, children: initChildren } = props;
 
     const stairs = ['0px'].concat(initStairs);
+    const [head, ...tail] = initChildren instanceof Array ? initChildren : [undefined, initChildren];
 
     const [stairNext, setStairNext] = useState(stairAt);
     const [stairPrev, setStairPrev] = useState(stairAt);
@@ -45,14 +45,14 @@ const FlexBoxBase = (props: IFlexBoxProps, ref: React.ForwardedRef<IFlexBoxRef>)
     `;
 
     return (
-    <Container className={className} direction={direction}>
-        <HeadBox stairs={stairs} stairNext={stairNext} stairPrev={stairPrev} animTime={animTime} animation={animation}>
-            {boxRender()}
-        </HeadBox>
-        <TailBox>
-            {children}
-        </TailBox>
-    </Container>
+        <Container className={className} direction={direction}>
+            <HeadBox stairs={stairs} stairNext={stairNext} stairPrev={stairPrev} animTime={animTime} animation={animation}>
+                {head}
+            </HeadBox>
+            <TailBox>
+                {tail}
+            </TailBox>
+        </Container>
     );
 }
 

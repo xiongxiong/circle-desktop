@@ -51,7 +51,7 @@ const Container = styled.div.attrs({} as {disabled: boolean})`
 
     ${props => !props.disabled && css`
         &:hover {
-            background-color: ${props.theme._3};
+            background-color: ${props.theme.color3};
         }
     `}
 `
