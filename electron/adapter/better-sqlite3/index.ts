@@ -45,7 +45,7 @@ class DbService {
 
 	todoSelectList = (todo: ITodoList) => {
 		const {parentId, isFinish} = todo || {};
-		return this.stmt('todoSelectList', 'select id, content, createdAt, updatedAt, isFinish, parentId, childrenCount, childrenFinish, priority from todo where parentId = @parentId and isFinish = @isFinish and isDelete = 0').all({parentId, isFinish: isFinish ? 1 : 0});
+		return this.stmt('todoSelectList', 'select id, content, createdAt, updatedAt, isFinish, parentId, childrenCount, childrenFinish, priority from todo where parentId = @parentId and isFinish = @isFinish and isDelete = 0 order by priority desc').all({parentId, isFinish: isFinish ? 1 : 0});
 	}
 
 	todoSelect = (todo: ITodoHasId) => {

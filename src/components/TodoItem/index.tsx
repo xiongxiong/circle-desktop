@@ -8,7 +8,6 @@ import { IconButton } from '../IconButton';
 export interface ITodoItem extends IClassName {
     todo: ITodo,
     isSelected?: boolean,
-    isClickedFirstTime?: boolean, // 是否Container区域内第一次点击，Container区域内IconGroup区域外第一次点击默认行为为选中条目，控件仅可以对之后的点击作出响应，IconGroup区域内的控件不受限制
     toFolder: (todo: ITodoBasic) => void,
     toFinish: (todo: ITodoUpdateIsFinish) => void,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
@@ -16,7 +15,7 @@ export interface ITodoItem extends IClassName {
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, isFinish, childrenCount }, isSelected = false, isClickedFirstTime = false, toFolder = (todo: ITodo) => { }, toFinish = (todo: ITodoUpdateIsFinish) => { }, onClick = () => {}, className } = props;
+    const { todo, todo: { content: initContent, isFinish, childrenCount }, isSelected = false, toFolder = (todo: ITodo) => { }, toFinish = (todo: ITodoUpdateIsFinish) => { }, onClick = () => {}, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
@@ -62,6 +61,9 @@ export const TodoItem = (props: ITodoItem) => {
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setContent(event.target.value);
 
+    /**
+     * Container区域内IconGroup区域外第一次点击默认行为为选中条目，控件仅可以对之后的点击作出响应，IconGroup区域内的控件不受限制
+     */
     return (
         <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
             <PriorityButton onClick={switchPriorityMode} />
@@ -72,7 +74,7 @@ export const TodoItem = (props: ITodoItem) => {
             ) : (
                 <ContentContainer>
                     <Content value={content} onChange={onChange} onFocus={onFocus} onBlur={onBlur} onKeyPress={onKeyPress} />
-                    <IconGroup>
+                    <IconGroup onClick={(e) => e.stopPropagation()}>
                         {childrenCount === 0 ? (
                             isFinish ? (
                                 <IconButton name="duigouzhong" size={theme.iconSize0} onClick={unFinishTodo} />
