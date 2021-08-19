@@ -102,10 +102,7 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
-    const todoSelected = (event: React.MouseEvent, todo: ITodo) => {
-        event.stopPropagation();
-        setCurrentTodo(todo);
-    }
+    const todoSelected = (event: React.MouseEvent, todo: ITodo) => setCurrentTodo(todo);
 
     const todoSelectedClear = () => setCurrentTodo(undefined);
 
@@ -137,9 +134,7 @@ export const Todos = (props: ITodosProps) => {
     const closeDetail = () => detailRef.current?.stairTo(0);
 
     const listItemRender = (item: ITodo) => (
-        <TodoListItem key={item.id} onClick={(event) => todoSelected(event, item)}>
-            <TodoItem todo={item} isSelected={item === currentTodo} toFolder={toLevNext} toFinish={updateTodoIsFinish} />
-        </TodoListItem>
+        <TodoItem key={item.id} todo={item} isSelected={item === currentTodo} toFolder={toLevNext} toFinish={updateTodoIsFinish} onClick={(event, todo) => todoSelected(event, todo)} />
     )
 
     return (
@@ -153,7 +148,10 @@ export const Todos = (props: ITodosProps) => {
                 {todos.length === 0 ? (
                     <Empty width="30%" />
                 ) : (
-                    <TodoList dataSource={todos} renderItem={listItemRender} />
+                    // <TodoList dataSource={todos} renderItem={listItemRender} />
+                    <TodoList>
+                        {todos.map(item => listItemRender(item))}
+                    </TodoList>
                 )}
                 <InputContainer>
                     <IconZengjia color={theme.color1} />
@@ -181,13 +179,14 @@ const Header = styled.div`
     align-items: center;
 `
 
-const TodoList: StyledComponent<React.ComponentType<ListProps<ITodo>>, any> = styled(List)`
+// const TodoList: StyledComponent<React.ComponentType<ListProps<ITodo>>, any> = styled(List)`
+//     flex: 1;
+//     padding: 10px 0px;
+// `
+
+const TodoList = styled.div`
     flex: 1;
     padding: 10px 0px;
-`
-
-const TodoListItem: StyledComponent<React.ComponentType<ListItemProps>, any> = styled(List.Item)`
-    list-style-type: none;
 `
 
 const InputContainer = styled.div`
