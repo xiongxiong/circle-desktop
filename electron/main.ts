@@ -5,6 +5,7 @@ import { todoService } from './service/TodoService';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { uLog } from './utils/log';
 import { env } from './utils/env';
+import { themeDefault } from '~/styles/Themes';
 
 let mainWindow: BrowserWindow | null;
 
@@ -19,8 +20,10 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 function createWindow() {
 	mainWindow = new BrowserWindow({
 		// icon: path.join(assetsPath, 'assets', 'icon.png'),
-		width: 900,
-		height: 600,
+		// titleBarStyle: 'hiddenInset',
+		width: 800,
+		height: 500,
+		backgroundColor: themeDefault.color0,
 		webPreferences: {
 			nodeIntegration: false,
 			contextIsolation: true,
@@ -62,7 +65,7 @@ app
 	.then(() => uLog(todoService.open, 'DATABASE CONNECT'))
 	.then(() => uLog(todoService.init, 'DATABASE INIT'))
 	.then(() => uLog(todoService.migrate, 'DATABASE MIGRATE'))
-	.then(() => uLog(todoService.backup, 'DATABASE BACKUP'))
+	// .then(() => uLog(todoService.backup, 'DATABASE BACKUP'))
 	.then(() => uLog(registerListeners, 'REGISTER LISTENERS'))
 	.catch((e) => console.error(e));
 

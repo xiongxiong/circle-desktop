@@ -2,23 +2,24 @@ import { ITodo, ITodoUpdateIsDelete } from "@/interface/Todo";
 import { useContext } from "react";
 import { MouseEvent } from "react"
 import styled, { ThemeContext } from "styled-components"
+import { IClassName } from "~/interfaces/Component";
 import { IconButton } from "../IconButton";
 
-export interface ITodoDetail {
+export interface ITodoDetailProps extends IClassName {
     todo?: ITodo,
     closePanel: (e: MouseEvent<HTMLDivElement>) => void,
     updateTodoIsDelete: (e: MouseEvent<HTMLDivElement>, todo: ITodoUpdateIsDelete) => void,
 }
 
-export const TodoDetail = (props: ITodoDetail) => {
+export const TodoDetail = (props: ITodoDetailProps) => {
 
-    const {todo, closePanel, updateTodoIsDelete} = props;
+    const {todo, closePanel, updateTodoIsDelete, className} = props;
     const {id, content} = todo || {id: 0};
 
     const theme = useContext(ThemeContext);
 
     return (
-        <Container>
+        <Container className={className}>
             <Header>
 
             </Header>
@@ -63,6 +64,7 @@ const Content = styled.textarea`
     padding: 4px;
     border: 1px solid lightgray;
     border-radius: 4px;
+    font-family: inherit;
 `
 
 const Icon = styled(IconButton)`

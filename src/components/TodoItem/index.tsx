@@ -2,10 +2,10 @@ import { MsgTodoUpdate } from '@/interface/BridgeMsg';
 import { ITodo, ITodoBasic, ITodoUpdateIsFinish } from '@/interface/Todo';
 import React, { useContext, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
-import { IClassName } from '~/interfaces/Component';
+import { IClassName, IComponent } from '~/interfaces/Component';
 import { IconButton } from '../IconButton';
 
-export interface ITodoItem extends IClassName {
+export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected?: boolean,
     toFolder: (todo: ITodoBasic) => void,
@@ -15,7 +15,7 @@ export interface ITodoItem extends IClassName {
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, isFinish, childrenCount }, isSelected = false, toFolder = (todo: ITodo) => { }, toFinish = (todo: ITodoUpdateIsFinish) => { }, onClick = () => {}, className } = props;
+    const { todo, todo: { content: initContent, isFinish, childrenCount }, isSelected = false, toFolder = (todo: ITodo) => { }, toFinish = (todo: ITodoUpdateIsFinish) => { }, onClick = () => {}, className, style } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
@@ -65,7 +65,7 @@ export const TodoItem = (props: ITodoItem) => {
      * Container区域内IconGroup区域外第一次点击默认行为为选中条目，控件仅可以对之后的点击作出响应，IconGroup区域内的控件不受限制
      */
     return (
-        <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
+        <Container className={className} isSelected={isSelected} onClick={onContainerClick} style={style}>
             <PriorityButton onClick={switchPriorityMode} />
             {isSelected && priorityMode ? (
                 <PriorityContainer>
@@ -101,7 +101,6 @@ export const TodoItem = (props: ITodoItem) => {
 }
 
 const Container = styled.div.attrs({} as { isSelected: boolean })`
-    height: 41px;
     display: flex;
     align-items: stretch;
     margin: 1px;
@@ -112,7 +111,7 @@ const Container = styled.div.attrs({} as { isSelected: boolean })`
 
 const PriorityButton = styled.div`
     width: 16px;
-    background-color: orange;
+    background-color: ${props => props.theme.color3};
 `
 
 const PriorityContainer = styled.div`

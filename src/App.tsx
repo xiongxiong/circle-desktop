@@ -5,7 +5,7 @@ import { themeDefault } from './styles/Themes';
 import { Todos } from './pages/Todos';
 import { FlexBox } from './components/FlexBox';
 
-export function App() {
+export const App = () => {
     return (
         <>
             <GlobalStyle />

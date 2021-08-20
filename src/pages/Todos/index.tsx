@@ -1,10 +1,11 @@
-import { List, ListProps, Input, InputProps } from 'antd';
+import { Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
+import { FixedSizeList, ListChildComponentProps } from 'react-window';
+import AutoSizer, { AutoSizerProps, Size } from 'react-virtualized-auto-sizer';
 import { ITodoInsert, ITodo, ITodoBasic, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat } from '@/interface/Todo';
 import { MsgTodoSelectList, MsgTodoInsert, MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
-import { ListItemProps } from 'antd/lib/list';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { TodoNav } from '~/components/TodoNav';
@@ -13,7 +14,7 @@ import { useContext } from 'react';
 import { Empty } from '~/components/Empty';
 import { FlexBox, IFlexBoxRef } from '~/components/FlexBox';
 import { createRef } from 'react';
-import { ButtonGroup, IButton } from '~/components/ButtonGroup';
+import { ButtonGroup } from '~/components/ButtonGroup';
 import { TodoDetail } from '~/components/TodoDetail';
 
 export interface ITodosProps {
@@ -27,7 +28,7 @@ export const Todos = (props: ITodosProps) => {
     const [todos, setTodos] = useState([] as ITodo[]);
     const [currentNode, setCurrentNode] = useState(nodeHome);
     const [navNodes, setNavNodes] = useState([nodeHome]);
-    const [todoStat, setTodoStat] = useState({childrenCount: 0, childrenFinish: 0} as ITodoStat);
+    const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0 } as ITodoStat);
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined));
     const [newTodo, setNewTodo] = useState(todoBlank);
     const [finishStatus, setFinishStatus] = useState(false);
@@ -41,7 +42,7 @@ export const Todos = (props: ITodosProps) => {
     }, [currentTodo]);
 
     const finishStatusBtns = () => {
-        const {childrenCount = 0, childrenFinish = 0} = todoStat || {};
+        const { childrenCount = 0, childrenFinish = 0 } = todoStat || {};
         return [
             {
                 name: '未完成 ' + (childrenCount - childrenFinish),
@@ -61,22 +62,22 @@ export const Todos = (props: ITodosProps) => {
     const selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false) => {
         clearBeforeRequest && setTodos([]);
 
-        const {id} = currentNode || {};
-        window.Main.invoke(new MsgTodoSelectList({parentId: id, isFinish: finishStatus})).then((todos) => {
+        const { id } = currentNode || {};
+        window.Main.invoke(new MsgTodoSelectList({ parentId: id, isFinish: finishStatus })).then((todos) => {
             console.log("todos : ", todos);
             setTodos(todos);
         });
 
         window.Main.invoke(new MsgTodoSelect(currentNode)).then(node => {
-            const {childrenCount, childrenFinish} = node || {};
-            setTodoStat({childrenCount, childrenFinish});
+            const { childrenCount, childrenFinish } = node || {};
+            setTodoStat({ childrenCount, childrenFinish });
         });
     }
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
 
     const insertTodo = () => {
-        const {id} = currentNode || {};
+        const { id } = currentNode || {};
         if (newTodo.content.trim().length > 0) {
             window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id })).then((ok) => {
                 if (ok) {
@@ -133,26 +134,40 @@ export const Todos = (props: ITodosProps) => {
 
     const closeDetail = () => detailRef.current?.stairTo(0);
 
-    const listItemRender = (item: ITodo) => (
-        <TodoItem key={item.id} todo={item} isSelected={item === currentTodo} toFolder={toLevNext} toFinish={updateTodoIsFinish} onClick={(event, todo) => todoSelected(event, todo)} />
-    )
+    const itemHeight = 41;
+
+    const listRender = ({height, width}: Size) => (
+        <TodoList itemCount={todos.length} itemSize={itemHeight} height={height} width={width}>
+            {listItemRender}
+        </TodoList>
+    );
+
+    const listItemRender = ({ index, style }: ListChildComponentProps) => {
+        const {top = 0, height = itemHeight} = style;
+        const customStyle = {...style, top: parseInt(top.toString()) + 1, height: parseInt(height.toString()) - 1};
+        const item = todos[index];
+        return (
+            <TodoItem key={item.id} style={customStyle} todo={item} isSelected={item === currentTodo} toFolder={toLevNext} toFinish={updateTodoIsFinish} onClick={(event, todo) => todoSelected(event, todo)} />
+        );
+    }
 
     return (
         <FlexBox ref={detailRef} direction='row-reverse' stairs={['30%']}>
             <TodoDetail todo={currentTodo} closePanel={closeDetail} updateTodoIsDelete={updateTodoIsDelete} />
             <Container onClick={todoSelectedClear}>
                 <Header>
-                {navNodes.length <= 1 ? <div /> : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
-                <ButtonGroup buttons={finishStatusBtns()} radio />
+                    {navNodes.length <= 1 ? <div /> : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
+                    <ButtonGroup buttons={finishStatusBtns()} radio />
                 </Header>
-                {todos.length === 0 ? (
-                    <Empty width="30%" />
-                ) : (
-                    // <TodoList dataSource={todos} renderItem={listItemRender} />
-                    <TodoList>
-                        {todos.map(item => listItemRender(item))}
-                    </TodoList>
-                )}
+                <Body>
+                    {todos.length === 0 ? (
+                        <Empty width="30%" />
+                    ) : (
+                        <AutoSizer>
+                            {listRender}
+                        </AutoSizer>
+                    )}
+                </Body>
                 <InputContainer>
                     <IconZengjia color={theme.color1} />
                     <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
@@ -179,14 +194,16 @@ const Header = styled.div`
     align-items: center;
 `
 
-// const TodoList: StyledComponent<React.ComponentType<ListProps<ITodo>>, any> = styled(List)`
-//     flex: 1;
-//     padding: 10px 0px;
-// `
-
-const TodoList = styled.div`
+const Body = styled.div`
     flex: 1;
-    padding: 10px 0px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px 0px;
+    overflow-y: auto;
+`
+
+const TodoList = styled(FixedSizeList)`
+    flex: 1;
 `
 
 const InputContainer = styled.div`
