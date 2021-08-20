@@ -9,4 +9,4 @@ packages/
 tmp/
 temp/
 db/
-yarn-error.log
+*.log
