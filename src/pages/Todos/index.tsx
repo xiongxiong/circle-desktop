@@ -185,19 +185,21 @@ const Body = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    margin: 10px 0px;
+    margin: 8px 0px;
     overflow-y: auto;
-
-    &::-webkit-scrollbar  
+    
+    & div::-webkit-scrollbar  
     {  
-        width: 6px;   
+        display: none;
+        width: 8px;
+        height: 0px;
         background-color: transparent;  
     }  
-    &::-webkit-scrollbar-track
+    & div::-webkit-scrollbar-track
     { 
         background-color: transparent;  
     }  
-    &::-webkit-scrollbar-thumb
+    & div::-webkit-scrollbar-thumb
     {
         border-radius: 3px;
         background-color: ${props => props.theme.color3};  
