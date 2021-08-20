@@ -134,22 +134,9 @@ export const Todos = (props: ITodosProps) => {
 
     const closeDetail = () => detailRef.current?.stairTo(0);
 
-    const itemHeight = 41;
-
-    const listRender = ({height, width}: Size) => (
-        <TodoList itemCount={todos.length} itemSize={itemHeight} height={height} width={width}>
-            {listItemRender}
-        </TodoList>
-    );
-
-    const listItemRender = ({ index, style }: ListChildComponentProps) => {
-        const {top = 0, height = itemHeight} = style;
-        const customStyle = {...style, top: parseInt(top.toString()) + 1, height: parseInt(height.toString()) - 1};
-        const item = todos[index];
-        return (
-            <TodoItem key={item.id} style={customStyle} todo={item} isSelected={item === currentTodo} toFolder={toLevNext} toFinish={updateTodoIsFinish} onClick={(event, todo) => todoSelected(event, todo)} />
-        );
-    }
+    const listItemRender = (item: ITodo) => (
+        <TodoItem key={item.id} todo={item} isSelected={item === currentTodo} toFolder={toLevNext} toFinish={updateTodoIsFinish} onClick={(event, todo) => todoSelected(event, todo)} />
+    )
 
     return (
         <FlexBox ref={detailRef} direction='row-reverse' stairs={['30%']}>
@@ -163,9 +150,9 @@ export const Todos = (props: ITodosProps) => {
                     {todos.length === 0 ? (
                         <Empty width="30%" />
                     ) : (
-                        <AutoSizer>
-                            {listRender}
-                        </AutoSizer>
+                        <TodoList>
+                            {todos.map(item => listItemRender(item))}
+                        </TodoList>
                     )}
                 </Body>
                 <InputContainer>
@@ -200,9 +187,24 @@ const Body = styled.div`
     flex-direction: column;
     margin: 10px 0px;
     overflow-y: auto;
+
+    &::-webkit-scrollbar  
+    {  
+        width: 6px;   
+        background-color: transparent;  
+    }  
+    &::-webkit-scrollbar-track
+    { 
+        background-color: transparent;  
+    }  
+    &::-webkit-scrollbar-thumb
+    {
+        border-radius: 3px;
+        background-color: ${props => props.theme.color3};  
+    } 
 `
 
-const TodoList = styled(FixedSizeList)`
+const TodoList = styled.div`
     flex: 1;
 `
 
