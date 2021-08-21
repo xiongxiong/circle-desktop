@@ -1,4 +1,4 @@
-import { ITodoHasId, ITodoInsert, ITodoList, ITodoUpdate, ITodoUpdateIsDelete, ITodoUpdateIsFinish } from "@/interface/Todo";
+import { ITodoHasId, ITodoInsert, ITodoList, ITodoBasic, ITodoUpdateIsDelete, ITodoUpdateIsFinish, ITodoUpdatePriority } from "@/interface/Todo";
 import { env } from "@/utils/env";
 import { uLog } from "@/utils/log";
 import BetterSqlite3, {Database} from "better-sqlite3";
@@ -59,10 +59,10 @@ class DbService {
 		return this.db.transaction(() => this.stmt('todoInsert', 'insert into todo (content, createdAt, updatedAt, parentId) values (@content, @createdAt, @updatedAt, @parentId)').run({content, parentId, createdAt: now, updatedAt: now}).changes > 0).immediate();
 	}
 
-	todoUpdate = (todo: ITodoUpdate) => {
+	todoUpdateContent = (todo: ITodoBasic) => {
 		const now = Date.now();
-		const {id, content, isFinish, parentId} = todo || {};
-		return this.db.transaction(() => this.stmt('todoUpdate', 'update todo set content = @content, updatedAt = @updatedAt, isFinish = @isFinish, parentId = @parentId where id = @id').run({id, content, isFinish: isFinish ? 1 : 0, parentId, updatedAt: now}).changes > 0).immediate();
+		const {id, content} = todo || {};
+		return this.db.transaction(() => this.stmt('todoUpdate', 'update todo set content = @content, updatedAt = @updatedAt where id = @id').run({id, content, updatedAt: now}).changes > 0).immediate();
 	}
 
 	todoUpdateIsFinish = (todo: ITodoUpdateIsFinish) => {
@@ -75,6 +75,12 @@ class DbService {
 		const now = Date.now();
 		const {id, isDelete} = todo || {};
 		return this.db.transaction(() => this.stmt('todoUpdateIsDelete', 'update todo set updatedAt = @updatedAt, isDelete = @isDelete where id = @id').run({id, isDelete: isDelete ? 1 : 0, updatedAt: now}).changes > 0).immediate();
+	}
+
+	todoUpdatePriority = (todo: ITodoUpdatePriority) => {
+		const now = Date.now();
+		const {id, priority} = todo || {};
+		return this.db.transaction(() => this.stmt('todoUpdatePriority', 'update todo set updatedAt = @updatedAt, priority = @priority where id = @id').run({id, priority, updatedAt: now}).changes > 0).immediate();
 	}
 
 	todoDelete = (todo: ITodoHasId) => {

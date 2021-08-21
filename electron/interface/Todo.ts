@@ -18,6 +18,10 @@ export interface ITodoIsDelete {
     isDelete: boolean
 }
 
+export interface ITodoHasPriority {
+    priority: number
+}
+
 export interface ITodoStat {
     childrenCount: number,
     childrenFinish: number,
@@ -33,10 +37,9 @@ export interface ITodoUpdateIsFinish extends ITodoHasId, ITodoIsFinish {}
 
 export interface ITodoUpdateIsDelete extends ITodoHasId, ITodoIsDelete {}
 
-export interface ITodoUpdate extends ITodoInsert, ITodoBasic, ITodoStat, ITodoUpdateIsFinish, ITodoUpdateIsDelete {}
+export interface ITodoUpdatePriority extends ITodoHasId, ITodoHasPriority {}
 
-export interface ITodo extends ITodoUpdate {
+export interface ITodo extends ITodoHasId, ITodoHasContent, ITodoHasParentId, ITodoIsFinish, ITodoIsDelete, ITodoHasPriority, ITodoStat {
     createdAt: Date,
     updatedAt: Date,
-    priority: number
 }

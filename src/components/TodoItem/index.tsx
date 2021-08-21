@@ -1,34 +1,39 @@
-import { MsgTodoUpdate } from '@/interface/BridgeMsg';
-import { ITodo, ITodoBasic, ITodoUpdateIsFinish } from '@/interface/Todo';
+import { MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
+import { ITodo, ITodoBasic, ITodoUpdateIsFinish, ITodoUpdatePriority } from '@/interface/Todo';
 import React, { useContext, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 import { IClassName, IComponent } from '~/interfaces/Component';
 import { IconButton } from '../IconButton';
+import { PriorityButtonGroup } from '../PriorityButtonGroup';
 
 export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected?: boolean,
-    toFolder: (todo: ITodoBasic) => void,
-    toFinish: (todo: ITodoUpdateIsFinish) => void,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
+    onLevNext: (todo: ITodoBasic) => void,
+    onFinish: (todo: ITodoUpdateIsFinish) => void,
+    onUpdateContent: (todo: ITodoBasic) => void,
+    onUpdatePriority: (todo: ITodoUpdatePriority) => void,
 }
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, isFinish, childrenCount }, isSelected = false, toFolder = (todo: ITodo) => { }, toFinish = (todo: ITodoUpdateIsFinish) => { }, onClick = () => {}, className, style } = props;
+    const { todo, todo: { content: initContent, isFinish, childrenCount, priority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoBasic) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoBasic) => {}, onUpdatePriority = (todo: ITodoUpdatePriority) => {}, className, style } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
 
     const theme = useContext(ThemeContext);
-
+    const colors = [theme.priorColor1, theme.priorColor2, theme.priorColor3, theme.priorColor4, theme.priorColor5, theme.priorColor6, theme.priorColor7, theme.priorColor8, theme.priorColor9];
+    
     const onFocus = (event: React.FocusEvent<HTMLInputElement>) => {
         if (!isSelected) event.target.blur();
     }
 
     const onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+        const {id} = todo;
         if (content !== initContent) {
-            window.Main.invoke(new MsgTodoUpdate({ ...todo, content }));
+            onUpdateContent({id, content});
         }
     }
 
@@ -40,12 +45,12 @@ export const TodoItem = (props: ITodoItem) => {
 
     const finishTodo = () => {
         const { id } = todo;
-        toFinish({ id, isFinish: true });
+        onFinish({ id, isFinish: true });
     };
 
     const unFinishTodo = () => {
         const { id } = todo;
-        toFinish({ id, isFinish: false });
+        onFinish({ id, isFinish: false });
     };
 
     const onContainerClick = (event: React.MouseEvent) => {
@@ -61,17 +66,18 @@ export const TodoItem = (props: ITodoItem) => {
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setContent(event.target.value);
 
+    const todoUpdatePriority = (priority: number) => {
+        const {id} = todo;
+        onUpdatePriority({id, priority});
+    }
+
     /**
      * Container区域内IconGroup区域外第一次点击默认行为为选中条目，控件仅可以对之后的点击作出响应，IconGroup区域内的控件不受限制
      */
     return (
         <Container className={className} isSelected={isSelected} onClick={onContainerClick} style={style}>
-            <PriorityButton onClick={switchPriorityMode} />
-            {isSelected && priorityMode ? (
-                <PriorityContainer>
-
-                </PriorityContainer>
-            ) : (
+            <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
+            <PrioritySwitchArea>
                 <ContentContainer>
                     <Content value={content} onChange={onChange} onFocus={onFocus} onBlur={onBlur} onKeyPress={onKeyPress} />
                     <IconGroup onClick={(e) => e.stopPropagation()}>
@@ -89,13 +95,16 @@ export const TodoItem = (props: ITodoItem) => {
                             )
                         )}
                         {childrenCount > 0 ? (
-                            <IconButton name="liebiao" size={theme.iconSize0} onClick={() => toFolder(todo)} />
+                            <IconButton name="liebiao" size={theme.iconSize0} onClick={() => onLevNext(todo)} />
                         ) : (
-                            <IconButton name="zengjia" size={theme.iconSize0} onClick={() => toFolder(todo)} />
+                            <IconButton name="zengjia" size={theme.iconSize0} onClick={() => onLevNext(todo)} />
                         )}
                     </IconGroup>
                 </ContentContainer>
-            )}
+                <PriorityContainer show={priorityMode && isSelected} onClick={() => setPriorityMode(false)}>
+                    <PriorityButtonGroup colors={colors} setPriority={todoUpdatePriority}/>
+                </PriorityContainer>
+            </PrioritySwitchArea>
         </Container>
     );
 }
@@ -109,17 +118,30 @@ const Container = styled.div.attrs({} as { isSelected: boolean })`
     background-color: ${props => props.isSelected ? props.theme.color3 : props.theme.color1};
 `
 
-const PriorityButton = styled.div`
+const PrioritySwitchButton = styled.div.attrs({} as {color: string})`
     width: 16px;
-    background-color: ${props => props.theme.color3};
+    background-color: ${props => props.color};
 `
 
-const PriorityContainer = styled.div`
+const PrioritySwitchArea = styled.div`
     flex: 1;
+    position: relative;
+`
+
+const PriorityContainer = styled.div.attrs({} as {show: boolean})`
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
+    z-index: ${props => props.show ? 1 : -1};
+    background-color: ${props => props.theme.color1};
+    display: flex;
+    justify-content: stretch;
 `
 
 const ContentContainer = styled.div`
-    flex: 1;
+    position: relative;
     display: flex;
     align-items: center;
     padding: 8px 8px;

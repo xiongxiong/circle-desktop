@@ -12,7 +12,7 @@ CREATE TABLE "todo" (
     "isDelete" boolean NOT NULL DEFAULT (0),
     "childrenCount" integer NOT NULL DEFAULT (0),
     "childrenFinish" integer NOT NULL DEFAULT (0),
-    "priority" integer NOT NULL DEFAULT (0),
+    "priority" integer NOT NULL DEFAULT (5),
     "parentId" integer NOT NULL DEFAULT (0),
     PRIMARY KEY("id" AUTOINCREMENT)
 );

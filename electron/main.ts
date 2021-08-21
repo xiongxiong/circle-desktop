@@ -6,6 +6,7 @@ import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-insta
 import { uLog } from './utils/log';
 import { env } from './utils/env';
 import { themeDefault } from '~/styles/Themes';
+import path from 'path';
 
 let mainWindow: BrowserWindow | null;
 
@@ -19,7 +20,7 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 function createWindow() {
 	mainWindow = new BrowserWindow({
-		// icon: path.join(assetsPath, 'assets', 'icon.png'),
+		icon: path.join('assets', 'icon.png'),
 		// titleBarStyle: 'hiddenInset',
 		width: 800,
 		height: 500,

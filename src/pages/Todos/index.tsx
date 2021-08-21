@@ -3,8 +3,8 @@ import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import AutoSizer, { AutoSizerProps, Size } from 'react-virtualized-auto-sizer';
-import { ITodoInsert, ITodo, ITodoBasic, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat } from '@/interface/Todo';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect } from '@/interface/BridgeMsg';
+import { ITodoInsert, ITodo, ITodoBasic, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat, ITodoUpdatePriority } from '@/interface/Todo';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect, MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { useState } from 'react';
 import { useEffect } from 'react';
@@ -88,6 +88,10 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
+    const updateTodoContent = (todo: ITodoBasic) => {
+        window.Main.invoke(new MsgTodoUpdateContent(todo));
+    }
+
     const updateTodoIsFinish = (todo: ITodoUpdateIsFinish) => {
         window.Main.invoke(new MsgTodoUpdateIsFinish(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
@@ -101,6 +105,10 @@ export const Todos = (props: ITodosProps) => {
                 }
             });
         }
+    }
+
+    const updateTodoPriority = (todo: ITodoUpdatePriority) => {
+        window.Main.invoke(new MsgTodoUpdatePriority(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
     const todoSelected = (event: React.MouseEvent, todo: ITodo) => setCurrentTodo(todo);
@@ -135,7 +143,7 @@ export const Todos = (props: ITodosProps) => {
     const closeDetail = () => detailRef.current?.stairTo(0);
 
     const listItemRender = (item: ITodo) => (
-        <TodoItem key={item.id} todo={item} isSelected={item === currentTodo} toFolder={toLevNext} toFinish={updateTodoIsFinish} onClick={(event, todo) => todoSelected(event, todo)} />
+        <TodoItem key={item.id} todo={item} isSelected={item === currentTodo} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} />
     )
 
     return (
@@ -188,18 +196,17 @@ const Body = styled.div`
     margin: 8px 0px;
     overflow-y: auto;
     
-    & div::-webkit-scrollbar  
-    {  
-        display: none;
+    &::-webkit-scrollbar  
+    {
         width: 8px;
         height: 0px;
         background-color: transparent;  
     }  
-    & div::-webkit-scrollbar-track
+    &::-webkit-scrollbar-track
     { 
         background-color: transparent;  
     }  
-    & div::-webkit-scrollbar-thumb
+    &::-webkit-scrollbar-thumb
     {
         border-radius: 3px;
         background-color: ${props => props.theme.color3};  

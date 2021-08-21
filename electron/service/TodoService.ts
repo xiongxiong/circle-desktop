@@ -12,7 +12,6 @@ export interface ITodoService {
 }
 
 class TodoService implements ITodoService {
-
 	open = dbService.open;
 
 	close = dbService.close;
@@ -35,12 +34,14 @@ class TodoService implements ITodoService {
 				return dbService.todoSelect(body);
 			case Actions.TodoInsert:
 				return dbService.todoInsert(body);
-			case Actions.TodoUpdate:
-				return dbService.todoUpdate(body);
+			case Actions.TodoUpdateContent:
+				return dbService.todoUpdateContent(body);
 			case Actions.TodoUpdateIsFinish:
 				return dbService.todoUpdateIsFinish(body);
 			case Actions.TodoUpdateIsDelete:
 				return dbService.todoUpdateIsDelete(body);
+			case Actions.TodoUpdatePriority:
+				return dbService.todoUpdatePriority(body);
 			case Actions.TodoDelete:
 				return dbService.todoDelete(body);
 			default:
