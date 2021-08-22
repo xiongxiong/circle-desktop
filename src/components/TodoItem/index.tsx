@@ -1,6 +1,7 @@
-import { MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
+import { MsgMenuContextMenu, MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
 import { ITodo, ITodoBasic, ITodoUpdateIsFinish, ITodoUpdatePriority } from '@/interface/Todo';
 import React, { useContext, useState } from 'react';
+import { useEffect } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 import { IClassName, IComponent } from '~/interfaces/Component';
 import { IconButton } from '../IconButton';
@@ -18,10 +19,12 @@ export interface ITodoItem extends IComponent {
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, isFinish, childrenCount, priority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoBasic) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoBasic) => {}, onUpdatePriority = (todo: ITodoUpdatePriority) => {}, className, style } = props;
+    const { todo, todo: { content: initContent, isFinish, childrenCount, priority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoBasic) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoBasic) => {}, onUpdatePriority = (todo: ITodoUpdatePriority) => {}, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
+
+    useEffect(() => setContent(initContent), [initContent]);
 
     const theme = useContext(ThemeContext);
     const colors = [theme.priorColor1, theme.priorColor2, theme.priorColor3, theme.priorColor4, theme.priorColor5, theme.priorColor6, theme.priorColor7, theme.priorColor8, theme.priorColor9];
@@ -75,7 +78,7 @@ export const TodoItem = (props: ITodoItem) => {
      * Container区域内IconGroup区域外第一次点击默认行为为选中条目，控件仅可以对之后的点击作出响应，IconGroup区域内的控件不受限制
      */
     return (
-        <Container className={className} isSelected={isSelected} onClick={onContainerClick} style={style}>
+        <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
             <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
             <PrioritySwitchArea>
                 <ContentContainer>

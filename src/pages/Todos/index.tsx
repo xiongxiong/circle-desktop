@@ -62,8 +62,8 @@ export const Todos = (props: ITodosProps) => {
     const selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false) => {
         clearBeforeRequest && setTodos([]);
 
-        const { id } = currentNode || {};
-        window.Main.invoke(new MsgTodoSelectList({ parentId: id, isFinish: finishStatus })).then((todos) => {
+        const { id: idNode } = currentNode || {};
+        window.Main.invoke(new MsgTodoSelectList({ parentId: idNode, isFinish: finishStatus })).then((todos: ITodo[]) => {
             console.log("todos : ", todos);
             setTodos(todos);
         });
@@ -89,7 +89,7 @@ export const Todos = (props: ITodosProps) => {
     }
 
     const updateTodoContent = (todo: ITodoBasic) => {
-        window.Main.invoke(new MsgTodoUpdateContent(todo));
+        window.Main.invoke(new MsgTodoUpdateContent(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
     const updateTodoIsFinish = (todo: ITodoUpdateIsFinish) => {
@@ -110,6 +110,12 @@ export const Todos = (props: ITodosProps) => {
     const updateTodoPriority = (todo: ITodoUpdatePriority) => {
         window.Main.invoke(new MsgTodoUpdatePriority(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
+
+    const moveTodo = (id: number) => {}
+
+    const copyTodo = (id: number) => {}
+
+    const pasteTodo = () => {}
 
     const todoSelected = (event: React.MouseEvent, todo: ITodo) => setCurrentTodo(todo);
 
@@ -142,13 +148,17 @@ export const Todos = (props: ITodosProps) => {
 
     const closeDetail = () => detailRef.current?.stairTo(0);
 
-    const listItemRender = (item: ITodo) => (
-        <TodoItem key={item.id} todo={item} isSelected={item === currentTodo} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} />
-    )
+    const listItemRender = (item: ITodo) => {
+        const {id} = item;
+        const {id: idCurrent} = currentTodo || {};
+        return (
+            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} />
+        );
+    }
 
     return (
         <FlexBox ref={detailRef} direction='row-reverse' stairs={['30%']}>
-            <TodoDetail todo={currentTodo} closePanel={closeDetail} updateTodoIsDelete={updateTodoIsDelete} />
+            {currentTodo && <TodoDetail todo={currentTodo} closePanel={closeDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} moveTodo={moveTodo} copyTodo={copyTodo} />}
             <Container onClick={todoSelectedClear}>
                 <Header>
                     {navNodes.length <= 1 ? <div /> : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
