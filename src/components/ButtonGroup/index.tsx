@@ -43,7 +43,7 @@ export const ButtonGroup = (props: IButtonGroupProps) => {
     }, [] as JSX.Element[]);
 
     return (
-        <Container>
+        <Container onClick={e => e.stopPropagation()}>
             {elems}
         </Container>
     );

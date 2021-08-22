@@ -1,10 +1,8 @@
 import { Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { FixedSizeList, ListChildComponentProps } from 'react-window';
-import AutoSizer, { AutoSizerProps, Size } from 'react-virtualized-auto-sizer';
-import { ITodoInsert, ITodo, ITodoBasic, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat, ITodoUpdatePriority } from '@/interface/Todo';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect, MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
+import { ITodo, ITodoBasic, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat, ITodoUpdatePriority, ITodoHasContent } from '@/interface/Todo';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect, MsgTodoUpdateContent, MsgTodoUpdatePriority, MsgTodoUpdateParentId, MsgTodoDuplicate } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { useState } from 'react';
 import { useEffect } from 'react';
@@ -21,17 +19,23 @@ export interface ITodosProps {
 
 }
 
+interface ITodoInAction {
+    action: 'move' | 'copy',
+    todo: ITodoBasic
+}
+
 export const Todos = (props: ITodosProps) => {
 
     const theme = useContext(ThemeContext);
 
-    const [todos, setTodos] = useState([] as ITodo[]);
-    const [currentNode, setCurrentNode] = useState(nodeHome);
-    const [navNodes, setNavNodes] = useState([nodeHome]);
-    const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0 } as ITodoStat);
-    const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined));
-    const [newTodo, setNewTodo] = useState(todoBlank);
-    const [finishStatus, setFinishStatus] = useState(false);
+    const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
+    const [currentNode, setCurrentNode] = useState(nodeHome); // 层级导航当前节点
+    const [navNodes, setNavNodes] = useState([nodeHome]); // 层级导航
+    const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0 } as ITodoStat); // 待办数量统计
+    const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined)); // 选中待办
+    const [newTodo, setNewTodo] = useState(todoBlank); // 新待办
+    const [finishStatus, setFinishStatus] = useState(false); // 待办列表完成状态筛选
+    const [todoInAction, setTodoInAction] = useState(undefined as (ITodoInAction | undefined)); // 待办移动或复制
 
     useEffect(() => {
         selectTodoListAndTodoStat(true);
@@ -54,6 +58,19 @@ export const Todos = (props: ITodosProps) => {
             }
         ];
     };
+
+    const todoPasteBtns = [
+        {
+            name: '取消',
+            func: () => {
+                setTodoInAction(undefined);
+            }
+        },
+        {
+            name: '粘贴',
+            func: () => todoOnAction(currentNode)
+        },
+    ];
 
     /**
      * 查询待办列表
@@ -107,15 +124,37 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
+    const updateTodoParentId = (id: number, parentId: number) => {
+        window.Main.invoke(new MsgTodoUpdateParentId({ id, parentId })).then(ok => ok && selectTodoListAndTodoStat());
+    }
+
+    const duplicateTodo = (id: number, parentId: number) => {
+        window.Main.invoke(new MsgTodoDuplicate({ id, parentId })).then(ok => ok && selectTodoListAndTodoStat());
+    }
+
     const updateTodoPriority = (todo: ITodoUpdatePriority) => {
         window.Main.invoke(new MsgTodoUpdatePriority(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
-    const moveTodo = (id: number) => {}
+    const moveTodo = (todo: ITodoBasic) => setTodoInAction({ action: 'move', todo });
 
-    const copyTodo = (id: number) => {}
+    const copyTodo = (todo: ITodoBasic) => setTodoInAction({ action: 'copy', todo });
 
-    const pasteTodo = () => {}
+    const todoOnAction = (parentTodo: ITodoBasic) => {
+        if (todoInAction) {
+            const { id: parentId } = parentTodo;
+            const { action, todo: { id } } = todoInAction;
+            setTodoInAction(undefined);
+            switch (action) {
+                case 'move':
+                    updateTodoParentId(id, parentId);
+                    break;
+                case 'copy':
+                    break;
+                default: break;
+            }
+        }
+    }
 
     const todoSelected = (event: React.MouseEvent, todo: ITodo) => setCurrentTodo(todo);
 
@@ -149,10 +188,10 @@ export const Todos = (props: ITodosProps) => {
     const closeDetail = () => detailRef.current?.stairTo(0);
 
     const listItemRender = (item: ITodo) => {
-        const {id} = item;
-        const {id: idCurrent} = currentTodo || {};
+        const { id } = item;
+        const { id: idCurrent } = currentTodo || {};
         return (
-            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} />
+            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} inAction={!!todoInAction} onAction={todoOnAction} />
         );
     }
 
@@ -162,6 +201,7 @@ export const Todos = (props: ITodosProps) => {
             <Container onClick={todoSelectedClear}>
                 <Header>
                     {navNodes.length <= 1 ? <div /> : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
+                    {todoInAction && (<ButtonGroup buttons={todoPasteBtns} />)}
                     <ButtonGroup buttons={finishStatusBtns()} radio />
                 </Header>
                 <Body>
@@ -238,7 +278,7 @@ const InputContainer = styled.div`
 const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(Input)`
     flex: 1;
     border: none;
-    padding: 8px 8px 6px;
+    padding: 4px 8px 4px;
     color: ${props => props.theme.color1};
     background-color: transparent;
     font-family: inherit;
@@ -270,5 +310,5 @@ const isHomeNode = (todo: ITodoBasic) => todo.id === 0;
 
 const nodeHome: ITodoBasic = { id: 0, content: 'Home' };
 
-const todoBlank: ITodoInsert = { content: '' };
+const todoBlank: ITodoHasContent = { content: '' };
 

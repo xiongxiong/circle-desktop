@@ -1,4 +1,4 @@
-import {ITodoBasic, ITodoHasId, ITodoInsert, ITodoList, ITodoUpdateIsDelete, ITodoUpdateIsFinish, ITodoUpdatePriority} from './Todo'
+import {ITodoBasic, ITodoDuplicate, ITodoHasId, ITodoInsert, ITodoList, ITodoUpdateIsDelete, ITodoUpdateIsFinish, ITodoUpdateParentId, ITodoUpdatePriority} from './Todo'
 
 export interface IBridgeMsg {
     channel: string,
@@ -73,9 +73,11 @@ export enum TodoActions {
     TodoSelectList = "TodoSelectList",
     TodoSelect = "TodoSelect",
     TodoInsert = "TodoInsert",
+    TodoDuplicate = "TodoDuplicate",
     TodoUpdateContent = "TodoUpdate",
     TodoUpdateIsFinish = "TodoUpdateIsFinish",
     TodoUpdateIsDelete = "TodoUpdateIsDelete",
+    TodoUpdateParentId = "TodoUpdateParentId",
     TodoUpdatePriority = "TodoUpdatePriority",
     TodoDelete = "TodoDelete",
 }
@@ -115,6 +117,16 @@ export class MsgTodoInsert extends MsgTodo {
     }
 }
 
+export class MsgTodoDuplicate extends MsgTodo {
+    constructor(todo: ITodoDuplicate) {
+        super();
+        this.message = {
+            action: TodoActions.TodoDuplicate,
+            body: todo
+        };
+    }
+}
+
 export class MsgTodoUpdateContent extends MsgTodo {
     constructor(todo: ITodoBasic) {
         super();
@@ -140,6 +152,16 @@ export class MsgTodoUpdateIsDelete extends MsgTodo {
         super();
         this.message = {
             action: TodoActions.TodoUpdateIsDelete,
+            body: todo
+        };
+    }
+}
+
+export class MsgTodoUpdateParentId extends MsgTodo {
+    constructor(todo: ITodoUpdateParentId) {
+        super();
+        this.message = {
+            action: TodoActions.TodoUpdateParentId,
             body: todo
         };
     }

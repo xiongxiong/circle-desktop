@@ -9,17 +9,19 @@ import { PriorityButtonGroup } from '../PriorityButtonGroup';
 
 export interface ITodoItem extends IComponent {
     todo: ITodo,
-    isSelected?: boolean,
+    isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
     onLevNext: (todo: ITodoBasic) => void,
     onFinish: (todo: ITodoUpdateIsFinish) => void,
     onUpdateContent: (todo: ITodoBasic) => void,
     onUpdatePriority: (todo: ITodoUpdatePriority) => void,
+    inAction: boolean, // 是否有待办正处于移动或者复制模式
+    onAction: (todo: ITodoBasic) => void, // 待办粘贴操作
 }
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, isFinish, childrenCount, priority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoBasic) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoBasic) => {}, onUpdatePriority = (todo: ITodoUpdatePriority) => {}, className } = props;
+    const { todo, todo: { content: initContent, isFinish, childrenCount, priority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoBasic) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoBasic) => {}, onUpdatePriority = (todo: ITodoUpdatePriority) => {}, inAction = false, onAction = (todo: ITodoBasic) => {}, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
@@ -84,6 +86,9 @@ export const TodoItem = (props: ITodoItem) => {
                 <ContentContainer>
                     <Content value={content} onChange={onChange} onFocus={onFocus} onBlur={onBlur} onKeyPress={onKeyPress} />
                     <IconGroup onClick={(e) => e.stopPropagation()}>
+                        {inAction && (
+                            <IconButton name="qitadingdan" size={theme.iconSize0} onClick={() => onAction(todo)} />
+                        )}
                         {childrenCount === 0 ? (
                             isFinish ? (
                                 <IconButton name="duigouzhong" size={theme.iconSize0} onClick={unFinishTodo} />

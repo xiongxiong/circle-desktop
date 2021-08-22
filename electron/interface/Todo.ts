@@ -7,7 +7,7 @@ export interface ITodoHasContent {
 }
 
 export interface ITodoHasParentId {
-    parentId?: number
+    parentId: number
 }
 
 export interface ITodoIsFinish {
@@ -37,7 +37,11 @@ export interface ITodoUpdateIsFinish extends ITodoHasId, ITodoIsFinish {}
 
 export interface ITodoUpdateIsDelete extends ITodoHasId, ITodoIsDelete {}
 
+export interface ITodoUpdateParentId extends ITodoHasId, ITodoHasParentId {}
+
 export interface ITodoUpdatePriority extends ITodoHasId, ITodoHasPriority {}
+
+export type ITodoDuplicate = ITodoUpdateParentId;
 
 export interface ITodo extends ITodoHasId, ITodoHasContent, ITodoHasParentId, ITodoIsFinish, ITodoIsDelete, ITodoHasPriority, ITodoStat {
     createdAt: Date,

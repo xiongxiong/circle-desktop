@@ -7,6 +7,7 @@ import IconDuigouWeigouxuan from "../@iconfont/IconDuigouWeigouxuan";
 import IconDuigouzhong from "../@iconfont/IconDuigouzhong";
 import IconJinrujiantou from "../@iconfont/IconJinrujiantou";
 import IconLiebiao from "../@iconfont/IconLiebiao";
+import IconQitadingdan from "../@iconfont/IconQitadingdan";
 import IconShanchu from "../@iconfont/IconShanchu";
 import IconZengjia from "../@iconfont/IconZengjia";
 
@@ -41,6 +42,8 @@ export const IconButton = (props: IIconButtonProps) => {
                 return <IconDaohang size={size} color={color()} />;
             case 'dingdanjihe':
                 return <IconDingdanjihe size={size} color={color()} />;
+            case 'qitadingdan':
+                return <IconQitadingdan size={size} color={color()} />;
             default: return undefined;
         }
     }
