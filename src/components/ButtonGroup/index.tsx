@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useState } from "react";
 import styled, { css } from "styled-components"
 
@@ -9,7 +8,8 @@ export interface IButtonGroupProps {
 }
 
 export interface IButton {
-    name: string,
+    icon?: () => React.ReactElement,
+    text?: string,
     func: () => void
 }
 
@@ -30,10 +30,13 @@ export const ButtonGroup = (props: IButtonGroupProps) => {
         }
     }
 
-    const elems: React.ReactNode[] = buttons.reduce((els, { name, func }, idx, arr) => {
+    const elems: React.ReactNode[] = buttons.reduce((els, { icon, text, func }, idx, arr) => {
         els.push(
             <ButtonBox key={idx} checked={radio ? idx === checkedIdx : false} onClick={() => onClick(idx, func)}>
-                {name}
+                {icon && icon()}
+                <ButtonText hasIcon={!!icon}>
+                    {text}
+                </ButtonText>
             </ButtonBox>
         );
         if (idx < arr.length - 1) {
@@ -58,6 +61,7 @@ const Container = styled.div`
 `
 
 const ButtonBox = styled.div.attrs({} as {checked: boolean})`
+    display: flex;
     cursor: default;
     padding: 4px 8px;
     font-size: 11px;
@@ -79,6 +83,10 @@ const ButtonBox = styled.div.attrs({} as {checked: boolean})`
             `
         }
     }}
+`
+
+const ButtonText = styled.div.attrs({} as {hasIcon: boolean})`
+    margin-left: ${props => props.hasIcon ? 2 : 0}px;
 `
 
 const Divider = styled.div`

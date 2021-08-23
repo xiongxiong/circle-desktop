@@ -1,5 +1,6 @@
-export const initSQL = 
+export const initTable = 
 `
+-- [TABLE]
 
 drop table if exists "todo";
 
@@ -17,8 +18,6 @@ CREATE TABLE "todo" (
     PRIMARY KEY("id" AUTOINCREMENT)
 );
 
-insert into todo (id, content, createdAt, updatedat, parentId) values (0, 'Home', 0, 0, -1);
-
 drop table if exists "todo_closure";
 
 CREATE TABLE "todo_closure" (
@@ -27,6 +26,8 @@ CREATE TABLE "todo_closure" (
 	"length"	integer NOT NULL,
 	PRIMARY KEY("idAncestor","idDescendant")
 );
+
+-- [TRIGGER]
 
 drop trigger if exists onTodoInsert;
 
@@ -106,4 +107,10 @@ create trigger onTodoDelete after delete on todo
 
 `
 
+export const initData = `
 
+-- [DATA]
+
+insert into todo (id, content, createdAt, updatedat, parentId) values (0, 'Home', 0, 0, -1);
+
+`

@@ -20,6 +20,8 @@ class TodoService implements ITodoService {
 
 	migrate = dbService.migrate;
 
+	prepare = dbService.prepare;
+
 	backup = dbService.backup;
 
 	restore = dbService.restore;

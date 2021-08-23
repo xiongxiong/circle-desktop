@@ -14,6 +14,7 @@ import { FlexBox, IFlexBoxRef } from '~/components/FlexBox';
 import { createRef } from 'react';
 import { ButtonGroup } from '~/components/ButtonGroup';
 import { TodoDetail } from '~/components/TodoDetail';
+import { IconButton } from '~/components/IconButton';
 
 export interface ITodosProps {
 
@@ -49,11 +50,11 @@ export const Todos = (props: ITodosProps) => {
         const { childrenCount = 0, childrenFinish = 0 } = todoStat || {};
         return [
             {
-                name: '未完成 ' + (childrenCount - childrenFinish),
+                text: '未完成 ' + (childrenCount - childrenFinish),
                 func: () => setFinishStatus(false)
             },
             {
-                name: '已完成 ' + (childrenFinish),
+                text: '已完成 ' + (childrenFinish),
                 func: () => setFinishStatus(true)
             }
         ];
@@ -61,13 +62,15 @@ export const Todos = (props: ITodosProps) => {
 
     const todoPasteBtns = [
         {
-            name: '取消',
+            icon: () => (<IconButton name="shibai" size={theme.iconSize0}/>),
+            text: '取消',
             func: () => {
                 setTodoInAction(undefined);
             }
         },
         {
-            name: '粘贴',
+            icon: () => (<IconButton name="qitadingdan" size={theme.iconSize0}/>),
+            text: '粘贴',
             func: () => todoOnAction(currentNode)
         },
     ];
@@ -150,6 +153,7 @@ export const Todos = (props: ITodosProps) => {
                     updateTodoParentId(id, parentId);
                     break;
                 case 'copy':
+                    duplicateTodo(id, parentId);
                     break;
                 default: break;
             }
@@ -200,9 +204,17 @@ export const Todos = (props: ITodosProps) => {
             {currentTodo && <TodoDetail todo={currentTodo} closePanel={closeDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} moveTodo={moveTodo} copyTodo={copyTodo} />}
             <Container onClick={todoSelectedClear}>
                 <Header>
-                    {navNodes.length <= 1 ? <div /> : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
-                    {todoInAction && (<ButtonGroup buttons={todoPasteBtns} />)}
-                    <ButtonGroup buttons={finishStatusBtns()} radio />
+                    <TodoNavBox>
+                        {navNodes.length <= 1 ? undefined : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
+                    </TodoNavBox>
+                    {todoInAction && (
+                        <ButtonGroupBox>
+                            <ButtonGroup buttons={todoPasteBtns} />
+                        </ButtonGroupBox>
+                    )}
+                    <ButtonGroupBox>
+                        <ButtonGroup buttons={finishStatusBtns()} radio />
+                    </ButtonGroupBox>
                 </Header>
                 <Body>
                     {todos.length === 0 ? (
@@ -237,6 +249,14 @@ const Header = styled.div`
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+`
+
+const TodoNavBox = styled.div`
+    flex: 1;
+`
+
+const ButtonGroupBox = styled.div`
+    margin-left: 12px;
 `
 
 const Body = styled.div`

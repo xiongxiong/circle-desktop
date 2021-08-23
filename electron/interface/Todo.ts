@@ -47,3 +47,9 @@ export interface ITodo extends ITodoHasId, ITodoHasContent, ITodoHasParentId, IT
     createdAt: Date,
     updatedAt: Date,
 }
+
+export interface ITodoClosure {
+    idAncestor: number,
+    idDescendant: number,
+    length: number
+}

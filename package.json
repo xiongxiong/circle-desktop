@@ -6,7 +6,7 @@
 	"main": "./.webpack/main/index.js",
 	"scripts": {
 		"start": "electron-forge start",
-		"debug": "electron-forge start --inspect-electron",
+		"debug": "cross-env DBFILE=db/cc.db electron-forge start --inspect-electron",
 		"snap": "cross-env DBFILE=db/cc.db electron-forge start",
 		"trial": "cross-env TRIAL=true electron-forge start",
 		"package": "electron-forge package",

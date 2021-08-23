@@ -9,6 +9,7 @@ import IconJinrujiantou from "../@iconfont/IconJinrujiantou";
 import IconLiebiao from "../@iconfont/IconLiebiao";
 import IconQitadingdan from "../@iconfont/IconQitadingdan";
 import IconShanchu from "../@iconfont/IconShanchu";
+import IconShibai from "../@iconfont/IconShibai";
 import IconZengjia from "../@iconfont/IconZengjia";
 
 export interface IIconButtonProps extends IClassName, IClickable {
@@ -44,6 +45,8 @@ export const IconButton = (props: IIconButtonProps) => {
                 return <IconDingdanjihe size={size} color={color()} />;
             case 'qitadingdan':
                 return <IconQitadingdan size={size} color={color()} />;
+            case 'shibai':
+                return <IconShibai size={size} color={color()} />;
             default: return undefined;
         }
     }
