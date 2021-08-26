@@ -1,24 +1,28 @@
-export interface ITodoHasId {
+export interface IHasId {
     id: number
 }
 
-export interface ITodoHasContent {
+export interface IHasContent {
     content: string
 }
 
-export interface ITodoHasParentId {
+export interface IHasComment {
+    comment: string
+}
+
+export interface IHasParentId {
     parentId: number
 }
 
-export interface ITodoIsFinish {
+export interface IIsFinish {
     isFinish: boolean
 }
 
-export interface ITodoIsDelete {
+export interface IIsDelete {
     isDelete: boolean
 }
 
-export interface ITodoHasPriority {
+export interface IHasPriority {
     priority: number
 }
 
@@ -27,23 +31,25 @@ export interface ITodoStat {
     childrenFinish: number,
 }
 
-export interface ITodoList extends ITodoHasParentId, ITodoIsFinish {}
+export interface ITodoList extends IHasParentId, IIsFinish {}
 
-export interface ITodoInsert extends ITodoHasContent, ITodoHasParentId {}
+export interface ITodoInsert extends IHasContent, IHasParentId {}
 
-export interface ITodoBasic extends ITodoHasId, ITodoHasContent {}
+export interface ITodoHasIdContent extends IHasId, IHasContent {}
 
-export interface ITodoUpdateIsFinish extends ITodoHasId, ITodoIsFinish {}
+export interface ITodoHasIdComment extends IHasId, IHasComment {}
 
-export interface ITodoUpdateIsDelete extends ITodoHasId, ITodoIsDelete {}
+export interface ITodoUpdateIsFinish extends IHasId, IIsFinish {}
 
-export interface ITodoUpdateParentId extends ITodoHasId, ITodoHasParentId {}
+export interface ITodoUpdateIsDelete extends IHasId, IIsDelete {}
 
-export interface ITodoUpdatePriority extends ITodoHasId, ITodoHasPriority {}
+export interface ITodoUpdateParentId extends IHasId, IHasParentId {}
+
+export interface ITodoUpdatePriority extends IHasId, IHasPriority {}
 
 export type ITodoDuplicate = ITodoUpdateParentId;
 
-export interface ITodo extends ITodoHasId, ITodoHasContent, ITodoHasParentId, ITodoIsFinish, ITodoIsDelete, ITodoHasPriority, ITodoStat {
+export interface ITodo extends IHasId, IHasContent, IHasComment, IHasParentId, IIsFinish, IIsDelete, IHasPriority, ITodoStat {
     createdAt: Date,
     updatedAt: Date,
 }

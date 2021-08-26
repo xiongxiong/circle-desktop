@@ -1,8 +1,8 @@
 import { Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoBasic, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat, ITodoUpdatePriority, ITodoHasContent } from '@/interface/Todo';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect, MsgTodoUpdateContent, MsgTodoUpdatePriority, MsgTodoUpdateParentId, MsgTodoDuplicate } from '@/interface/BridgeMsg';
+import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat, ITodoUpdatePriority, IHasContent, ITodoHasIdComment } from '@/interface/Todo';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect, MsgTodoUpdateContent, MsgTodoUpdatePriority, MsgTodoUpdateParentId, MsgTodoDuplicate, MsgTodoUpdateComment } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { useState } from 'react';
 import { useEffect } from 'react';
@@ -22,7 +22,7 @@ export interface ITodosProps {
 
 interface ITodoInAction {
     action: 'move' | 'copy',
-    todo: ITodoBasic
+    todo: ITodoHasIdContent
 }
 
 export const Todos = (props: ITodosProps) => {
@@ -108,8 +108,12 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
-    const updateTodoContent = (todo: ITodoBasic) => {
+    const updateTodoContent = (todo: ITodoHasIdContent) => {
         window.Main.invoke(new MsgTodoUpdateContent(todo)).then(ok => ok && selectTodoListAndTodoStat());
+    }
+
+    const updateTodoComment = (todo: ITodoHasIdComment) => {
+        window.Main.invoke(new MsgTodoUpdateComment(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
     const updateTodoIsFinish = (todo: ITodoUpdateIsFinish) => {
@@ -139,11 +143,11 @@ export const Todos = (props: ITodosProps) => {
         window.Main.invoke(new MsgTodoUpdatePriority(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
-    const moveTodo = (todo: ITodoBasic) => setTodoInAction({ action: 'move', todo });
+    const moveTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: 'move', todo });
 
-    const copyTodo = (todo: ITodoBasic) => setTodoInAction({ action: 'copy', todo });
+    const copyTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: 'copy', todo });
 
-    const todoOnAction = (parentTodo: ITodoBasic) => {
+    const todoOnAction = (parentTodo: ITodoHasIdContent) => {
         if (todoInAction) {
             const { id: parentId } = parentTodo;
             const { action, todo: { id } } = todoInAction;
@@ -164,18 +168,18 @@ export const Todos = (props: ITodosProps) => {
 
     const todoSelectedClear = () => setCurrentTodo(undefined);
 
-    const toLevNext = (todo: ITodoBasic) => {
+    const toLevNext = (todo: ITodoHasIdContent) => {
         setNavNodes(navNodes.concat([todo]));
         setCurrentNode(todo);
         todoSelectedClear();
     }
 
-    const toLevPrev = (todo: ITodoBasic) => {
+    const toLevPrev = (todo: ITodoHasIdContent) => {
         setNavNodes(navNodes.slice(0, navNodes.indexOf(todo) + 1));
         setCurrentNode(todo);
     }
 
-    const navNodeRender = (node: ITodoBasic, index: number, nodes: ITodoBasic[]) => {
+    const navNodeRender = (node: ITodoHasIdContent, index: number, nodes: ITodoHasIdContent[]) => {
         const isHead = index === 0;
         const isTail = index === nodes.length - 1;
         return isTail ? (
@@ -201,7 +205,7 @@ export const Todos = (props: ITodosProps) => {
 
     return (
         <FlexBox ref={detailRef} direction='row-reverse' stairs={['30%']}>
-            {currentTodo && <TodoDetail todo={currentTodo} closePanel={closeDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} moveTodo={moveTodo} copyTodo={copyTodo} />}
+            {currentTodo && <TodoDetail todo={currentTodo} closePanel={closeDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} updateTodoComment={updateTodoComment} moveTodo={moveTodo} copyTodo={copyTodo} />}
             <Container onClick={todoSelectedClear}>
                 <Header>
                     <TodoNavBox>
@@ -326,9 +330,9 @@ const HomeNodeBox = styled.div`
     align-items: center;
 `
 
-const isHomeNode = (todo: ITodoBasic) => todo.id === 0;
+const isHomeNode = (todo: ITodoHasIdContent) => todo.id === 0;
 
-const nodeHome: ITodoBasic = { id: 0, content: 'Home' };
+const nodeHome: ITodoHasIdContent = { id: 0, content: 'Home' };
 
-const todoBlank: ITodoHasContent = { content: '' };
+const todoBlank: IHasContent = { content: '' };
 

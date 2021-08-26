@@ -1,8 +1,8 @@
 import { MsgMenuContextMenu, MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
-import { ITodo, ITodoBasic, ITodoUpdateIsFinish, ITodoUpdatePriority } from '@/interface/Todo';
+import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdatePriority } from '@/interface/Todo';
 import React, { useContext, useState } from 'react';
 import { useEffect } from 'react';
-import styled, { ThemeContext } from 'styled-components';
+import styled, { css, ThemeContext } from 'styled-components';
 import { IClassName, IComponent } from '~/interfaces/Component';
 import { IconButton } from '../IconButton';
 import { PriorityButtonGroup } from '../PriorityButtonGroup';
@@ -11,17 +11,17 @@ export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
-    onLevNext: (todo: ITodoBasic) => void,
+    onLevNext: (todo: ITodoHasIdContent) => void,
     onFinish: (todo: ITodoUpdateIsFinish) => void,
-    onUpdateContent: (todo: ITodoBasic) => void,
+    onUpdateContent: (todo: ITodoHasIdContent) => void,
     onUpdatePriority: (todo: ITodoUpdatePriority) => void,
     inAction: boolean, // 是否有待办正处于移动或者复制模式
-    onAction: (todo: ITodoBasic) => void, // 待办粘贴操作
+    onAction: (todo: ITodoHasIdContent) => void, // 待办粘贴操作
 }
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, isFinish, childrenCount, priority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoBasic) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoBasic) => {}, onUpdatePriority = (todo: ITodoUpdatePriority) => {}, inAction = false, onAction = (todo: ITodoBasic) => {}, className } = props;
+    const { todo, todo: { content: initContent, comment, isFinish, childrenCount, priority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoHasIdContent) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdatePriority) => { }, inAction = false, onAction = (todo: ITodoHasIdContent) => { }, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
@@ -30,15 +30,17 @@ export const TodoItem = (props: ITodoItem) => {
 
     const theme = useContext(ThemeContext);
     const colors = [theme.priorColor1, theme.priorColor2, theme.priorColor3, theme.priorColor4, theme.priorColor5, theme.priorColor6, theme.priorColor7, theme.priorColor8, theme.priorColor9];
-    
-    const onFocus = (event: React.FocusEvent<HTMLInputElement>) => {
-        if (!isSelected) event.target.blur();
+
+    const onInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+        // if (!isSelected) {
+        //     event.target.blur();
+        // } 
     }
 
-    const onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-        const {id} = todo;
+    const onInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+        const { id } = todo;
         if (content !== initContent) {
-            onUpdateContent({id, content});
+            onUpdateContent({ id, content });
         }
     }
 
@@ -72,8 +74,8 @@ export const TodoItem = (props: ITodoItem) => {
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setContent(event.target.value);
 
     const todoUpdatePriority = (priority: number) => {
-        const {id} = todo;
-        onUpdatePriority({id, priority});
+        const { id } = todo;
+        onUpdatePriority({ id, priority });
     }
 
     /**
@@ -84,7 +86,16 @@ export const TodoItem = (props: ITodoItem) => {
             <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
             <PrioritySwitchArea>
                 <ContentContainer>
-                    <Content value={content} onChange={onChange} onFocus={onFocus} onBlur={onBlur} onKeyPress={onKeyPress} />
+                    {isSelected ? (
+                        <ContentInput value={content} onChange={onChange} onFocus={onInputFocus} onBlur={onInputBlur} onKeyPress={onKeyPress} />
+                    ) : (
+                        <InfoShowBox>
+                            <Content>{content}</Content>
+                            {comment && (
+                                <Comment>{comment}</Comment>
+                            )}
+                        </InfoShowBox>
+                    )}
                     <IconGroup onClick={(e) => e.stopPropagation()}>
                         {inAction && (
                             <IconButton name="qitadingdan" size={theme.iconSize0} onClick={() => onAction(todo)} />
@@ -110,7 +121,7 @@ export const TodoItem = (props: ITodoItem) => {
                     </IconGroup>
                 </ContentContainer>
                 <PriorityContainer show={priorityMode && isSelected} onClick={() => setPriorityMode(false)}>
-                    <PriorityButtonGroup colors={colors} setPriority={todoUpdatePriority}/>
+                    <PriorityButtonGroup colors={colors} setPriority={todoUpdatePriority} />
                 </PriorityContainer>
             </PrioritySwitchArea>
         </Container>
@@ -126,7 +137,7 @@ const Container = styled.div.attrs({} as { isSelected: boolean })`
     background-color: ${props => props.isSelected ? props.theme.color3 : props.theme.color1};
 `
 
-const PrioritySwitchButton = styled.div.attrs({} as {color: string})`
+const PrioritySwitchButton = styled.div.attrs({} as { color: string })`
     width: 16px;
     background-color: ${props => props.color};
 `
@@ -136,7 +147,7 @@ const PrioritySwitchArea = styled.div`
     position: relative;
 `
 
-const PriorityContainer = styled.div.attrs({} as {show: boolean})`
+const PriorityContainer = styled.div.attrs({} as { show: boolean })`
     width: 100%;
     height: 100%;
     top: 0;
@@ -155,13 +166,40 @@ const ContentContainer = styled.div`
     padding: 8px 8px;
 `
 
-const Content = styled.input`
+const InfoShowBox = styled.div`
     flex: 1;
+    display: flex;
+    align-items: center;
     padding: 4px 8px;
+`
+
+const Content = styled.p`
+    font-size: 12px;
+    font-family: inherit;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`
+
+const Comment = styled.p`
+    min-width: 60px;
+    padding: 0px 8px;
+    color: ${props => props.theme.color8};
+    font-size: 10px;
+    font-family: inherit;
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`
+
+const ContentInput = styled.input`
+    flex: 1;
     background-color: transparent;
     border: none;
     font-size: 12px;
     font-family: inherit;
+    padding: 4px 8px;
 
     &:focus {
         background-color: ${props => props.theme.color1};

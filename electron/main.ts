@@ -23,7 +23,9 @@ function createWindow() {
 		icon: path.join(assetsPath, 'assets', 'icon.png'),
 		// titleBarStyle: 'hiddenInset',
 		width: 800,
+		minWidth: 600,
 		height: 500,
+		minHeight: 400,
 		backgroundColor: themeDefault.color0,
 		webPreferences: {
 			nodeIntegration: false,
