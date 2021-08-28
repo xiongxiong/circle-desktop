@@ -10,7 +10,8 @@ module.exports = {
 		]
 	],
 	plugins: [
-		"babel-plugin-transform-typescript-metadata",
+		'babel-plugin-transform-typescript-metadata',
+		'babel-plugin-styled-components',
 		[
 			'@babel/plugin-transform-runtime',
 			{
@@ -23,6 +24,15 @@ module.exports = {
 				legacy: true
 			}
 		],
-		"babel-plugin-styled-components"
-	]
+		[
+			'@babel/plugin-proposal-class-properties',
+			{
+				loose: false
+			}
+		]
+	],
+	// Babel >= 7.13.0 (https://babeljs.io/docs/en/assumptions)
+	assumptions: {
+		setPublicClassFields: false
+	}
 };

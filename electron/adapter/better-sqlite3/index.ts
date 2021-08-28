@@ -2,7 +2,7 @@ import { IHasId, ITodoInsert, ITodoList, ITodoHasIdContent, ITodoUpdateIsDelete,
 import { env } from "@/utils/env";
 import { uLog } from "@/utils/log";
 import BetterSqlite3, {Database, Statement} from "better-sqlite3";
-import {initData, initTable} from './init';
+import {initData, pragmas, initTable} from './init';
 
 enum StmtNames {
 	TableCount = 'tableCount',
@@ -39,7 +39,7 @@ class DbService {
 	restore = async () => {}
 
 	init = () => {
-		const {count = 0} = this.stmt(StmtNames.TableCount)?.get() || {};
+		const {count = 0} = this.stmt(StmtNames.TableCount, 'SELECT COUNT(*) AS count FROM (SELECT type,name,sql,tbl_name FROM "main".sqlite_master)')?.get() || {};
 		console.log("DATABASE TABLE COUNT -- ", count);
 		
 		if (count === 0) {
@@ -47,12 +47,15 @@ class DbService {
 			uLog(() => this.db.transaction(() => this.db.exec(initTable)).immediate(), "INIT TABLE");
 			uLog(() => this.db.transaction(() => this.db.exec(initData)).immediate(), "INIT DATA");
 		}
+		uLog(() => pragmas.map(({cmd, res}) => {
+			this.db.pragma(cmd);
+			res && console.log(this.db.pragma(res, {simple: true}));
+		}), "PRAGMA");
 	}
 
 	prepare = () => {
-		this.stmt(StmtNames.TableCount, 'SELECT COUNT(*) AS count FROM (SELECT type,name,sql,tbl_name FROM "main".sqlite_master)');
-		this.stmt(StmtNames.TodoSelectList, 'select id, content, comment, createdAt, updatedAt, isFinish, parentId, childrenCount, childrenFinish, priority from todo where parentId = @parentId and isFinish = @isFinish and isDelete = 0 order by priority desc, updatedAt desc');
-		this.stmt(StmtNames.TodoSelect, 'select id, content, comment, createdAt, updatedAt, isFinish, parentId, childrenCount, childrenFinish, priority from todo where id = @id');
+		this.stmt(StmtNames.TodoSelectList, 'select * from todo where parentId = @parentId and isFinish = @isFinish and isDelete = 0 order by childrenPriority desc, priority desc, updatedAt desc');
+		this.stmt(StmtNames.TodoSelect, 'select * from todo where id = @id');
 		this.stmt(StmtNames.TodoInsert, 'insert into todo (content, parentId) values (@content, @parentId)');
 		this.stmt(StmtNames.TodoDuplicateTreeSelect, 'select idAncestor, idDescendant, length from todo_closure where idAncestor in (select idDescendant from todo_closure where idAncestor = @id) and length = 1 order by idDescendant');
 		this.stmt(StmtNames.TodoDuplicate, 'insert into todo (content, parentId) select content, @parentId from todo where id = @id');

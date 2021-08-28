@@ -80,10 +80,10 @@ app
 	.whenReady()
 	.then(() => uLog(() => installExtension(REACT_DEVELOPER_TOOLS), 'INSTALL EXTENSION REACT_DEVELOPER_TOOLS'))
 	.then(() => uLog(todoService.open, 'DATABASE CONNECT'))
-	.then(() => uLog(() => todoService.prepare(), "PREPARE STAMENTS"))
 	.then(() => uLog(todoService.init, 'DATABASE INIT'))
-	.then(() => uLog(todoService.migrate, 'DATABASE MIGRATE'))
 	// .then(() => uLog(todoService.backup, 'DATABASE BACKUP'))
+	.then(() => uLog(todoService.migrate, 'DATABASE MIGRATE'))
+	.then(() => uLog(() => todoService.prepare(), "PREPARE STAMENTS"))
 	.then(() => uLog(registerListeners, 'REGISTER LISTENERS'))
 	.catch((e) => console.error(e));
 

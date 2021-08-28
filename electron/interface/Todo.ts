@@ -22,14 +22,31 @@ export interface IIsDelete {
     isDelete: boolean
 }
 
+export interface IIsAncestorDelete {
+    isAncestorDelete: boolean
+}
+
 export interface IHasPriority {
     priority: number
 }
 
-export interface ITodoStat {
+export interface IHasChildrenCount {
     childrenCount: number,
+}
+
+export interface IHasChildrenFinish {
     childrenFinish: number,
 }
+
+export interface IHasChildrenDelete {
+    childrenDelete: number,
+}
+
+export interface IHasChildrenPriority {
+    childrenPriority: number
+}
+
+export interface ITodoStat extends IHasChildrenCount, IHasChildrenFinish, IHasChildrenDelete {}
 
 export interface ITodoList extends IHasParentId, IIsFinish {}
 
@@ -49,7 +66,7 @@ export interface ITodoUpdatePriority extends IHasId, IHasPriority {}
 
 export type ITodoDuplicate = ITodoUpdateParentId;
 
-export interface ITodo extends IHasId, IHasContent, IHasComment, IHasParentId, IIsFinish, IIsDelete, IHasPriority, ITodoStat {
+export interface ITodo extends IHasId, IHasContent, IHasComment, IHasParentId, IIsFinish, IIsDelete, IIsAncestorDelete, IHasPriority, IHasChildrenPriority, ITodoStat {
     createdAt: Date,
     updatedAt: Date,
 }

@@ -21,7 +21,7 @@ export interface ITodoItem extends IComponent {
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, comment, isFinish, childrenCount, priority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoHasIdContent) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdatePriority) => { }, inAction = false, onAction = (todo: ITodoHasIdContent) => { }, className } = props;
+    const { todo, todo: { content: initContent, comment, isFinish, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoHasIdContent) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdatePriority) => { }, inAction = false, onAction = (todo: ITodoHasIdContent) => { }, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
@@ -30,12 +30,6 @@ export const TodoItem = (props: ITodoItem) => {
 
     const theme = useContext(ThemeContext);
     const colors = [theme.priorColor1, theme.priorColor2, theme.priorColor3, theme.priorColor4, theme.priorColor5, theme.priorColor6, theme.priorColor7, theme.priorColor8, theme.priorColor9];
-
-    const onInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
-        // if (!isSelected) {
-        //     event.target.blur();
-        // } 
-    }
 
     const onInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
         const { id } = todo;
@@ -84,10 +78,11 @@ export const TodoItem = (props: ITodoItem) => {
     return (
         <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
             <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
+            <PrioritySwitchButton color={colors[childrenPriority - 1]} />
             <PrioritySwitchArea>
                 <ContentContainer>
                     {isSelected ? (
-                        <ContentInput value={content} onChange={onChange} onFocus={onInputFocus} onBlur={onInputBlur} onKeyPress={onKeyPress} />
+                        <ContentInput value={content} onChange={onChange} onBlur={onInputBlur} onKeyPress={onKeyPress} />
                     ) : (
                         <InfoShowBox>
                             <Content>{content}</Content>

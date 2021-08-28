@@ -32,7 +32,7 @@ export const Todos = (props: ITodosProps) => {
     const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
     const [currentNode, setCurrentNode] = useState(nodeHome); // 层级导航当前节点
     const [navNodes, setNavNodes] = useState([nodeHome]); // 层级导航
-    const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0 } as ITodoStat); // 待办数量统计
+    const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 } as ITodoStat); // 待办数量统计
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined)); // 选中待办
     const [newTodo, setNewTodo] = useState(todoBlank); // 新待办
     const [finishStatus, setFinishStatus] = useState(false); // 待办列表完成状态筛选
@@ -47,10 +47,10 @@ export const Todos = (props: ITodosProps) => {
     }, [currentTodo]);
 
     const finishStatusBtns = () => {
-        const { childrenCount = 0, childrenFinish = 0 } = todoStat || {};
+        const { childrenCount = 0, childrenFinish = 0, childrenDelete = 0 } = todoStat || {};
         return [
             {
-                text: '未完成 ' + (childrenCount - childrenFinish),
+                text: '未完成 ' + (childrenCount - childrenFinish - childrenDelete),
                 func: () => setFinishStatus(false)
             },
             {
@@ -89,8 +89,8 @@ export const Todos = (props: ITodosProps) => {
         });
 
         window.Main.invoke(new MsgTodoSelect(currentNode)).then(node => {
-            const { childrenCount, childrenFinish } = node || {};
-            setTodoStat({ childrenCount, childrenFinish });
+            const { childrenCount, childrenFinish, childrenDelete } = node || {};
+            setTodoStat({ childrenCount, childrenFinish, childrenDelete });
         });
     }
 
