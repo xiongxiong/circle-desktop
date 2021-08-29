@@ -10,8 +10,9 @@ export interface IHasComment {
     comment: string
 }
 
-export interface IHasParentId {
-    parentId: number
+export interface IHasTimeStamp {
+    createdAt: Date,
+    updatedAt: Date,
 }
 
 export interface IIsFinish {
@@ -28,6 +29,10 @@ export interface IIsAncestorDelete {
 
 export interface IHasPriority {
     priority: number
+}
+
+export interface IHasParentId {
+    parentId: number
 }
 
 export interface IHasChildrenCount {
@@ -66,13 +71,17 @@ export interface ITodoUpdatePriority extends IHasId, IHasPriority {}
 
 export type ITodoDuplicate = ITodoUpdateParentId;
 
-export interface ITodo extends IHasId, IHasContent, IHasComment, IHasParentId, IIsFinish, IIsDelete, IIsAncestorDelete, IHasPriority, IHasChildrenPriority, ITodoStat {
-    createdAt: Date,
-    updatedAt: Date,
+export interface ITodo extends IHasId, IHasContent, IHasComment, IHasTimeStamp, IIsFinish, IIsDelete, IIsAncestorDelete, IHasPriority, IHasParentId, IHasChildrenPriority, ITodoStat {
+    
 }
 
 export interface ITodoClosure {
     idAncestor: number,
     idDescendant: number,
     length: number
+}
+
+export const todoCanFinish = (todo: ITodo) => {
+    const {isDelete, childrenCount, childrenFinish} = todo;
+    return !isDelete && (childrenCount === 0 ? true : childrenCount == childrenFinish);
 }

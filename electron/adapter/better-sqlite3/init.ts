@@ -61,7 +61,9 @@ drop trigger if exists onTodoUpdate;
 create trigger onTodoUpdate after update of content, comment, isFinish, isDelete, priority, parentId on todo
     when 
         case 
-            when old.isDelete = new.isDelete and new.isDelete = 1 then raise(fail, 'Cannot update data that has been deleted')
+            when old.isDelete = new.isDelete and new.isDelete = 1 then raise(fail, 'TODO_ALREADY_DELETE')
+            when old.isFinish = new.isFinish and new.isFinish = 1 then raise(fail, 'TODO_ALREADY_FINISH')
+            else 1
         end
     begin
         update todo set updatedAt = CURRENT_TIMESTAMP where id = new.id;
@@ -85,9 +87,21 @@ create trigger onTodoUpdateParentId after update of parentId on todo
 drop trigger if exists onTodoUpdateIsFinish;
 
 create trigger onTodoUpdateIsFinish after update of isFinish on todo
-    when new.isFinish != old.isFinish
+    when new.isFinish != old.isFinish and
+        case 
+            when new.isFinish = 1 and new.childrenCount > new.childrenFinish then raise(fail, 'SUB_TODO_NOT_FINISH')
+            else 1
+        end
 	begin
     	update todo set childrenFinish = (select count(1) from todo where parentId = new.parentId and isFinish = 1 and isDelete = 0) where id = new.parentId;
+    end;
+
+drop trigger if exists onTodoUpdateChildrenFinish;
+
+create trigger onTodoUpdateChildrenFinish after update of childrenCount, childrenFinish on todo
+    when new.childrenCount > new.childrenFinish and old.childrenCount = old.childrenFinish
+    begin
+        update todo set isFinish = 0 where id = new.id;
     end;
 
 drop trigger if exists onTodoUpdateIsDelete;

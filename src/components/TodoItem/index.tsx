@@ -1,5 +1,5 @@
 import { MsgMenuContextMenu, MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
-import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdatePriority } from '@/interface/Todo';
+import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdatePriority, todoCanFinish } from '@/interface/Todo';
 import React, { useContext, useState } from 'react';
 import { useEffect } from 'react';
 import styled, { css, ThemeContext } from 'styled-components';
@@ -44,14 +44,9 @@ export const TodoItem = (props: ITodoItem) => {
         }
     };
 
-    const finishTodo = () => {
+    const updateTodoIsFinish = (isFinish: boolean) => {
         const { id } = todo;
-        onFinish({ id, isFinish: true });
-    };
-
-    const unFinishTodo = () => {
-        const { id } = todo;
-        onFinish({ id, isFinish: false });
+        onFinish({ id, isFinish });
     };
 
     const onContainerClick = (event: React.MouseEvent) => {
@@ -78,7 +73,6 @@ export const TodoItem = (props: ITodoItem) => {
     return (
         <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
             <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
-            <PrioritySwitchButton color={colors[childrenPriority - 1]} />
             <PrioritySwitchArea>
                 <ContentContainer>
                     {isSelected ? (
@@ -95,21 +89,9 @@ export const TodoItem = (props: ITodoItem) => {
                         {inAction && (
                             <IconButton name="qitadingdan" size={theme.iconSize0} onClick={() => onAction(todo)} />
                         )}
-                        {childrenCount === 0 ? (
-                            isFinish ? (
-                                <IconButton name="duigouzhong" size={theme.iconSize0} onClick={unFinishTodo} />
-                            ) : (
-                                <IconButton name="duigouweigouxuan" size={theme.iconSize0} onClick={finishTodo} />
-                            )
-                        ) : (
-                            isFinish ? (
-                                <IconButton name="duigouzhong" size={theme.iconSize0} disabled={true} />
-                            ) : (
-                                <IconButton name="duigouweigouxuan" size={theme.iconSize0} disabled={true} />
-                            )
-                        )}
+                        <IconButton name={isFinish ? "duigouzhong" : "duigouweigouxuan"} size={theme.iconSize0} onClick={() => updateTodoIsFinish(!isFinish)} disabled={!todoCanFinish(todo)} />
                         {childrenCount > 0 ? (
-                            <IconButton name="liebiao" size={theme.iconSize0} onClick={() => onLevNext(todo)} />
+                            <IconButton name="liebiao" size={theme.iconSize0} color={colors[childrenPriority - 1]} onClick={() => onLevNext(todo)} />
                         ) : (
                             <IconButton name="zengjia" size={theme.iconSize0} onClick={() => onLevNext(todo)} />
                         )}
