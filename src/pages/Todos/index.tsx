@@ -20,15 +20,26 @@ export interface ITodosProps {
 
 }
 
+enum TodoActions {
+    MOVE,
+    COPY
+}
+
 interface ITodoInAction {
-    action: 'move' | 'copy',
+    action: TodoActions,
     todo: ITodoHasIdContent
+}
+
+enum ViewMode {
+    LIST,
+    CASCADE
 }
 
 export const Todos = (props: ITodosProps) => {
 
     const theme = useContext(ThemeContext);
 
+    const [viewMode, setViewMode] = useState(ViewMode.CASCADE); // 视图模式（列表|层级）
     const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
     const [currentNode, setCurrentNode] = useState(nodeHome); // 层级导航当前节点
     const [navNodes, setNavNodes] = useState([nodeHome]); // 层级导航
@@ -60,13 +71,24 @@ export const Todos = (props: ITodosProps) => {
         ];
     };
 
+    const viewModeBtns = [
+        {
+            icon: () => (<IconButton name="shibai" size={theme.iconSize0}/>),
+            text: '列表',
+            func: () => setViewMode(ViewMode.LIST)
+        },
+        {
+            icon: () => (<IconButton name="qitadingdan" size={theme.iconSize0}/>),
+            text: '层级',
+            func: () => setViewMode(ViewMode.CASCADE)
+        },
+    ];
+
     const todoPasteBtns = [
         {
             icon: () => (<IconButton name="shibai" size={theme.iconSize0}/>),
             text: '取消',
-            func: () => {
-                setTodoInAction(undefined);
-            }
+            func: () => setTodoInAction(undefined)
         },
         {
             icon: () => (<IconButton name="qitadingdan" size={theme.iconSize0}/>),
@@ -143,9 +165,9 @@ export const Todos = (props: ITodosProps) => {
         window.Main.invoke(new MsgTodoUpdatePriority(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
-    const moveTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: 'move', todo });
+    const moveTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: TodoActions.MOVE, todo });
 
-    const copyTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: 'copy', todo });
+    const copyTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: TodoActions.COPY, todo });
 
     const todoOnAction = (parentTodo: ITodoHasIdContent) => {
         if (todoInAction) {
@@ -153,10 +175,10 @@ export const Todos = (props: ITodosProps) => {
             const { action, todo: { id } } = todoInAction;
             setTodoInAction(undefined);
             switch (action) {
-                case 'move':
+                case TodoActions.MOVE:
                     updateTodoParentId(id, parentId);
                     break;
-                case 'copy':
+                case TodoActions.COPY:
                     duplicateTodo(id, parentId);
                     break;
                 default: break;
@@ -336,3 +358,4 @@ const nodeHome: ITodoHasIdContent = { id: 0, content: 'Home' };
 
 const todoBlank: IHasContent = { content: '' };
 
+export default Todos;

@@ -54,7 +54,7 @@ class DbService {
 	}
 
 	prepare = () => {
-		this.stmt(StmtNames.TodoSelectList, 'select * from todo where parentId = @parentId and isFinish = @isFinish and isDelete = 0 order by childrenPriority desc, priority desc, updatedAt desc');
+		this.stmt(StmtNames.TodoSelectList, 'select * from todo where parentId = @parentId and isFinish = @isFinish and isDelete = 0 order by priority desc, childrenPriority desc, updatedAt desc');
 		this.stmt(StmtNames.TodoSelect, 'select * from todo where id = @id');
 		this.stmt(StmtNames.TodoInsert, 'insert into todo (content, parentId) values (@content, @parentId)');
 		this.stmt(StmtNames.TodoDuplicateTreeSelect, 'select idAncestor, idDescendant, length from todo_closure where idAncestor in (select idDescendant from todo_closure where idAncestor = @id) and length = 1 order by idDescendant');
