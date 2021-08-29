@@ -82,6 +82,6 @@ export interface ITodoClosure {
 }
 
 export const todoCanFinish = (todo: ITodo) => {
-    const {isDelete, childrenCount, childrenFinish} = todo;
-    return !isDelete && (childrenCount === 0 ? true : childrenCount == childrenFinish);
+    const {isDelete, childrenCount, childrenFinish, childrenDelete} = todo;
+    return !isDelete && (childrenCount === 0 ? true : childrenCount == childrenFinish + childrenDelete);
 }

@@ -89,7 +89,7 @@ drop trigger if exists onTodoUpdateIsFinish;
 create trigger onTodoUpdateIsFinish after update of isFinish on todo
     when new.isFinish != old.isFinish and
         case 
-            when new.isFinish = 1 and new.childrenCount > new.childrenFinish then raise(fail, 'SUB_TODO_NOT_FINISH')
+            when new.isFinish = 1 and new.childrenCount > new.childrenFinish + new.childrenDelete then raise(fail, 'SUB_TODO_NOT_FINISH')
             else 1
         end
 	begin
@@ -122,20 +122,12 @@ create trigger onTodoUpdateIsAncestorDelete after update of isDelete, isAncestor
         update todo set isAncestorDelete = 1 where parentId = new.id and new.isAncestorDelete + new.isDelete > 0;
     end;
 
-drop trigger if exists onTodoUpdatePriorityToUpper;
+drop trigger if exists onTodoUpdatePriority;
 
-create trigger onTodoUpdatePriorityToUpper after update of priority on todo
-    when new.priority > old.priority
+create trigger onTodoUpdatePriority after update of isFinish, isDelete, priority, childrenPriority on todo
+    when new.isFinish != old.isFinish or new.isDelete != old.isDelete or (new.isFinish = 0 and new.isDelete = 0 and (new.priority != old.priority or new.childrenPriority != old.childrenPriority))
     begin
-        update todo set childrenPriority = max(childrenPriority, new.priority) where id in (select idAncestor from todo_closure where idDescendant = new.id and length > 0);
-    end;
-
-drop trigger if exists onTodoUpdatePriorityToLower;
-
-create trigger onTodoUpdatePriorityToLower after update of priority, childrenPriority on todo
-    when new.priority < old.priority or new.childrenPriority < old.childrenPriority
-    begin
-        update todo set childrenPriority = (select max(max(priority, childrenPriority)) from todo where parentId = new.parentId) where id = new.parentId;
+        update or replace todo set childrenPriority = (select max(max(priority, childrenPriority)) from todo where parentId = new.parentId and isFinish = 0 and isDelete = 0) where id = new.parentId;
     end;
 
 drop trigger if exists onTodoDelete;
