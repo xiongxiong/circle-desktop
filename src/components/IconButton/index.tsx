@@ -1,11 +1,15 @@
 import styled, { css } from "styled-components";
 import { IClassName, IClickable } from "~/interfaces/Component";
 import { getIconColor } from "../@iconfont/helper";
+import IconDaohang from "../@iconfont/IconDaohang";
+import IconDingdanjihe from "../@iconfont/IconDingdanjihe";
 import IconDuigouWeigouxuan from "../@iconfont/IconDuigouWeigouxuan";
 import IconDuigouzhong from "../@iconfont/IconDuigouzhong";
 import IconJinrujiantou from "../@iconfont/IconJinrujiantou";
 import IconLiebiao from "../@iconfont/IconLiebiao";
+import IconQitadingdan from "../@iconfont/IconQitadingdan";
 import IconShanchu from "../@iconfont/IconShanchu";
+import IconShibai from "../@iconfont/IconShibai";
 import IconZengjia from "../@iconfont/IconZengjia";
 
 export interface IIconButtonProps extends IClassName, IClickable {
@@ -35,6 +39,14 @@ export const IconButton = (props: IIconButtonProps) => {
                 return <IconShanchu size={size} color={color()} />;
             case 'jinrujiantou':
                 return <IconJinrujiantou size={size} color={color()} />;
+            case 'daohang':
+                return <IconDaohang size={size} color={color()} />;
+            case 'dingdanjihe':
+                return <IconDingdanjihe size={size} color={color()} />;
+            case 'qitadingdan':
+                return <IconQitadingdan size={size} color={color()} />;
+            case 'shibai':
+                return <IconShibai size={size} color={color()} />;
             default: return undefined;
         }
     }
@@ -46,7 +58,7 @@ export const IconButton = (props: IIconButtonProps) => {
     );
 }
 
-const Container = styled.div.attrs({} as {disabled: boolean})`
+const Container = styled.div.attrs({} as { disabled: boolean })`
     cursor: ${props => props.disabled ? 'default' : 'pointer'};
 
     ${props => !props.disabled && css`

@@ -9,3 +9,4 @@ packages/
 tmp/
 temp/
 db/
+*.log

@@ -6,7 +6,7 @@
 	"main": "./.webpack/main/index.js",
 	"scripts": {
 		"start": "electron-forge start",
-		"debug": "electron-forge start --inspect-electron",
+		"debug": "cross-env DBFILE=db/cc.db electron-forge start --inspect-electron",
 		"snap": "cross-env DBFILE=db/cc.db electron-forge start",
 		"trial": "cross-env TRIAL=true electron-forge start",
 		"package": "electron-forge package",
@@ -22,9 +22,15 @@
 	"dependencies": {
 		"antd": "^4.16.9",
 		"better-sqlite3": "^7.4.3",
+		"downshift": "^6.1.7",
+		"formik": "^2.2.9",
+		"mobx": "^6.3.2",
+		"mobx-react": "^7.2.0",
 		"react": "17.0.2",
 		"react-dom": "17.0.2",
 		"react-hot-loader": "4.13.0",
+		"react-virtualized-auto-sizer": "^1.0.6",
+		"react-window": "^1.8.6",
 		"reflect-metadata": "^0.1.13",
 		"styled-components": "5.3.0"
 	},
@@ -51,6 +57,8 @@
 		"@types/node": "^8.0.29",
 		"@types/react": "17.0.11",
 		"@types/react-dom": "17.0.8",
+		"@types/react-virtualized-auto-sizer": "^1.0.1",
+		"@types/react-window": "^1.8.5",
 		"@types/styled-components": "5.1.10",
 		"@typescript-eslint/eslint-plugin": "4.27.0",
 		"@typescript-eslint/parser": "4.27.0",

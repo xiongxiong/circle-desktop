@@ -1,4 +1,4 @@
-import { Actions, IActionMsg } from '@/interface/BridgeMsg';
+import { TodoActions, ITodoActionMsg } from '@/interface/BridgeMsg';
 import { dbService } from '../adapter/better-sqlite3';
 
 export interface ITodoService {
@@ -8,11 +8,10 @@ export interface ITodoService {
 	migrate: () => void;
 	backup: () => Promise<any>;
 	restore: () => Promise<any>;
-	on: (message: any) => any;
+	on: (message: ITodoActionMsg) => any;
 }
 
 class TodoService implements ITodoService {
-
 	open = dbService.open;
 
 	close = dbService.close;
@@ -21,30 +20,40 @@ class TodoService implements ITodoService {
 
 	migrate = dbService.migrate;
 
+	prepare = dbService.prepare;
+
 	backup = dbService.backup;
 
 	restore = dbService.restore;
 
-	on: (message: any) => any = async (message: IActionMsg) => {
+	on: (message: ITodoActionMsg) => any = async (message: ITodoActionMsg) => {
 		console.log('message:', message);
 		const { action, body } = message;
 		switch (action) {
-			case Actions.TodoSelectList:
+			case TodoActions.TodoSelectList:
 				return dbService.todoSelectList(body);
-			case Actions.TodoSelect:
+			case TodoActions.TodoSelect:
 				return dbService.todoSelect(body);
-			case Actions.TodoInsert:
+			case TodoActions.TodoInsert:
 				return dbService.todoInsert(body);
-			case Actions.TodoUpdate:
-				return dbService.todoUpdate(body);
-			case Actions.TodoUpdateIsFinish:
+			case TodoActions.TodoDuplicate:
+				return dbService.todoDuplicate(body);
+			case TodoActions.TodoUpdateContent:
+				return dbService.todoUpdateContent(body);
+			case TodoActions.TodoUpdateComment:
+				return dbService.todoUpdateComment(body);
+			case TodoActions.TodoUpdateIsFinish:
 				return dbService.todoUpdateIsFinish(body);
-			case Actions.TodoUpdateIsDelete:
+			case TodoActions.TodoUpdateIsDelete:
 				return dbService.todoUpdateIsDelete(body);
-			case Actions.TodoDelete:
+			case TodoActions.TodoUpdateParentId:
+				return dbService.todoUpdateParentId(body);
+			case TodoActions.TodoUpdatePriority:
+				return dbService.todoUpdatePriority(body);
+			case TodoActions.TodoDelete:
 				return dbService.todoDelete(body);
 			default:
-				console.error('NOT SUPPORTED ACTION IN [ TodoService ]');
+				console.error('NOT SUPPORTED ACTION IN [ TodoActions ]');
 		}
 	};
 }

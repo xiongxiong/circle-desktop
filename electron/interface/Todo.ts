@@ -1,42 +1,87 @@
-export interface ITodoHasId {
+export interface IHasId {
     id: number
 }
 
-export interface ITodoHasContent {
+export interface IHasContent {
     content: string
 }
 
-export interface ITodoHasParentId {
-    parentId?: number
+export interface IHasComment {
+    comment: string
 }
 
-export interface ITodoIsFinish {
+export interface IHasTimeStamp {
+    createdAt: Date,
+    updatedAt: Date,
+}
+
+export interface IIsFinish {
     isFinish: boolean
 }
 
-export interface ITodoIsDelete {
+export interface IIsDelete {
     isDelete: boolean
 }
 
-export interface ITodoStat {
+export interface IIsAncestorDelete {
+    isAncestorDelete: boolean
+}
+
+export interface IHasPriority {
+    priority: number
+}
+
+export interface IHasParentId {
+    parentId: number
+}
+
+export interface IHasChildrenCount {
     childrenCount: number,
+}
+
+export interface IHasChildrenFinish {
     childrenFinish: number,
 }
 
-export interface ITodoList extends ITodoHasParentId, ITodoIsFinish {}
+export interface IHasChildrenDelete {
+    childrenDelete: number,
+}
 
-export interface ITodoInsert extends ITodoHasContent, ITodoHasParentId {}
+export interface IHasChildrenPriority {
+    childrenPriority: number
+}
 
-export interface ITodoBasic extends ITodoHasId, ITodoHasContent {}
+export interface ITodoStat extends IHasChildrenCount, IHasChildrenFinish, IHasChildrenDelete {}
 
-export interface ITodoUpdateIsFinish extends ITodoHasId, ITodoIsFinish {}
+export interface ITodoList extends IHasParentId, IIsFinish {}
 
-export interface ITodoUpdateIsDelete extends ITodoHasId, ITodoIsDelete {}
+export interface ITodoInsert extends IHasContent, IHasParentId {}
 
-export interface ITodoUpdate extends ITodoInsert, ITodoBasic, ITodoStat, ITodoUpdateIsFinish, ITodoUpdateIsDelete {}
+export interface ITodoHasIdContent extends IHasId, IHasContent {}
 
-export interface ITodo extends ITodoUpdate {
-    createdAt: Date,
-    updatedAt: Date,
-    priority: number
+export interface ITodoHasIdComment extends IHasId, IHasComment {}
+
+export interface ITodoUpdateIsFinish extends IHasId, IIsFinish {}
+
+export interface ITodoUpdateIsDelete extends IHasId, IIsDelete {}
+
+export interface ITodoUpdateParentId extends IHasId, IHasParentId {}
+
+export interface ITodoUpdatePriority extends IHasId, IHasPriority {}
+
+export type ITodoDuplicate = ITodoUpdateParentId;
+
+export interface ITodo extends IHasId, IHasContent, IHasComment, IHasTimeStamp, IIsFinish, IIsDelete, IIsAncestorDelete, IHasPriority, IHasParentId, IHasChildrenPriority, ITodoStat {
+    
+}
+
+export interface ITodoClosure {
+    idAncestor: number,
+    idDescendant: number,
+    length: number
+}
+
+export const todoCanFinish = (todo: ITodo) => {
+    const {isDelete, childrenCount, childrenFinish} = todo;
+    return !isDelete && (childrenCount === 0 ? true : childrenCount == childrenFinish);
 }

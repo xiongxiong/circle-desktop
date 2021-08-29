@@ -1,10 +1,10 @@
-import { ITodoBasic } from "@/interface/Todo";
+import { ITodoHasIdContent } from "@/interface/Todo";
 import styled from "styled-components";
 
 
 export interface ITodoNavProps {
-    nodes: ITodoBasic[]
-    renderItem: (node: ITodoBasic, index: number, nodes: ITodoBasic[]) => JSX.Element
+    nodes: ITodoHasIdContent[]
+    renderItem: (node: ITodoHasIdContent, index: number, nodes: ITodoHasIdContent[]) => JSX.Element
     separator?: () => JSX.Element
 }
 
@@ -16,8 +16,8 @@ export const TodoNav = (props: ITodoNavProps) => {
         </DefaultSeparatorBox>
     );
 
-    const renderItemWrapper = (renderItem: (node: ITodoBasic, index: number, nodes: ITodoBasic[]) => JSX.Element, separator: () => JSX.Element) => {
-        return (node: ITodoBasic, index: number, nodes: ITodoBasic[]) => {
+    const renderItemWrapper = (renderItem: (node: ITodoHasIdContent, index: number, nodes: ITodoHasIdContent[]) => JSX.Element, separator: () => JSX.Element) => {
+        return (node: ITodoHasIdContent, index: number, nodes: ITodoHasIdContent[]) => {
             const {id} = node;
             const isLast = index === nodes.length - 1;
             return (
