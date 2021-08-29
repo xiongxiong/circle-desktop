@@ -54,7 +54,7 @@ export const Todos = (props: ITodosProps) => {
     }, [currentNode, finishStatus]);
 
     useEffect(() => {
-        currentTodo ? openDetail() : closeDetail();
+        currentTodo ? openDetail() : shutDetail();
     }, [currentTodo]);
 
     const finishStatusBtns = () => {
@@ -73,14 +73,8 @@ export const Todos = (props: ITodosProps) => {
 
     const viewModeBtns = [
         {
-            icon: () => (<IconButton name="shibai" size={theme.iconSize0}/>),
-            text: '列表',
-            func: () => setViewMode(ViewMode.LIST)
-        },
-        {
             icon: () => (<IconButton name="qitadingdan" size={theme.iconSize0}/>),
-            text: '层级',
-            func: () => setViewMode(ViewMode.CASCADE)
+            func: () => setViewMode(ViewMode.LIST)
         },
     ];
 
@@ -215,7 +209,7 @@ export const Todos = (props: ITodosProps) => {
 
     const openDetail = () => detailRef.current?.stairTo(1);
 
-    const closeDetail = () => detailRef.current?.stairTo(0);
+    const shutDetail = () => detailRef.current?.stairTo(0);
 
     const listItemRender = (item: ITodo) => {
         const { id } = item;
@@ -227,7 +221,7 @@ export const Todos = (props: ITodosProps) => {
 
     return (
         <FlexBox ref={detailRef} direction='row-reverse' stairs={['30%']}>
-            {currentTodo && <TodoDetail todo={currentTodo} closePanel={closeDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} updateTodoComment={updateTodoComment} moveTodo={moveTodo} copyTodo={copyTodo} />}
+            {currentTodo && <TodoDetail todo={currentTodo} closePanel={shutDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} updateTodoComment={updateTodoComment} moveTodo={moveTodo} copyTodo={copyTodo} />}
             <Container onClick={todoSelectedClear}>
                 <Header>
                     <TodoNavBox>

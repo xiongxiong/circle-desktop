@@ -1,6 +1,6 @@
 import { MsgMenuContextMenu, MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
 import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdatePriority, todoCanFinish } from '@/interface/Todo';
-import React, { useContext, useState } from 'react';
+import React, { RefObject, useContext, useLayoutEffect, useState } from 'react';
 import { useEffect } from 'react';
 import styled, { css, ThemeContext } from 'styled-components';
 import { IClassName, IComponent } from '~/interfaces/Component';
@@ -42,12 +42,12 @@ export const TodoItem = (props: ITodoItem) => {
         if (event.key === 'Enter') {
             (event.target as HTMLInputElement).blur();
         }
-    };
+    }
 
     const updateTodoIsFinish = (isFinish: boolean) => {
         const { id } = todo;
         onFinish({ id, isFinish });
-    };
+    }
 
     const onContainerClick = (event: React.MouseEvent) => {
         onClick(event, todo);
@@ -74,17 +74,20 @@ export const TodoItem = (props: ITodoItem) => {
         <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
             <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
             <PrioritySwitchArea>
+                <ContentBack />
                 <ContentContainer>
-                    {isSelected ? (
-                        <ContentInput value={content} onChange={onChange} onBlur={onInputBlur} onKeyPress={onKeyPress} />
-                    ) : (
-                        <InfoShowBox>
-                            <Content>{content}</Content>
-                            {comment && (
-                                <Comment>{comment}</Comment>
-                            )}
-                        </InfoShowBox>
-                    )}
+                    <ContentGroup>
+                        {isSelected ? (
+                            <ContentInput value={content} onChange={onChange} onBlur={onInputBlur} onKeyPress={onKeyPress} />
+                        ) : (
+                            <InfoShowBox>
+                                <Content>{content}</Content>
+                                {comment && (
+                                    <Comment>{comment}</Comment>
+                                )}
+                            </InfoShowBox>
+                        )}
+                    </ContentGroup>
                     <IconGroup onClick={(e) => e.stopPropagation()}>
                         {inAction && (
                             <IconButton name="qitadingdan" size={theme.iconSize0} onClick={() => onAction(todo)} />
@@ -124,33 +127,70 @@ const PrioritySwitchArea = styled.div`
     position: relative;
 `
 
+const ContentBack = styled.div`
+    flex: 1;
+    height: 41px;
+`
+
 const PriorityContainer = styled.div.attrs({} as { show: boolean })`
     width: 100%;
     height: 100%;
     top: 0;
     left: 0;
     position: absolute;
-    z-index: ${props => props.show ? 1 : -1};
+    z-index: ${props => props.show ? 2 : -1};
     background-color: ${props => props.theme.color1};
     display: flex;
     justify-content: stretch;
 `
 
 const ContentContainer = styled.div`
-    position: relative;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
+    z-index: 1;
     display: flex;
+    justify-content: flex-end;
     align-items: center;
     padding: 8px 8px;
 `
 
+const ContentGroup = styled.div`
+    flex: 1;
+    display: flex;
+    align-items: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`
+
+const IconGroup = styled.div`
+    display: flex;
+    align-items: center;
+    margin: 0px 4px 0px 8px;
+
+    & > * {
+        padding: 2px;
+        margin: 0px 2px;
+        border-radius: 2px;
+    }
+`
+
 const InfoShowBox = styled.div`
     flex: 1;
+    max-width: 100%;
     display: flex;
     align-items: center;
     padding: 4px 8px;
 `
 
 const Content = styled.p`
+    flex: 1 0 auto;
+    min-width: 20%;
+    max-width: 80%;
     font-size: 12px;
     font-family: inherit;
     overflow: hidden;
@@ -159,7 +199,8 @@ const Content = styled.p`
 `
 
 const Comment = styled.p`
-    min-width: 60px;
+    min-width: 20%;
+    max-width: 80%;
     padding: 0px 8px;
     color: ${props => props.theme.color8};
     font-size: 10px;
@@ -183,18 +224,6 @@ const ContentInput = styled.input`
         outline: none;
         border: none;
         border-radius: 4px;
-    }
-`
-
-const IconGroup = styled.div`
-    display: flex;
-    align-items: center;
-    margin: 0px 4px 0px 8px;
-
-    & > * {
-        padding: 2px;
-        margin: 0px 2px;
-        border-radius: 2px;
     }
 `
 
