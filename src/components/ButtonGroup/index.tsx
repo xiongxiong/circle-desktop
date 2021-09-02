@@ -40,7 +40,7 @@ export const ButtonGroup = (props: IButtonGroupProps) => {
             </ButtonBox>
         );
         if (idx < arr.length - 1) {
-            els.push(<Divider key={-1} />);
+            els.push(<Divider key={-1 * (idx + 1)} />);
         }
         return els;
     }, [] as JSX.Element[]);

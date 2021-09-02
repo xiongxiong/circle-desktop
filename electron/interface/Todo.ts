@@ -51,9 +51,19 @@ export interface IHasChildrenPriority {
     childrenPriority: number
 }
 
+export enum TodoStatus {
+    DOING,
+    DONE,
+    DELETED
+}
+
+export interface ITodoStatus {
+    status: TodoStatus
+}
+
 export interface ITodoStat extends IHasChildrenCount, IHasChildrenFinish, IHasChildrenDelete {}
 
-export interface ITodoList extends IHasParentId, IIsFinish {}
+export interface ITodoList extends IHasParentId, ITodoStatus {}
 
 export interface ITodoInsert extends IHasContent, IHasParentId {}
 

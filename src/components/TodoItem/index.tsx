@@ -74,7 +74,6 @@ export const TodoItem = (props: ITodoItem) => {
         <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
             <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
             <PrioritySwitchArea>
-                <ContentBack />
                 <ContentContainer>
                     <ContentGroup>
                         {isSelected ? (
@@ -109,6 +108,7 @@ export const TodoItem = (props: ITodoItem) => {
 }
 
 const Container = styled.div.attrs({} as { isSelected: boolean })`
+    height: 41px;
     display: flex;
     align-items: stretch;
     margin: 1px;
@@ -125,11 +125,6 @@ const PrioritySwitchButton = styled.div.attrs({} as { color: string })`
 const PrioritySwitchArea = styled.div`
     flex: 1;
     position: relative;
-`
-
-const ContentBack = styled.div`
-    flex: 1;
-    height: 41px;
 `
 
 const PriorityContainer = styled.div.attrs({} as { show: boolean })`

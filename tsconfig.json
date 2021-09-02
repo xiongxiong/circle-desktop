@@ -23,7 +23,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "useDefineForClassFields": true
+    "useDefineForClassFields": true,
+    "noImplicitReturns": true,
   },
   "include": ["electron/**/*", "src/**/*"],
   "exclude": []
