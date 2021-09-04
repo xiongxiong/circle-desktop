@@ -1,7 +1,7 @@
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
 import { ITodo, ITodoHasIdContent, ITodoUpdate, ITodoStat, TodoStatus } from '@/interface/Todo';
-import { MsgTodoUpdate, MsgTodoSelect, MsgTodoSelectList } from '@/interface/BridgeMsg';
+import { MsgTodoUpdate, MsgTodoSelectList, MsgTodoSelectStatAll } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItemForSearch';
 import { useState } from 'react';
 import { useEffect } from 'react';
@@ -108,7 +108,7 @@ export const Todos = (props: ITodosProps) => {
             setTodos(todos);
         });
 
-        window.Main.invoke(new MsgTodoSelect(nodeHome)).then(node => {
+        window.Main.invoke(new MsgTodoSelectStatAll()).then(node => {
             const { childrenCount, childrenFinish, childrenDelete } = node || {};
             setTodoStat({ childrenCount, childrenFinish, childrenDelete });
         });

@@ -93,6 +93,7 @@ const Footer = styled.div`
 `
 
 const Content = styled.textarea`
+    height: 30%;
     resize: none;
     padding: 4px;
     border: 1px solid lightgray;

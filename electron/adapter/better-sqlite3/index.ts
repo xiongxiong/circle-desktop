@@ -1,4 +1,4 @@
-import { IHasId, ITodoInsert, ITodoSearch, ITodoHasIdContent, ITodoUpdate, ITodoDuplicate, ITodoClosure, TodoStatus } from "@/interface/Todo";
+import { IHasId, ITodoInsert, ITodoSearch, ITodoUpdate, ITodoDuplicate, ITodoClosure, TodoStatus } from "@/interface/Todo";
 import { env } from "@/utils/env";
 import { uLog } from "@/utils/log";
 import BetterSqlite3, {Database, Statement} from "better-sqlite3";
@@ -9,6 +9,7 @@ enum StmtNames {
 	TodoDuplicateTreeSelect = 'TodoDuplicateTreeSelect',
 	TodoSelectList = "TodoSelectList",
 	TodoSelect = 'TodoSelect',
+	TodoSelectStatAll = 'TodoSelectStatAll',
 	TodoInsert = 'TodoInsert',
 	TodoDuplicate = 'TodoDuplicate',
 	TodoUpdate = 'TodoUpdate',
@@ -49,8 +50,9 @@ class DbService {
 	}
 
 	prepare = () => {
-		this.stmt(StmtNames.TodoSelectList, "select * from todo where coalesce(content like '%' || @content || '%', 1) and coalesce(parentId = @parentId, 1) and coalesce(isFinish = @isFinish, 1) and isDelete = (case isFinish is null when 1 then 1 else 0 end) order by priority desc, childrenPriority desc, updatedAt desc");
+		this.stmt(StmtNames.TodoSelectList, "select * from todo where coalesce(content like '%' || @content || '%', 1) and coalesce(parentId = @parentId, 1) and coalesce(isFinish = @isFinish, 1) and (case @isFinish is null when 1 then (isDelete = 1 or isAncestorDelete = 1) else (isDelete = 0 and isAncestorDelete = 0) end) and id > 0 order by priority desc, childrenPriority desc, updatedAt desc");
 		this.stmt(StmtNames.TodoSelect, 'select * from todo where id = @id');
+		this.stmt(StmtNames.TodoSelectStatAll, 'select (select count(1) from todo where id > 0) as childrenCount, (select count(1) from todo where isFinish = 1 and isDelete = 0 and isAncestorDelete = 0 and id > 0) as childrenFinish, (select count(1) from todo where (isDelete = 1 or isAncestorDelete = 1) and id > 0) as childrenDelete');
 		this.stmt(StmtNames.TodoInsert, 'insert into todo (content, parentId) values (@content, @parentId)');
 		this.stmt(StmtNames.TodoDuplicateTreeSelect, 'select idAncestor, idDescendant, length from todo_closure where idAncestor in (select idDescendant from todo_closure where idAncestor = @id) and length = 1 order by idDescendant');
 		this.stmt(StmtNames.TodoDuplicate, 'insert into todo (content, parentId) select content, @parentId from todo where id = @id');
@@ -77,7 +79,7 @@ class DbService {
 			case TodoStatus.DONE:
 				return this.stmt(StmtNames.TodoSelectList)?.all({content, parentId, isFinish: 1}) || [];
 			case TodoStatus.DELETED:
-				return this.stmt(StmtNames.TodoSelectList)?.all({content, parentId}) || [];
+				return this.stmt(StmtNames.TodoSelectList)?.all({content, parentId, isFinish: undefined}) || [];
 			default:
 				return [];
 		}
@@ -86,6 +88,10 @@ class DbService {
 	todoSelect = (todo: IHasId) => {
 		const {id} = todo || {id: 0};
 		return this.stmt(StmtNames.TodoSelect)?.get({id});
+	}
+
+	todoSelectStatAll = () => {
+		return this.stmt(StmtNames.TodoSelectStatAll)?.get();
 	}
 
 	todoInsert = (todo: ITodoInsert) => {

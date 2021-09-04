@@ -34,6 +34,8 @@ class TodoService implements ITodoService {
 				return dbService.todoSelectList(body);
 			case TodoActions.TodoSelect:
 				return dbService.todoSelect(body);
+			case TodoActions.TodoSelectStatAll:
+				return dbService.todoSelectStatAll();
 			case TodoActions.TodoInsert:
 				return dbService.todoInsert(body);
 			case TodoActions.TodoDuplicate:

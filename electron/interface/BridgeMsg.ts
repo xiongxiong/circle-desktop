@@ -66,12 +66,13 @@ export class MsgMenuContextMenu extends MsgMenu {
 
 export interface ITodoActionMsg {
     action: TodoActions,
-    body: any
+    body?: any
 }
 
 export enum TodoActions {
     TodoSelectList = "TodoSelectList",
     TodoSelect = "TodoSelect",
+    TodoSelectStatAll = "TodoSelectStatAll", // 查询所有待办的统计信息
     TodoInsert = "TodoInsert",
     TodoDuplicate = "TodoDuplicate",
     TodoUpdate = "TodoUpdate",
@@ -99,6 +100,15 @@ export class MsgTodoSelect extends MsgTodo {
         this.message = {
             action: TodoActions.TodoSelect,
             body: todo
+        };
+    }
+}
+
+export class MsgTodoSelectStatAll extends MsgTodo {
+    constructor() {
+        super();
+        this.message = {
+            action: TodoActions.TodoSelectStatAll,
         };
     }
 }
