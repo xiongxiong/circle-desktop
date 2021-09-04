@@ -18,6 +18,9 @@ import { StoreContext } from '~/store/Store';
 import IconSousuo from '~/components/@iconfont/IconSousuo';
 import IconShibai from '~/components/@iconfont/IconShibai';
 import IconQitadingdan from '~/components/@iconfont/IconQitadingdan';
+import IconXiaolian from '~/components/@iconfont/IconXiaolian';
+import IconZhengque from '~/components/@iconfont/IconZhengque';
+import IconShaixuan1 from '~/components/@iconfont/IconShaixuan1';
 
 export interface ITodosProps {
 
@@ -59,36 +62,55 @@ export const Todos = (props: ITodosProps) => {
         const { childrenCount = 0, childrenFinish = 0, childrenDelete = 0 } = todoStat || {};
         return [
             {
-                text: '未完成 ' + (childrenCount - childrenFinish - childrenDelete),
+                render: () => (
+                    <ButtonBox>
+                        <IconXiaolian size={theme.iconSize0}/>
+                        <ButtonText>
+                            {childrenCount - childrenFinish - childrenDelete}
+                        </ButtonText>
+                    </ButtonBox>
+                ),
                 func: () => setTodoStatus(TodoStatus.DOING)
             },
             {
-                text: '已完成 ' + (childrenFinish),
+                render: () => (
+                    <ButtonBox>
+                        <IconZhengque size={theme.iconSize0}/>
+                        <ButtonText>
+                            {childrenFinish}
+                        </ButtonText>
+                    </ButtonBox>
+                ),
                 func: () => setTodoStatus(TodoStatus.DONE)
             },
             {
-                text: '已删除 ' + (childrenDelete),
+                render: () => (
+                    <ButtonBox>
+                        <IconShaixuan1 size={theme.iconSize0}/>
+                        <ButtonText>
+                            {childrenDelete}
+                        </ButtonText>
+                    </ButtonBox>
+                ),
                 func: () => setTodoStatus(TodoStatus.DELETED)
             }
         ];
     };
 
-    const searchBtns = () => [
+    const viewModeBtns = () => [
         {
-            icon: () => (<IconSousuo size={theme.iconSize0}/>),
+            render: () => (<IconSousuo size={theme.iconSize0}/>),
             func: () => store.setViewModeToSearch()
         },
     ];
 
     const todoPasteBtns = [
         {
-            icon: () => (<IconShibai size={theme.iconSize0}/>),
-            text: '取消',
+            render: () => (<IconShibai size={theme.iconSize0}/>),
             func: () => setTodoInAction(undefined)
         },
         {
-            icon: () => (<IconQitadingdan size={theme.iconSize0}/>),
-            text: '粘贴',
+            render: () => (<IconQitadingdan size={theme.iconSize0}/>),
             func: () => todoOnAction(currentNode)
         },
     ];
@@ -236,7 +258,7 @@ export const Todos = (props: ITodosProps) => {
                         </ButtonGroupBox>
                     )}
                     <ButtonGroupBox>
-                        <ButtonGroup buttons={searchBtns()} />
+                        <ButtonGroup buttons={viewModeBtns()} />
                     </ButtonGroupBox>
                     <ButtonGroupBox>
                         <ButtonGroup buttons={finishStatusBtns()} radio />
@@ -357,5 +379,15 @@ const isHomeNode = (todo: ITodoHasIdContent) => todo.id === 0;
 const nodeHome: ITodoHasIdContent = { id: 0, content: 'Home' };
 
 const todoBlank: IHasContent = { content: '' };
+
+const ButtonBox = styled.div`
+    display: flex;
+`
+
+const ButtonText = styled.div`
+    min-width: 26px;
+    display: flex;
+    justify-content: center;
+`
 
 export default Todos;

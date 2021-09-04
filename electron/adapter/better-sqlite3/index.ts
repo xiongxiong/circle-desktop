@@ -1,4 +1,4 @@
-import { IHasId, ITodoInsert, ITodoList, ITodoHasIdContent, ITodoUpdateIsDelete, ITodoUpdateIsFinish, ITodoUpdatePriority, ITodoUpdateParentId, ITodoDuplicate, ITodoClosure, ITodoHasIdComment, TodoStatus } from "@/interface/Todo";
+import { IHasId, ITodoInsert, ITodoSearch, ITodoHasIdContent, ITodoUpdateIsDelete, ITodoUpdateIsFinish, ITodoUpdatePriority, ITodoUpdateParentId, ITodoDuplicate, ITodoClosure, ITodoHasIdComment, TodoStatus, ITodoStatus } from "@/interface/Todo";
 import { env } from "@/utils/env";
 import { uLog } from "@/utils/log";
 import BetterSqlite3, {Database, Statement} from "better-sqlite3";
@@ -7,11 +7,11 @@ import {initData, pragmas, initTable} from './init';
 enum StmtNames {
 	TableCount = 'TableCount',
 	TodoDuplicateTreeSelect = 'TodoDuplicateTreeSelect',
-	TodoSelectListDelete = "TodoSelectListDelete",
-	TodoSelectListNotDelete = 'TodoSelectListNotDelete',
+	TodoSelectList = "TodoSelectList",
 	TodoSelect = 'TodoSelect',
 	TodoInsert = 'TodoInsert',
 	TodoDuplicate = 'TodoDuplicate',
+	TodoUpdate = 'TodoUpdate',
 	TodoUpdateContent = 'TodoUpdateContent',
 	TodoUpdateComment = 'TodoUpdateComment',
 	TodoUpdateIsFinish = 'TodoUpdateIsFinish',
@@ -55,12 +55,12 @@ class DbService {
 	}
 
 	prepare = () => {
-		this.stmt(StmtNames.TodoSelectListDelete, 'select * from todo where parentId = @parentId and isDelete = 1 order by priority desc, childrenPriority desc, updatedAt desc');
-		this.stmt(StmtNames.TodoSelectListNotDelete, 'select * from todo where parentId = @parentId and isFinish = @isFinish and isDelete = 0 order by priority desc, childrenPriority desc, updatedAt desc');
+		this.stmt(StmtNames.TodoSelectList, "select * from todo where coalesce(content like '%' || @content || '%', 1) and coalesce(parentId = @parentId, 1) and coalesce(isFinish = @isFinish, 1) and isDelete = (case isFinish is null when 1 then 1 else 0 end) order by priority desc, childrenPriority desc, updatedAt desc");
 		this.stmt(StmtNames.TodoSelect, 'select * from todo where id = @id');
 		this.stmt(StmtNames.TodoInsert, 'insert into todo (content, parentId) values (@content, @parentId)');
 		this.stmt(StmtNames.TodoDuplicateTreeSelect, 'select idAncestor, idDescendant, length from todo_closure where idAncestor in (select idDescendant from todo_closure where idAncestor = @id) and length = 1 order by idDescendant');
 		this.stmt(StmtNames.TodoDuplicate, 'insert into todo (content, parentId) select content, @parentId from todo where id = @id');
+		this.stmt(StmtNames.TodoUpdate, 'update todo set content = (case @content is null when 1 then content else @content end), comment = (case @comment is null when 1 then comment else @comment end), isFinish = (case @isFinish is null when 1 then isFinish else @isFinish end), isDelete = (case @isDelete is null when 1 then isDelete else @isDelete end), parentId = (case @parentId is null when 1 then parentId else @parentId end), priority = (case @priority is null when 1 then priority else @priority end) where id = @id');
 		this.stmt(StmtNames.TodoUpdateContent, 'update todo set content = @content where id = @id');
 		this.stmt(StmtNames.TodoUpdateComment, 'update todo set comment = @comment where id = @id');
 		this.stmt(StmtNames.TodoUpdateIsFinish, 'update todo set isFinish = @isFinish where id = @id');
@@ -81,17 +81,17 @@ class DbService {
 		return this.stmtMap.get(name);
 	}
 
-	todoSelectList = (todo: ITodoList) => {
-		const {parentId, status} = todo || {};
+	todoSelectList = (todo: ITodoSearch) => {
+		const {content, parentId, status} = todo || {};
 		switch (status) {
 			case TodoStatus.DOING:
-				return this.stmt(StmtNames.TodoSelectListNotDelete)?.all({parentId, isFinish: 0}) || [];
+				return this.stmt(StmtNames.TodoSelectList)?.all({content, parentId, isFinish: 0}) || [];
 			case TodoStatus.DONE:
-				return this.stmt(StmtNames.TodoSelectListNotDelete)?.all({parentId, isFinish: 1}) || [];
-				case TodoStatus.DELETED:
-					return this.stmt(StmtNames.TodoSelectListDelete)?.all({parentId}) || [];
-					default:
-						return [];
+				return this.stmt(StmtNames.TodoSelectList)?.all({content, parentId, isFinish: 1}) || [];
+			case TodoStatus.DELETED:
+				return this.stmt(StmtNames.TodoSelectList)?.all({content, parentId}) || [];
+			default:
+				return [];
 		}
 	}
 

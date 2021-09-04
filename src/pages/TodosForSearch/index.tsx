@@ -1,8 +1,8 @@
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat, ITodoUpdatePriority, IHasContent, ITodoHasIdComment, TodoStatus } from '@/interface/Todo';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect, MsgTodoUpdateContent, MsgTodoUpdatePriority, MsgTodoUpdateParentId, MsgTodoDuplicate, MsgTodoUpdateComment } from '@/interface/BridgeMsg';
-import { TodoItem } from '~/components/TodoItem';
+import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat, ITodoUpdatePriority, ITodoHasIdComment, TodoStatus } from '@/interface/Todo';
+import { MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect, MsgTodoUpdateContent, MsgTodoUpdatePriority, MsgTodoUpdateComment, MsgTodoSelectList } from '@/interface/BridgeMsg';
+import { TodoItem } from '~/components/TodoItemForSearch';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { useContext } from 'react';
@@ -10,23 +10,19 @@ import { Empty } from '~/components/Empty';
 import { FlexBox, IFlexBoxRef } from '~/components/FlexBox';
 import { createRef } from 'react';
 import { ButtonGroup } from '~/components/ButtonGroup';
-import { TodoDetail } from '~/components/TodoDetail';
-import { IconButton } from '~/components/IconButton';
-import IconSousuo from '~/components/@iconfont/IconSousuo';
+import { TodoDetail } from '~/components/TodoDetailForSearch';
 import { StoreContext } from '~/store/Store';
+import IconZhengque from '~/components/@iconfont/IconZhengque';
+import IconXiaolian from '~/components/@iconfont/IconXiaolian';
+import IconShaixuan1 from '~/components/@iconfont/IconShaixuan1';
+import { Input, InputProps } from 'antd';
+import IconShaixuan from '~/components/@iconfont/IconShaixuan';
+import { debounceTime } from 'rxjs';
+import { createSignal } from '@react-rxjs/utils';
+import { bind } from '@react-rxjs/core';
 
 export interface ITodosProps {
-    
-}
 
-enum TodoActions {
-    MOVE,
-    COPY
-}
-
-interface ITodoInAction {
-    action: TodoActions,
-    todo: ITodoHasIdContent
 }
 
 export const Todos = (props: ITodosProps) => {
@@ -35,56 +31,68 @@ export const Todos = (props: ITodosProps) => {
     const store = useContext(StoreContext);
 
     const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
-    const [currentNode, setCurrentNode] = useState(nodeHome); // 层级导航当前节点
-    const [navNodes, setNavNodes] = useState([nodeHome]); // 层级导航
     const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 } as ITodoStat); // 待办数量统计
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined)); // 选中待办
-    const [tosoStatus, setTodoStatus] = useState(TodoStatus.DOING); // 待办列表状态筛选
-    const [todoInAction, setTodoInAction] = useState(undefined as (ITodoInAction | undefined)); // 待办移动或复制
+    const [todoStatus, setTodoStatus] = useState(TodoStatus.DOING); // 待办列表状态筛选
+    const [searchText, setSearchText] = createSignal<string>();
+    const [useSearchText, searchTextObs] = bind(searchText);
 
     useEffect(() => {
         selectTodoListAndTodoStat(true);
-    }, [currentNode, tosoStatus]);
+    }, [todoStatus]);
 
     useEffect(() => {
         currentTodo ? openDetail() : shutDetail();
     }, [currentTodo]);
 
+    searchTextObs.pipe(debounceTime(600)).subscribe(toSearch => window.Main.invoke(new MsgTodoSelectList({ content: toSearch, status: todoStatus })).then((todos: ITodo[]) => {
+        console.log("todos : ", todos);
+        setTodos(todos);
+    }));
+
     const finishStatusBtns = () => {
         const { childrenCount = 0, childrenFinish = 0, childrenDelete = 0 } = todoStat || {};
         return [
             {
-                text: '未完成 ' + (childrenCount - childrenFinish - childrenDelete),
+                render: () => (
+                    <ButtonBox>
+                        <IconXiaolian size={theme.iconSize0} />
+                        <ButtonText>
+                            {childrenCount - childrenFinish - childrenDelete}
+                        </ButtonText>
+                    </ButtonBox>
+                ),
                 func: () => setTodoStatus(TodoStatus.DOING)
             },
             {
-                text: '已完成 ' + (childrenFinish),
+                render: () => (
+                    <ButtonBox>
+                        <IconZhengque size={theme.iconSize0} />
+                        <ButtonText>
+                            {childrenFinish}
+                        </ButtonText>
+                    </ButtonBox>
+                ),
                 func: () => setTodoStatus(TodoStatus.DONE)
             },
             {
-                text: '已删除 ' + (childrenDelete),
+                render: () => (
+                    <ButtonBox>
+                        <IconShaixuan1 size={theme.iconSize0} />
+                        <ButtonText>
+                            {childrenDelete}
+                        </ButtonText>
+                    </ButtonBox>
+                ),
                 func: () => setTodoStatus(TodoStatus.DELETED)
             }
         ];
     };
 
-    const searchBtns = () => [
+    const viewModeBtns = () => [
         {
-            icon: () => (<IconSousuo size={theme.iconSize0}/>),
+            render: () => (<IconShaixuan size={theme.iconSize0} />),
             func: () => store.setViewModeToList()
-        },
-    ];
-
-    const todoPasteBtns = [
-        {
-            icon: () => (<IconButton name="shibai" size={theme.iconSize0}/>),
-            text: '取消',
-            func: () => setTodoInAction(undefined)
-        },
-        {
-            icon: () => (<IconButton name="qitadingdan" size={theme.iconSize0}/>),
-            text: '粘贴',
-            func: () => todoOnAction(currentNode)
         },
     ];
 
@@ -95,13 +103,12 @@ export const Todos = (props: ITodosProps) => {
     const selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false) => {
         clearBeforeRequest && setTodos([]);
 
-        const { id: idNode } = currentNode || {};
-        window.Main.invoke(new MsgTodoSelectList({ parentId: idNode, status: tosoStatus })).then((todos: ITodo[]) => {
+        window.Main.invoke(new MsgTodoSelectList({ content: '', status: todoStatus })).then((todos: ITodo[]) => {
             console.log("todos : ", todos);
             setTodos(todos);
         });
 
-        window.Main.invoke(new MsgTodoSelect(currentNode)).then(node => {
+        window.Main.invoke(new MsgTodoSelect(nodeHome)).then(node => {
             const { childrenCount, childrenFinish, childrenDelete } = node || {};
             setTodoStat({ childrenCount, childrenFinish, childrenDelete });
         });
@@ -130,48 +137,13 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
-    const updateTodoParentId = (id: number, parentId: number) => {
-        window.Main.invoke(new MsgTodoUpdateParentId({ id, parentId })).then(ok => ok && selectTodoListAndTodoStat());
-    }
-
-    const duplicateTodo = (id: number, parentId: number) => {
-        window.Main.invoke(new MsgTodoDuplicate({ id, parentId })).then(ok => ok && selectTodoListAndTodoStat());
-    }
-
     const updateTodoPriority = (todo: ITodoUpdatePriority) => {
         window.Main.invoke(new MsgTodoUpdatePriority(todo)).then(ok => ok && selectTodoListAndTodoStat());
-    }
-
-    const moveTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: TodoActions.MOVE, todo });
-
-    const copyTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: TodoActions.COPY, todo });
-
-    const todoOnAction = (parentTodo: ITodoHasIdContent) => {
-        if (todoInAction) {
-            const { id: parentId } = parentTodo;
-            const { action, todo: { id } } = todoInAction;
-            setTodoInAction(undefined);
-            switch (action) {
-                case TodoActions.MOVE:
-                    updateTodoParentId(id, parentId);
-                    break;
-                case TodoActions.COPY:
-                    duplicateTodo(id, parentId);
-                    break;
-                default: break;
-            }
-        }
     }
 
     const todoSelected = (event: React.MouseEvent, todo: ITodo) => setCurrentTodo(todo);
 
     const todoSelectedClear = () => setCurrentTodo(undefined);
-
-    const toLevNext = (todo: ITodoHasIdContent) => {
-        setNavNodes(navNodes.concat([todo]));
-        setCurrentNode(todo);
-        todoSelectedClear();
-    }
 
     const detailRef: React.ForwardedRef<IFlexBoxRef> = createRef();
 
@@ -179,27 +151,27 @@ export const Todos = (props: ITodosProps) => {
 
     const shutDetail = () => detailRef.current?.stairTo(0);
 
+    const onSearchTextChange = (event: React.ChangeEvent<HTMLInputElement>) => setSearchText(event.target.value);
+
     const listItemRender = (item: ITodo) => {
         const { id } = item;
         const { id: idCurrent } = currentTodo || {};
         return (
-            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} inAction={!!todoInAction} onAction={todoOnAction} />
+            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} />
         );
     }
 
-    const boxRender = () => currentTodo && (<TodoDetail todo={currentTodo} closePanel={shutDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} updateTodoComment={updateTodoComment} moveTodo={moveTodo} copyTodo={copyTodo} />);
+    const boxRender = () => currentTodo && (<TodoDetail todo={currentTodo} closePanel={shutDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} updateTodoComment={updateTodoComment} />);
 
     return (
         <FlexBox ref={detailRef} direction='row-reverse' stairs={['30%']} boxRender={boxRender}>
             <Container onClick={todoSelectedClear}>
                 <Header>
-                    {todoInAction && (
-                        <ButtonGroupBox>
-                            <ButtonGroup buttons={todoPasteBtns} />
-                        </ButtonGroupBox>
-                    )}
+                    <SearchBox>
+                        <SearchInput placeholder='Type to Search' onChange={onSearchTextChange} />
+                    </SearchBox>
                     <ButtonGroupBox>
-                        <ButtonGroup buttons={searchBtns()} />
+                        <ButtonGroup buttons={viewModeBtns()} />
                     </ButtonGroupBox>
                     <ButtonGroupBox>
                         <ButtonGroup buttons={finishStatusBtns()} radio />
@@ -236,6 +208,31 @@ const Header = styled.div`
     align-items: center;
 `
 
+const SearchBox = styled.div`
+    flex: 1;
+    display: flex;
+    background-color: ${props => props.theme.color2};
+    border-radius: 4px;
+`
+
+const SearchInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(Input)`
+    flex: 1;
+    border: none;
+    padding: 4px 8px 4px;
+    color: ${props => props.theme.color1};
+    background-color: transparent;
+    font-family: inherit;
+
+    &:focus {
+        outline: none;
+        border: none;
+    }
+
+    &::placeholder {
+        color: ${props => props.theme.color3};
+    }
+`
+
 const ButtonGroupBox = styled.div`
     margin-left: 12px;
 `
@@ -270,4 +267,13 @@ const TodoList = styled.div`
 
 const nodeHome: ITodoHasIdContent = { id: 0, content: 'Home' };
 
+const ButtonBox = styled.div`
+    display: flex;
+`
+
+const ButtonText = styled.div`
+    min-width: 26px;
+    display: flex;
+    justify-content: center;
+`
 export default Todos;

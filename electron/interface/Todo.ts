@@ -61,11 +61,23 @@ export interface ITodoStatus {
     status: TodoStatus
 }
 
+export interface ITodoSearch extends ITodoStatus {
+    content?: string,
+    parentId?: number
+}
+
 export interface ITodoStat extends IHasChildrenCount, IHasChildrenFinish, IHasChildrenDelete {}
 
-export interface ITodoList extends IHasParentId, ITodoStatus {}
-
 export interface ITodoInsert extends IHasContent, IHasParentId {}
+
+export interface ITodoUpdate extends IHasId {
+    content?: string,
+    comment?: string,
+    isFinish?: boolean,
+    isDelete?: boolean,
+    parentId?: number,
+    priority?: number,
+}
 
 export interface ITodoHasIdContent extends IHasId, IHasContent {}
 

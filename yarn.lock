@@ -1646,6 +1646,16 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@react-rxjs/core@^0.8.3":
+  version "0.8.3"
+  resolved "https://registry.yarnpkg.com/@react-rxjs/core/-/core-0.8.3.tgz#14523a1ad28876b0f505096e61b3824cf10a4e9d"
+  integrity sha512-T9fBNsecySBWJ/u9pwVxfQyZ7DaB+yCKHqdB2PbW4naT8LJPwIEzoa+xhCQOMFvbZMajuHsJbaZWDdKrrQFXOA==
+
+"@react-rxjs/utils@^0.9.2":
+  version "0.9.2"
+  resolved "https://registry.yarnpkg.com/@react-rxjs/utils/-/utils-0.9.2.tgz#a16c2ce8352971e6fe8e8d13fc0cfb7f909a9448"
+  integrity sha512-srbkcjeQSKDtAU6nHYmIHTlGlk9InBZCBbPYUZ9/g+Iba48crGKGHBClFHP9DfDYtiUT0p6R10kOvlq+aIVbaw==
+
 "@sideway/address@^4.1.0":
   version "4.1.2"
   resolved "https://registry.nlark.com/@sideway/address/download/@sideway/address-4.1.2.tgz?cache=0&sync_timestamp=1620367945721&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40sideway%2Faddress%2Fdownload%2F%40sideway%2Faddress-4.1.2.tgz#811b84333a335739d3969cfc434736268170cad1"
@@ -8821,10 +8831,10 @@ rxjs@^6.6.3:
   dependencies:
     tslib "^1.9.0"
 
-rxjs@^7.2.0:
+rxjs@^7.2.0, rxjs@^7.3.0:
   version "7.3.0"
-  resolved "https://registry.nlark.com/rxjs/download/rxjs-7.3.0.tgz?cache=0&sync_timestamp=1627507026323&other_urls=https%3A%2F%2Fregistry.nlark.com%2Frxjs%2Fdownload%2Frxjs-7.3.0.tgz#39fe4f3461dc1e50be1475b2b85a0a88c1e938c6"
-  integrity sha1-Of5PNGHcHlC+FHWyuFoKiMHpOMY=
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.3.0.tgz#39fe4f3461dc1e50be1475b2b85a0a88c1e938c6"
+  integrity sha512-p2yuGIg9S1epc3vrjKf6iVb3RCaAYjYskkO+jHIaV0IjOPlJop4UnodOoFb2xeNwlguqLYvGw1b1McillYb5Gw==
   dependencies:
     tslib "~2.1.0"
 

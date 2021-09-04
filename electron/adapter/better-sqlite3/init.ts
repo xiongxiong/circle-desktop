@@ -63,7 +63,8 @@ create trigger onTodoUpdate after update of content, comment, isFinish, isDelete
         case 
             when old.isDelete = new.isDelete and new.isDelete = 1 then raise(fail, 'TODO_ALREADY_DELETE')
             when old.isFinish = new.isFinish and new.isFinish = 1 then raise(fail, 'TODO_ALREADY_FINISH')
-            else 1
+            when old.content != new.content or old.comment != new.comment or old.isFinish != new.isFinish or old.isDelete != new.isDelete or old.priority != new.priority or old.parentId != new.parentId then 1
+            else 0
         end
     begin
         update todo set updatedAt = CURRENT_TIMESTAMP where id = new.id;

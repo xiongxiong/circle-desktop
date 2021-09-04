@@ -12,13 +12,11 @@ export interface ITodoDetailProps extends IClassName {
     updateTodoCotent: (todo: ITodoHasIdContent) => void,
     updateTodoComment: (todo: ITodoHasIdComment) => void,
     updateTodoIsDelete: (e: MouseEvent<HTMLDivElement>, todo: ITodoUpdateIsDelete) => void,
-    moveTodo: (todo: ITodoHasIdContent) => void,
-    copyTodo: (todo: ITodoHasIdContent) => void,
 }
 
 export const TodoDetail = (props: ITodoDetailProps) => {
 
-    const { todo, todo: { id, content: initContent, comment: initComment, updatedAt }, closePanel, updateTodoIsDelete, updateTodoCotent, updateTodoComment, moveTodo, copyTodo, className } = props;
+    const { todo, todo: { id, content: initContent, comment: initComment, updatedAt }, closePanel, updateTodoIsDelete, updateTodoCotent, updateTodoComment, className } = props;
 
     const [content, setContent] = useState(initContent);
     const [comment, setComment] = useState(initComment);
@@ -52,8 +50,6 @@ export const TodoDetail = (props: ITodoDetailProps) => {
         <Container className={className}>
             <Header>
                 <Icon name="jinrujiantou" size={theme.iconSize0} onClick={closePanel} />
-                <Icon name="daohang" size={theme.iconSize0} onClick={() => moveTodo(todo)} />
-                <Icon name="dingdanjihe" size={theme.iconSize0} onClick={() => copyTodo(todo)} />
                 <Icon name="shanchu" size={theme.iconSize0} onClick={(e) => updateTodoIsDelete(e, { id, isDelete: true })} />
             </Header>
             <Body>
