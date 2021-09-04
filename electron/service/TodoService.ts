@@ -38,18 +38,8 @@ class TodoService implements ITodoService {
 				return dbService.todoInsert(body);
 			case TodoActions.TodoDuplicate:
 				return dbService.todoDuplicate(body);
-			case TodoActions.TodoUpdateContent:
-				return dbService.todoUpdateContent(body);
-			case TodoActions.TodoUpdateComment:
-				return dbService.todoUpdateComment(body);
-			case TodoActions.TodoUpdateIsFinish:
-				return dbService.todoUpdateIsFinish(body);
-			case TodoActions.TodoUpdateIsDelete:
-				return dbService.todoUpdateIsDelete(body);
-			case TodoActions.TodoUpdateParentId:
-				return dbService.todoUpdateParentId(body);
-			case TodoActions.TodoUpdatePriority:
-				return dbService.todoUpdatePriority(body);
+			case TodoActions.TodoUpdate:
+				return dbService.todoUpdate(body);
 			case TodoActions.TodoDelete:
 				return dbService.todoDelete(body);
 			default:

@@ -81,17 +81,7 @@ export interface ITodoUpdate extends IHasId {
 
 export interface ITodoHasIdContent extends IHasId, IHasContent {}
 
-export interface ITodoHasIdComment extends IHasId, IHasComment {}
-
-export interface ITodoUpdateIsFinish extends IHasId, IIsFinish {}
-
-export interface ITodoUpdateIsDelete extends IHasId, IIsDelete {}
-
-export interface ITodoUpdateParentId extends IHasId, IHasParentId {}
-
-export interface ITodoUpdatePriority extends IHasId, IHasPriority {}
-
-export type ITodoDuplicate = ITodoUpdateParentId;
+export interface ITodoDuplicate extends IHasId, IHasParentId {}
 
 export interface ITodo extends IHasId, IHasContent, IHasComment, IHasTimeStamp, IIsFinish, IIsDelete, IIsAncestorDelete, IHasPriority, IHasParentId, IHasChildrenPriority, ITodoStat {
     

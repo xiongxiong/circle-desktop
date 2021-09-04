@@ -1,4 +1,4 @@
-import {ITodoHasIdContent, ITodoDuplicate, IHasId, ITodoInsert, ITodoUpdateIsDelete, ITodoUpdateIsFinish, ITodoUpdateParentId, ITodoUpdatePriority, ITodoHasIdComment, ITodoStatus, ITodoSearch} from './Todo'
+import {ITodoDuplicate, IHasId, ITodoInsert, ITodoUpdate, ITodoSearch} from './Todo'
 
 export interface IBridgeMsg {
     channel: string,
@@ -74,12 +74,7 @@ export enum TodoActions {
     TodoSelect = "TodoSelect",
     TodoInsert = "TodoInsert",
     TodoDuplicate = "TodoDuplicate",
-    TodoUpdateContent = "TodoUpdateContent",
-    TodoUpdateComment = "TodoUpdateComment",
-    TodoUpdateIsFinish = "TodoUpdateIsFinish",
-    TodoUpdateIsDelete = "TodoUpdateIsDelete",
-    TodoUpdateParentId = "TodoUpdateParentId",
-    TodoUpdatePriority = "TodoUpdatePriority",
+    TodoUpdate = "TodoUpdate",
     TodoDelete = "TodoDelete",
 }
 
@@ -128,61 +123,11 @@ export class MsgTodoDuplicate extends MsgTodo {
     }
 }
 
-export class MsgTodoUpdateContent extends MsgTodo {
-    constructor(todo: ITodoHasIdContent) {
+export class MsgTodoUpdate extends MsgTodo {
+    constructor(todo: ITodoUpdate) {
         super();
         this.message = {
-            action: TodoActions.TodoUpdateContent,
-            body: todo
-        };
-    }
-}
-
-export class MsgTodoUpdateComment extends MsgTodo {
-    constructor(todo: ITodoHasIdComment) {
-        super();
-        this.message = {
-            action: TodoActions.TodoUpdateComment,
-            body: todo
-        };
-    }
-}
-
-export class MsgTodoUpdateIsFinish extends MsgTodo {
-    constructor(todo: ITodoUpdateIsFinish) {
-        super();
-        this.message = {
-            action: TodoActions.TodoUpdateIsFinish,
-            body: todo
-        };
-    }
-}
-
-export class MsgTodoUpdateIsDelete extends MsgTodo {
-    constructor(todo: ITodoUpdateIsDelete) {
-        super();
-        this.message = {
-            action: TodoActions.TodoUpdateIsDelete,
-            body: todo
-        };
-    }
-}
-
-export class MsgTodoUpdateParentId extends MsgTodo {
-    constructor(todo: ITodoUpdateParentId) {
-        super();
-        this.message = {
-            action: TodoActions.TodoUpdateParentId,
-            body: todo
-        };
-    }
-}
-
-export class MsgTodoUpdatePriority extends MsgTodo {
-    constructor(todo: ITodoUpdatePriority) {
-        super();
-        this.message = {
-            action: TodoActions.TodoUpdatePriority,
+            action: TodoActions.TodoUpdate,
             body: todo
         };
     }

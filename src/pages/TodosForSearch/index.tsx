@@ -1,7 +1,7 @@
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdateIsDelete, ITodoStat, ITodoUpdatePriority, ITodoHasIdComment, TodoStatus } from '@/interface/Todo';
-import { MsgTodoUpdateIsFinish, MsgTodoUpdateIsDelete, MsgTodoSelect, MsgTodoUpdateContent, MsgTodoUpdatePriority, MsgTodoUpdateComment, MsgTodoSelectList } from '@/interface/BridgeMsg';
+import { ITodo, ITodoHasIdContent, ITodoUpdate, ITodoStat, TodoStatus } from '@/interface/Todo';
+import { MsgTodoUpdate, MsgTodoSelect, MsgTodoSelectList } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItemForSearch';
 import { useState } from 'react';
 import { useEffect } from 'react';
@@ -115,20 +115,20 @@ export const Todos = (props: ITodosProps) => {
     }
 
     const updateTodoContent = (todo: ITodoHasIdContent) => {
-        window.Main.invoke(new MsgTodoUpdateContent(todo)).then(ok => ok && selectTodoListAndTodoStat());
+        window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
-    const updateTodoComment = (todo: ITodoHasIdComment) => {
-        window.Main.invoke(new MsgTodoUpdateComment(todo)).then(ok => ok && selectTodoListAndTodoStat());
+    const updateTodoComment = (todo: ITodoUpdate) => {
+        window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
-    const updateTodoIsFinish = (todo: ITodoUpdateIsFinish) => {
-        window.Main.invoke(new MsgTodoUpdateIsFinish(todo)).then(ok => ok && selectTodoListAndTodoStat());
+    const updateTodoIsFinish = (todo: ITodoUpdate) => {
+        window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
-    const updateTodoIsDelete = (event: React.MouseEvent, todo?: ITodoUpdateIsDelete) => {
+    const updateTodoIsDelete = (event: React.MouseEvent, todo?: ITodoUpdate) => {
         if (todo) {
-            window.Main.invoke(new MsgTodoUpdateIsDelete(todo)).then(ok => {
+            window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => {
                 if (ok) {
                     todoSelectedClear();
                     selectTodoListAndTodoStat();
@@ -137,8 +137,8 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
-    const updateTodoPriority = (todo: ITodoUpdatePriority) => {
-        window.Main.invoke(new MsgTodoUpdatePriority(todo)).then(ok => ok && selectTodoListAndTodoStat());
+    const updateTodoPriority = (todo: ITodoUpdate) => {
+        window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
     const todoSelected = (event: React.MouseEvent, todo: ITodo) => setCurrentTodo(todo);

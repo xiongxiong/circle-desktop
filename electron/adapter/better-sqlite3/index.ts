@@ -1,4 +1,4 @@
-import { IHasId, ITodoInsert, ITodoSearch, ITodoHasIdContent, ITodoUpdateIsDelete, ITodoUpdateIsFinish, ITodoUpdatePriority, ITodoUpdateParentId, ITodoDuplicate, ITodoClosure, ITodoHasIdComment, TodoStatus, ITodoStatus } from "@/interface/Todo";
+import { IHasId, ITodoInsert, ITodoSearch, ITodoHasIdContent, ITodoUpdate, ITodoDuplicate, ITodoClosure, TodoStatus } from "@/interface/Todo";
 import { env } from "@/utils/env";
 import { uLog } from "@/utils/log";
 import BetterSqlite3, {Database, Statement} from "better-sqlite3";
@@ -12,12 +12,6 @@ enum StmtNames {
 	TodoInsert = 'TodoInsert',
 	TodoDuplicate = 'TodoDuplicate',
 	TodoUpdate = 'TodoUpdate',
-	TodoUpdateContent = 'TodoUpdateContent',
-	TodoUpdateComment = 'TodoUpdateComment',
-	TodoUpdateIsFinish = 'TodoUpdateIsFinish',
-	TodoUpdateIsDelete = 'TodoUpdateIsDelete',
-	TodoUpdateParentId = 'TodoUpdateParentId',
-	TodoUpdatePriority = 'TodoUpdatePriority',
 	TodoDelete = 'TodoDelete',
 }
 
@@ -61,12 +55,6 @@ class DbService {
 		this.stmt(StmtNames.TodoDuplicateTreeSelect, 'select idAncestor, idDescendant, length from todo_closure where idAncestor in (select idDescendant from todo_closure where idAncestor = @id) and length = 1 order by idDescendant');
 		this.stmt(StmtNames.TodoDuplicate, 'insert into todo (content, parentId) select content, @parentId from todo where id = @id');
 		this.stmt(StmtNames.TodoUpdate, 'update todo set content = (case @content is null when 1 then content else @content end), comment = (case @comment is null when 1 then comment else @comment end), isFinish = (case @isFinish is null when 1 then isFinish else @isFinish end), isDelete = (case @isDelete is null when 1 then isDelete else @isDelete end), parentId = (case @parentId is null when 1 then parentId else @parentId end), priority = (case @priority is null when 1 then priority else @priority end) where id = @id');
-		this.stmt(StmtNames.TodoUpdateContent, 'update todo set content = @content where id = @id');
-		this.stmt(StmtNames.TodoUpdateComment, 'update todo set comment = @comment where id = @id');
-		this.stmt(StmtNames.TodoUpdateIsFinish, 'update todo set isFinish = @isFinish where id = @id');
-		this.stmt(StmtNames.TodoUpdateIsDelete, 'update todo set isDelete = @isDelete where id = @id');
-		this.stmt(StmtNames.TodoUpdateParentId, 'update todo set parentId = @parentId where id = @id');
-		this.stmt(StmtNames.TodoUpdatePriority, 'update todo set priority = @priority where id = @id');
 		this.stmt(StmtNames.TodoDelete, 'delete from todo where id = @id');
 	}
 
@@ -129,35 +117,9 @@ class DbService {
 		}).immediate();
 	}
 
-	todoUpdateContent = (todo: ITodoHasIdContent) => {
-		const {id, content} = todo || {};
-		return this.db.transaction(() => (this.stmt(StmtNames.TodoUpdateContent)?.run({id, content}).changes || 0) > 0).immediate();
-	}
-
-	todoUpdateComment = (todo: ITodoHasIdComment) => {
-		const {id, comment} = todo || {};
-		return this.db.transaction(() => (this.stmt(StmtNames.TodoUpdateComment)?.run({id, comment}).changes || 0) > 0).immediate();
-	}
-
-	todoUpdateIsFinish = (todo: ITodoUpdateIsFinish) => {
-		const {id, isFinish} = todo || {};
-		return this.db.transaction(() => (this.stmt(StmtNames.TodoUpdateIsFinish)?.run({id, isFinish: isFinish ? 1 : 0}).changes || 0) > 0).immediate();
-	}
-
-	todoUpdateIsDelete = (todo: ITodoUpdateIsDelete) => {
-		const {id, isDelete} = todo || {};
-		return this.db.transaction(() => (this.stmt(StmtNames.TodoUpdateIsDelete)?.run({id, isDelete: isDelete ? 1 : 0}).changes || 0) > 0).immediate();
-	}
-
-	todoUpdateParentId = (todo: ITodoUpdateParentId) => {
-		const {id, parentId} = todo || {};
-		if (id === parentId) return false;
-		return this.db.transaction(() => (this.stmt(StmtNames.TodoUpdateParentId)?.run({id, parentId}).changes || 0) > 0).immediate();
-	}
-
-	todoUpdatePriority = (todo: ITodoUpdatePriority) => {
-		const {id, priority} = todo || {};
-		return this.db.transaction(() => (this.stmt(StmtNames.TodoUpdatePriority)?.run({id, priority}).changes || 0) > 0).immediate();
+	todoUpdate = (todo: ITodoUpdate) => {
+		const {id, content, comment, isFinish, isDelete, priority, parentId} = todo || {};
+		return this.db.transaction(() => (this.stmt(StmtNames.TodoUpdate)?.run({id, content, comment, isFinish: (isFinish === undefined ? undefined : isFinish ? 1 : 0), isDelete: (isDelete === undefined ? undefined : isDelete ? 1 : 0), priority, parentId}).changes || 0) > 0).immediate();
 	}
 
 	todoDelete = (todo: IHasId) => {

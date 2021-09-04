@@ -1,9 +1,8 @@
-import { MsgMenuContextMenu, MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
-import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdatePriority, todoCanFinish } from '@/interface/Todo';
-import React, { RefObject, useContext, useLayoutEffect, useState } from 'react';
+import { ITodo, ITodoHasIdContent, ITodoUpdate, todoCanFinish } from '@/interface/Todo';
+import React, { useContext, useState } from 'react';
 import { useEffect } from 'react';
-import styled, { css, ThemeContext } from 'styled-components';
-import { IClassName, IComponent } from '~/interfaces/Component';
+import styled, { ThemeContext } from 'styled-components';
+import { IComponent } from '~/interfaces/Component';
 import { IconButton } from '../IconButton';
 import { PriorityButtonGroup } from '../PriorityButtonGroup';
 
@@ -11,14 +10,14 @@ export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
-    onFinish: (todo: ITodoUpdateIsFinish) => void,
+    onFinish: (todo: ITodoUpdate) => void,
     onUpdateContent: (todo: ITodoHasIdContent) => void,
-    onUpdatePriority: (todo: ITodoUpdatePriority) => void,
+    onUpdatePriority: (todo: ITodoUpdate) => void,
 }
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, comment, isFinish, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdatePriority) => { }, className } = props;
+    const { todo, todo: { content: initContent, comment, isFinish, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onFinish = (todo: ITodoUpdate) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdate) => { }, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);

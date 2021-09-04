@@ -1,9 +1,8 @@
-import { MsgMenuContextMenu, MsgTodoUpdateContent, MsgTodoUpdatePriority } from '@/interface/BridgeMsg';
-import { ITodo, ITodoHasIdContent, ITodoUpdateIsFinish, ITodoUpdatePriority, todoCanFinish } from '@/interface/Todo';
-import React, { RefObject, useContext, useLayoutEffect, useState } from 'react';
+import { ITodo, ITodoHasIdContent, ITodoUpdate, todoCanFinish } from '@/interface/Todo';
+import React, { useContext, useState } from 'react';
 import { useEffect } from 'react';
-import styled, { css, ThemeContext } from 'styled-components';
-import { IClassName, IComponent } from '~/interfaces/Component';
+import styled, { ThemeContext } from 'styled-components';
+import { IComponent } from '~/interfaces/Component';
 import { IconButton } from '../IconButton';
 import { PriorityButtonGroup } from '../PriorityButtonGroup';
 
@@ -12,16 +11,16 @@ export interface ITodoItem extends IComponent {
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
     onLevNext: (todo: ITodoHasIdContent) => void,
-    onFinish: (todo: ITodoUpdateIsFinish) => void,
+    onFinish: (todo: ITodoUpdate) => void,
     onUpdateContent: (todo: ITodoHasIdContent) => void,
-    onUpdatePriority: (todo: ITodoUpdatePriority) => void,
+    onUpdatePriority: (todo: ITodoUpdate) => void,
     inAction: boolean, // 是否有待办正处于移动或者复制模式
     onAction: (todo: ITodoHasIdContent) => void, // 待办粘贴操作
 }
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, comment, isFinish, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoHasIdContent) => { }, onFinish = (todo: ITodoUpdateIsFinish) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdatePriority) => { }, inAction = false, onAction = (todo: ITodoHasIdContent) => { }, className } = props;
+    const { todo, todo: { content: initContent, comment, isFinish, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoHasIdContent) => { }, onFinish = (todo: ITodoUpdate) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdate) => { }, inAction = false, onAction = (todo: ITodoHasIdContent) => { }, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);

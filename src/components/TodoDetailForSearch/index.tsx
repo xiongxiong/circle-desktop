@@ -1,4 +1,4 @@
-import { ITodo, ITodoHasIdComment, ITodoHasIdContent, ITodoUpdateIsDelete } from "@/interface/Todo";
+import { ITodo, ITodoUpdate, ITodoHasIdContent } from "@/interface/Todo";
 import { useContext, useState } from "react";
 import { useEffect } from "react";
 import { MouseEvent } from "react"
@@ -10,8 +10,8 @@ export interface ITodoDetailProps extends IClassName {
     todo: ITodo,
     closePanel: (e: MouseEvent<HTMLDivElement>) => void,
     updateTodoCotent: (todo: ITodoHasIdContent) => void,
-    updateTodoComment: (todo: ITodoHasIdComment) => void,
-    updateTodoIsDelete: (e: MouseEvent<HTMLDivElement>, todo: ITodoUpdateIsDelete) => void,
+    updateTodoComment: (todo: ITodoUpdate) => void,
+    updateTodoIsDelete: (e: MouseEvent<HTMLDivElement>, todo: ITodoUpdate) => void,
 }
 
 export const TodoDetail = (props: ITodoDetailProps) => {
