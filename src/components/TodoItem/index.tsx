@@ -3,6 +3,9 @@ import React, { useContext, useState } from 'react';
 import { useEffect } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 import { IComponent } from '~/interfaces/Component';
+import IconLiebiao from '../@iconfont/IconLiebiao';
+import IconQitadingdan from '../@iconfont/IconQitadingdan';
+import IconZengjia from '../@iconfont/IconZengjia';
 import { IconButton } from '../IconButton';
 import { PriorityButtonGroup } from '../PriorityButtonGroup';
 
@@ -10,17 +13,17 @@ export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
-    onLevNext: (todo: ITodoHasIdContent) => void,
+    onLevNext?: (todo: ITodoHasIdContent) => void,
     onFinish: (todo: ITodoUpdate) => void,
     onUpdateContent: (todo: ITodoHasIdContent) => void,
     onUpdatePriority: (todo: ITodoUpdate) => void,
-    inAction: boolean, // 是否有待办正处于移动或者复制模式
-    onAction: (todo: ITodoHasIdContent) => void, // 待办粘贴操作
+    inAction?: boolean, // 是否有待办正处于移动或者复制模式
+    onAction?: (todo: ITodoHasIdContent) => void, // 待办粘贴操作
 }
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, comment, isFinish, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onLevNext = (todo: ITodoHasIdContent) => { }, onFinish = (todo: ITodoUpdate) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdate) => { }, inAction = false, onAction = (todo: ITodoHasIdContent) => { }, className } = props;
+    const { todo, todo: { content: initContent, comment, isFinish, isDelete, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onLevNext, onFinish = (todo: ITodoUpdate) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdate) => { }, inAction = false, onAction, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
@@ -54,7 +57,7 @@ export const TodoItem = (props: ITodoItem) => {
     }
 
     const switchPriorityMode = () => {
-        if (isSelected) {
+        if (isSelected && !isFinish && !isDelete) {
             setPriorityMode(!priorityMode);
         }
     }
@@ -65,6 +68,8 @@ export const TodoItem = (props: ITodoItem) => {
         const { id } = todo;
         onUpdatePriority({ id, priority });
     }
+
+    const IconLevNext = childrenCount > 0 ? IconLiebiao : IconZengjia;
 
     /**
      * Container区域内IconGroup区域外第一次点击默认行为为选中条目，控件仅可以对之后的点击作出响应，IconGroup区域内的控件不受限制
@@ -79,7 +84,7 @@ export const TodoItem = (props: ITodoItem) => {
                             <ContentInput value={content} onChange={onChange} onBlur={onInputBlur} onKeyPress={onKeyPress} />
                         ) : (
                             <InfoShowBox>
-                                <Content>{content}</Content>
+                                <Content hasComment={!!comment}>{content}</Content>
                                 {comment && (
                                     <Comment>{comment}</Comment>
                                 )}
@@ -87,15 +92,9 @@ export const TodoItem = (props: ITodoItem) => {
                         )}
                     </ContentGroup>
                     <IconGroup onClick={(e) => e.stopPropagation()}>
-                        {inAction && (
-                            <IconButton name="qitadingdan" size={theme.iconSize0} onClick={() => onAction(todo)} />
-                        )}
+                        {inAction && onAction && <IconQitadingdan size={theme.iconSize0} onClick={() => onAction(todo)} />}
                         <IconButton name={isFinish ? "duigouzhong" : "duigouweigouxuan"} size={theme.iconSize0} onClick={() => updateTodoIsFinish(!isFinish)} disabled={!todoCanFinish(todo)} />
-                        {childrenCount > 0 ? (
-                            <IconButton name="liebiao" size={theme.iconSize0} color={colors[childrenPriority - 1]} onClick={() => onLevNext(todo)} />
-                        ) : (
-                            <IconButton name="zengjia" size={theme.iconSize0} onClick={() => onLevNext(todo)} />
-                        )}
+                        {onLevNext && <IconLevNext size={theme.iconSize0} color={colors[childrenPriority - 1]} onClick={() => onLevNext(todo)} />}
                     </IconGroup>
                 </ContentContainer>
                 <PriorityContainer show={priorityMode && isSelected} onClick={() => setPriorityMode(false)}>
@@ -181,10 +180,9 @@ const InfoShowBox = styled.div`
     padding: 4px 8px;
 `
 
-const Content = styled.p`
-    flex: 1 0 auto;
+const Content = styled.p.attrs({} as {hasComment: boolean})`
     min-width: 20%;
-    max-width: 80%;
+    max-width: ${props => props.hasComment ? 80 : 100}%;
     font-size: 12px;
     font-family: inherit;
     overflow: hidden;
