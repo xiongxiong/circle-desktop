@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoHasIdContent, ITodoUpdate, ITodoStat, TodoStatus } from '@/interface/Todo';
+import { ITodo, ITodoHasIdContent, ITodoUpdate, ITodoStat, TodoStatus } from '@/interface/Data';
 import { MsgTodoUpdate, MsgTodoSelectList, MsgTodoSelectStatAll } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { useState } from 'react';
@@ -56,7 +56,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: () => (
                     <ButtonBox>
-                        <IconXiaolian size={theme.iconSize0} />
+                        <IconXiaolian size={theme.iconSize1} />
                         <ButtonText>
                             {childrenCount - childrenFinish - childrenDelete}
                         </ButtonText>
@@ -67,7 +67,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: () => (
                     <ButtonBox>
-                        <IconZhengque size={theme.iconSize0} />
+                        <IconZhengque size={theme.iconSize1} />
                         <ButtonText>
                             {childrenFinish}
                         </ButtonText>
@@ -78,7 +78,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: () => (
                     <ButtonBox>
-                        <IconShaixuan1 size={theme.iconSize0} />
+                        <IconShaixuan1 size={theme.iconSize1} />
                         <ButtonText>
                             {childrenDelete}
                         </ButtonText>
@@ -91,7 +91,7 @@ export const Todos = (props: ITodosProps) => {
 
     const viewModeBtns = () => [
         {
-            render: () => (<IconShaixuan size={theme.iconSize0} />),
+            render: () => (<IconShaixuan size={theme.iconSize1} />),
             func: () => store.setViewModeToList()
         },
     ];
@@ -235,6 +235,7 @@ const SearchInput: StyledComponent<React.ComponentType<InputProps>, any> = style
 
 const ButtonGroupBox = styled.div`
     margin-left: 12px;
+    font-size: ${props => props.theme.fontSize1};
 `
 
 const Body = styled.div`

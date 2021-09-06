@@ -15,7 +15,7 @@ const RootStore = types.model({
 export interface IRootStore extends Instance<typeof RootStore> {}
 
 export const rootStore = RootStore.create({
-    viewMode: "search"
+    viewMode: "list"
 });
 
 export const StoreContext = React.createContext(rootStore);

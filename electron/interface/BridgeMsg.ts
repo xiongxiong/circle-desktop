@@ -1,4 +1,4 @@
-import {ITodoDuplicate, IHasId, ITodoInsert, ITodoUpdate, ITodoSearch} from './Todo'
+import {ITodoDuplicate, IHasId, ITodoInsert, ITodoUpdate, ITodoSearch, IListGroupSearch, IListSearch, ITodoDelete, IListInsert, IListUpdate, IListDelete, IListGroupInsert, IListGroupUpdate, IListGroupDelete} from './Data'
 
 export interface IBridgeMsg {
     channel: string,
@@ -64,12 +64,12 @@ export class MsgMenuContextMenu extends MsgMenu {
     }
 }
 
-export interface ITodoActionMsg {
-    action: TodoActions,
+export interface IDataActionMsg {
+    action: DataActions,
     body?: any
 }
 
-export enum TodoActions {
+export enum DataActions {
     TodoSelectList = "TodoSelectList",
     TodoSelect = "TodoSelect",
     TodoSelectStatAll = "TodoSelectStatAll", // 查询所有待办的统计信息
@@ -77,78 +77,166 @@ export enum TodoActions {
     TodoDuplicate = "TodoDuplicate",
     TodoUpdate = "TodoUpdate",
     TodoDelete = "TodoDelete",
+    ListGroupSelectList = "ListGroupSelectList",
+    ListGroupInsert = "ListGroupInsert",
+    ListGroupUpdate = "ListGroupInsert",
+    ListGroupDelete = "ListGroupInsert",
+    ListSelectList = "ListSelectList",
+    ListInsert = "ListInsert",
+    ListUpdate = "ListUpdate",
+    ListDelete = "ListDelete",
 }
 
-abstract class MsgTodo implements IBridgeMsg {
-    readonly channel: string = 'todo';
-    message: ITodoActionMsg;
+abstract class DataMsg implements IBridgeMsg {
+    readonly channel: string = 'data';
+    message: IDataActionMsg;
 }
 
-export class MsgTodoSelectList extends MsgTodo {
-    constructor(todo?: ITodoSearch) {
+export class MsgTodoSelectList extends DataMsg {
+    constructor(data?: ITodoSearch) {
         super();
         this.message = {
-            action: TodoActions.TodoSelectList,
-            body: todo
+            action: DataActions.TodoSelectList,
+            body: data
         };
     }
 }
 
-export class MsgTodoSelect extends MsgTodo {
-    constructor(todo?: IHasId) {
+export class MsgTodoSelect extends DataMsg {
+    constructor(data?: IHasId) {
         super();
         this.message = {
-            action: TodoActions.TodoSelect,
-            body: todo
+            action: DataActions.TodoSelect,
+            body: data
         };
     }
 }
 
-export class MsgTodoSelectStatAll extends MsgTodo {
+export class MsgTodoSelectStatAll extends DataMsg {
     constructor() {
         super();
         this.message = {
-            action: TodoActions.TodoSelectStatAll,
+            action: DataActions.TodoSelectStatAll,
         };
     }
 }
 
-export class MsgTodoInsert extends MsgTodo {
-    constructor(todo: ITodoInsert) {
+export class MsgTodoInsert extends DataMsg {
+    constructor(data: ITodoInsert) {
         super();
         this.message = {
-            action: TodoActions.TodoInsert,
-            body: todo
+            action: DataActions.TodoInsert,
+            body: data
         };
     }
 }
 
-export class MsgTodoDuplicate extends MsgTodo {
-    constructor(todo: ITodoDuplicate) {
+export class MsgTodoDuplicate extends DataMsg {
+    constructor(data: ITodoDuplicate) {
         super();
         this.message = {
-            action: TodoActions.TodoDuplicate,
-            body: todo
+            action: DataActions.TodoDuplicate,
+            body: data
         };
     }
 }
 
-export class MsgTodoUpdate extends MsgTodo {
-    constructor(todo: ITodoUpdate) {
+export class MsgTodoUpdate extends DataMsg {
+    constructor(data: ITodoUpdate) {
         super();
         this.message = {
-            action: TodoActions.TodoUpdate,
-            body: todo
+            action: DataActions.TodoUpdate,
+            body: data
         };
     }
 }
 
-export class MsgTodoDelete extends MsgTodo {
-    constructor(todo: IHasId) {
+export class MsgTodoDelete extends DataMsg {
+    constructor(data: ITodoDelete) {
         super();
         this.message = {
-            action: TodoActions.TodoDelete,
-            body: todo
+            action: DataActions.TodoDelete,
+            body: data
+        };
+    }
+}
+
+export class MsgListSelectList extends DataMsg {
+    constructor(data: IListSearch) {
+        super();
+        this.message = {
+            action: DataActions.ListSelectList,
+            body: data
+        };
+    }
+}
+
+export class MsgListInsert extends DataMsg {
+    constructor(data: IListInsert) {
+        super();
+        this.message = {
+            action: DataActions.ListInsert,
+            body: data
+        };
+    }
+}
+
+export class MsgListUpdate extends DataMsg {
+    constructor(data: IListUpdate) {
+        super();
+        this.message = {
+            action: DataActions.ListUpdate,
+            body: data
+        };
+    }
+}
+
+export class MsgListDelete extends DataMsg {
+    constructor(data: IListDelete) {
+        super();
+        this.message = {
+            action: DataActions.ListDelete,
+            body: data
+        };
+    }
+}
+
+export class MsgListGroupSelectList extends DataMsg {
+    constructor(data: IListGroupSearch) {
+        super();
+        this.message = {
+            action: DataActions.ListGroupSelectList,
+            body: data
+        };
+    }
+}
+
+export class MsgListGroupInsert extends DataMsg {
+    constructor(data: IListGroupInsert) {
+        super();
+        this.message = {
+            action: DataActions.ListGroupInsert,
+            body: data
+        };
+    }
+}
+
+export class MsgListGroupUpdate extends DataMsg {
+    constructor(data: IListGroupUpdate) {
+        super();
+        this.message = {
+            action: DataActions.ListGroupUpdate,
+            body: data
+        };
+    }
+}
+
+export class MsgListGroupDelete extends DataMsg {
+    constructor(data: IListGroupDelete) {
+        super();
+        this.message = {
+            action: DataActions.ListGroupDelete,
+            body: data
         };
     }
 }

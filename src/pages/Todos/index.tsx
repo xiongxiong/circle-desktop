@@ -1,7 +1,7 @@
 import { Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoHasIdContent, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Todo';
+import { ITodo, ITodoHasIdContent, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Data';
 import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { useState } from 'react';
@@ -64,7 +64,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: () => (
                     <ButtonBox>
-                        <IconXiaolian size={theme.iconSize0}/>
+                        <IconXiaolian size={theme.iconSize1}/>
                         <ButtonText>
                             {childrenCount - childrenFinish - childrenDelete}
                         </ButtonText>
@@ -75,7 +75,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: () => (
                     <ButtonBox>
-                        <IconZhengque size={theme.iconSize0}/>
+                        <IconZhengque size={theme.iconSize1}/>
                         <ButtonText>
                             {childrenFinish}
                         </ButtonText>
@@ -86,7 +86,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: () => (
                     <ButtonBox>
-                        <IconShaixuan1 size={theme.iconSize0}/>
+                        <IconShaixuan1 size={theme.iconSize1}/>
                         <ButtonText>
                             {childrenDelete}
                         </ButtonText>
@@ -99,18 +99,18 @@ export const Todos = (props: ITodosProps) => {
 
     const viewModeBtns = () => [
         {
-            render: () => (<IconSousuo size={theme.iconSize0}/>),
+            render: () => (<IconSousuo size={theme.iconSize1}/>),
             func: () => store.setViewModeToSearch()
         },
     ];
 
     const todoPasteBtns = [
         {
-            render: () => (<IconShibai size={theme.iconSize0}/>),
+            render: () => (<IconShibai size={theme.iconSize1}/>),
             func: () => setTodoInAction(undefined)
         },
         {
-            render: () => (<IconQitadingdan size={theme.iconSize0}/>),
+            render: () => (<IconQitadingdan size={theme.iconSize1}/>),
             func: () => todoOnAction(currentNode)
         },
     ];
@@ -305,6 +305,7 @@ const TodoNavBox = styled.div`
 
 const ButtonGroupBox = styled.div`
     margin-left: 12px;
+    font-size: ${props => props.theme.fontSize1};
 `
 
 const Body = styled.div`

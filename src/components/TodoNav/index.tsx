@@ -1,4 +1,4 @@
-import { ITodoHasIdContent } from "@/interface/Todo";
+import { ITodoHasIdContent } from "@/interface/Data";
 import styled from "styled-components";
 
 

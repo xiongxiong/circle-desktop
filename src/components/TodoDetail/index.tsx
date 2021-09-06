@@ -1,13 +1,14 @@
-import { ITodo, ITodoUpdate, ITodoHasIdContent } from "@/interface/Todo";
+import { ITodo, ITodoUpdate, ITodoHasIdContent } from "@/interface/Data";
 import { useContext, useState } from "react";
 import { useEffect } from "react";
 import { MouseEvent } from "react"
 import styled, { ThemeContext } from "styled-components"
 import { IClassName } from "~/interfaces/Component";
+import IconDaohang from "../@iconfont/IconDaohang";
+import IconDingdanjihe from "../@iconfont/IconDingdanjihe";
 import IconJinrujiantou from "../@iconfont/IconJinrujiantou";
 import IconShanchu from "../@iconfont/IconShanchu";
 import IconWeizhidifang from "../@iconfont/IconWeizhidifang";
-import { IconButton } from "../IconButton";
 
 export interface ITodoDetailProps extends IClassName {
     todo: ITodo,
@@ -56,10 +57,10 @@ export const TodoDetail = (props: ITodoDetailProps) => {
     return (
         <Container className={className}>
             <Header>
-                <IconJinrujiantou size={theme.iconSize0} onClick={closePanel} />
-                {moveTodo && <Icon name="daohang" size={theme.iconSize0} onClick={() => moveTodo(todo)} />}
-                {copyTodo && <Icon name="dingdanjihe" size={theme.iconSize0} onClick={() => copyTodo(todo)} />}
-                <IconDeletion size={theme.iconSize0} onClick={(e) => updateTodoIsDelete(e, { id, isDelete: !isDelete })} />
+                <IconJinrujiantou size={theme.iconSize1} onClick={closePanel} />
+                {moveTodo && <IconDaohang size={theme.iconSize1} onClick={() => moveTodo(todo)} />}
+                {copyTodo && <IconDingdanjihe size={theme.iconSize1} onClick={() => copyTodo(todo)} />}
+                <IconDeletion size={theme.iconSize1} onClick={(e) => updateTodoIsDelete(e, { id, isDelete: !isDelete })} />
             </Header>
             <Body>
                 <Content value={content} onChange={event => onContentChange(event)} onBlur={event => onContentFinish(event)} />
@@ -112,9 +113,4 @@ const Content = styled.textarea`
     &:focus{
         outline: none;
     }
-`
-
-const Icon = styled(IconButton)`
-    padding: 2px;
-    border-radius: 2px;
 `

@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron';
-import { todoService } from './service/TodoService';
+import { dataService } from './service/DataService';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { uLog } from './utils/log';
 import { env } from './utils/env';
@@ -42,8 +42,8 @@ function createWindow() {
 }
 
 async function registerListeners() {
-	ipcMain.on('todo', (event, message) => syncMessageHandler('todo', event, message));
-	ipcMain.handle('todo', async (event, message) => todoService.on(message));
+	ipcMain.on('data', (event, message) => syncMessageHandler('data', event, message));
+	ipcMain.handle('data', async (event, message) => dataService.on(message));
 	ipcMain.on('dialog', (event, message) => syncMessageHandler('dialog', event, message));
 	ipcMain.handle('dialog', async (event, message) => dialogService.on(message, mainWindow));
 	ipcMain.on('menu', (event, message) => syncMessageHandler('menu', event, message));
@@ -53,8 +53,8 @@ async function registerListeners() {
 function syncMessageHandler(channel: string, event: IpcMainEvent, message: any) {
 	let result;
 	switch (channel) {
-		case 'todo':
-			result = todoService.on(message);
+		case 'data':
+			result = dataService.on(message);
 			break;
 		case 'dialog':
 			result = dialogService.on(message, mainWindow);
@@ -66,9 +66,9 @@ function syncMessageHandler(channel: string, event: IpcMainEvent, message: any) 
 			break;
 	}
 	if (result instanceof Promise) {
-		result.then((data) => event.reply('todo', data)).catch((e) => {
+		result.then((data) => event.reply('mainMsg', data)).catch((e) => {
 			console.error(e);
-			event.reply('todo', undefined);
+			event.reply('mainMsg', undefined);
 		});
 	} else {
 		event.returnValue = result;
@@ -79,11 +79,11 @@ app
 	.on('ready', createWindow)
 	.whenReady()
 	.then(() => uLog(() => installExtension(REACT_DEVELOPER_TOOLS), 'INSTALL EXTENSION REACT_DEVELOPER_TOOLS'))
-	.then(() => uLog(todoService.open, 'DATABASE CONNECT'))
-	.then(() => uLog(todoService.init, 'DATABASE INIT'))
+	.then(() => uLog(dataService.open, 'DATABASE CONNECT'))
+	.then(() => uLog(dataService.init, 'DATABASE INIT'))
 	// .then(() => uLog(todoService.backup, 'DATABASE BACKUP'))
-	.then(() => uLog(todoService.migrate, 'DATABASE MIGRATE'))
-	.then(() => uLog(() => todoService.prepare(), "PREPARE STAMENTS"))
+	.then(() => uLog(dataService.migrate, 'DATABASE MIGRATE'))
+	.then(() => uLog(() => dataService.prepare(), "PREPARE STAMENTS"))
 	.then(() => uLog(registerListeners, 'REGISTER LISTENERS'))
 	.catch((e) => console.error(e));
 
@@ -95,7 +95,7 @@ app.on('window-all-closed', () => {
 
 app.on('will-quit', () => {
 	if (!env.isTrial()) {
-		uLog(todoService.close, 'DATABASE DISCONNECT');
+		uLog(dataService.close, 'DATABASE DISCONNECT');
 	}
 });
 

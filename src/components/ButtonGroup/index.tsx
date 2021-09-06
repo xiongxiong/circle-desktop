@@ -60,7 +60,6 @@ const ButtonBox = styled.div.attrs({} as {checked: boolean})`
     display: flex;
     cursor: default;
     padding: 4px 8px;
-    font-size: 11px;
     color: ${props => props.checked ? props.theme.color1 : props.theme.color2};
     background-color: ${props => props.checked ? props.theme.color3 : props.theme.color1};
 

@@ -1,12 +1,15 @@
-import { ITodo, ITodoHasIdContent, ITodoUpdate, todoCanFinish } from '@/interface/Todo';
+import { ITodo, ITodoHasIdContent, ITodoUpdate, todoCanFinish } from '@/interface/Data';
 import React, { useContext, useState } from 'react';
 import { useEffect } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 import { IComponent } from '~/interfaces/Component';
+import IconDuigouWeigouxuan from '../@iconfont/IconDuigouWeigouxuan';
+import IconDuigouzhong from '../@iconfont/IconDuigouzhong';
+import IconGengduo from '../@iconfont/IconGengduo';
+import IconJia from '../@iconfont/IconJia';
 import IconLiebiao from '../@iconfont/IconLiebiao';
 import IconQitadingdan from '../@iconfont/IconQitadingdan';
 import IconZengjia from '../@iconfont/IconZengjia';
-import { IconButton } from '../IconButton';
 import { PriorityButtonGroup } from '../PriorityButtonGroup';
 
 export interface ITodoItem extends IComponent {
@@ -69,7 +72,8 @@ export const TodoItem = (props: ITodoItem) => {
         onUpdatePriority({ id, priority });
     }
 
-    const IconLevNext = childrenCount > 0 ? IconLiebiao : IconZengjia;
+    const IconFinish = isFinish ? IconDuigouzhong : IconDuigouWeigouxuan;
+    const IconLevNext = childrenCount > 0 ? IconGengduo : IconJia;
 
     /**
      * Container区域内IconGroup区域外第一次点击默认行为为选中条目，控件仅可以对之后的点击作出响应，IconGroup区域内的控件不受限制
@@ -92,9 +96,9 @@ export const TodoItem = (props: ITodoItem) => {
                         )}
                     </ContentGroup>
                     <IconGroup onClick={(e) => e.stopPropagation()}>
-                        {inAction && onAction && <IconQitadingdan size={theme.iconSize0} onClick={() => onAction(todo)} />}
-                        <IconButton name={isFinish ? "duigouzhong" : "duigouweigouxuan"} size={theme.iconSize0} onClick={() => updateTodoIsFinish(!isFinish)} disabled={!todoCanFinish(todo)} />
-                        {onLevNext && <IconLevNext size={theme.iconSize0} color={colors[childrenPriority - 1]} onClick={() => onLevNext(todo)} />}
+                        {inAction && onAction && <IconQitadingdan size={theme.iconSize1} onClick={() => onAction(todo)} />}
+                        <IconFinish size={theme.iconSize1} color={!todoCanFinish(todo) ? 'lightgray' : 'black'} onClick={() => updateTodoIsFinish(!isFinish)} />
+                        {onLevNext && <IconLevNext size={theme.iconSize1} color={colors[childrenPriority - 1]} onClick={() => onLevNext(todo)} />}
                     </IconGroup>
                 </ContentContainer>
                 <PriorityContainer show={priorityMode && isSelected} onClick={() => setPriorityMode(false)}>
