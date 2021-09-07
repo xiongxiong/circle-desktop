@@ -1,8 +1,14 @@
 import { Instance, onSnapshot, onPatch, types } from "mobx-state-tree";
 import React from "react";
 
+const List = types.model({
+    id: types.identifier,
+    title: types.string,
+});
+
 const RootStore = types.model({
-    viewMode: types.enumeration("viewMode", ["list", "search"])
+    viewMode: types.enumeration("viewMode", ["list", "search"]),
+    curList: types.maybe(types.reference(List)),
 }).actions(self => ({
     setViewModeToList: () => {
         self.viewMode = "list";
