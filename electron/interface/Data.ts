@@ -24,12 +24,12 @@ export interface OHasListId {
     listId?: number
 }
 
-export interface IHasGroupId {
-    groupId: number
+export interface IIsGroup {
+    isGroup: number
 }
 
-export interface OHasGroupId {
-    groupId?: number
+export interface OIsGroup {
+    isGroup?: boolean
 }
 
 export interface IHasTitle {
@@ -146,19 +146,19 @@ export interface OTodoStatus {
     status?: TodoStatus
 }
 
-export interface ITodoSearch extends ITodoStatus, OHasContent, OHasParentId {}
+export interface ITodoSearch extends ITodoStatus, IHasListId, OHasContent, OHasParentId {}
 
 export interface ITodoStat extends IHasChildrenCount, IHasChildrenFinish, IHasChildrenDelete {}
 
-export interface ITodoInsert extends IHasContent, IHasParentId {}
+export interface ITodoInsert extends IHasListId, IHasContent, OHasParentId {}
 
 export interface ITodoUpdate extends IHasId, OHasParentId, OHasContent, OHasComment, OIsFinish, OIsDelete, OHasPriority {}
 
 export interface ITodoDelete extends IHasId {}
 
-export interface ITodoHasIdContent extends IHasId, IHasContent {}
-
 export interface ITodoDuplicate extends IHasId, IHasParentId {}
+
+export interface ITodoHasIdContent extends IHasId, IHasContent {}
 
 export interface ITodo extends IHasId, IHasParentId, IHasListId, IHasContent, IHasComment, IHasTimeStamp, IIsFinish, IIsDelete, IIsAncestorDelete, IHasPriority, IHasChildrenPriority, ITodoStat {}
 
@@ -170,27 +170,17 @@ export interface ITodoClosure {
 
 // IList
 
-export interface IListSearch extends IHasGroupId {}
+export interface IListSearch extends IHasParentId {}
 
-export interface IListInsert extends IHasTitle, OHasGroupId {}
+export interface IListInsert extends IHasTitle, OHasParentId, OIsGroup {}
 
-export interface IListUpdate extends IHasId, OHasTitle, OHasGroupId, OIsDelete {}
+export interface IListUpdate extends IHasId, OHasTitle, OHasParentId, OIsDelete {}
 
 export interface IListDelete extends IHasId {}
 
-export interface IList extends IHasId, IHasGroupId, IHasTitle, IHasTimeStamp, IIsDelete {}
+export interface IListHasIdContent extends IHasId, IHasContent {}
 
-// IListGroup
-
-export interface IListGroupSearch extends IHasParentId {}
-
-export interface IListGroupInsert extends IHasTitle, OHasParentId {}
-
-export interface IListGroupUpdate extends IHasId, OHasTitle, OHasParentId {}
-
-export interface IListGroupDelete extends IHasId {}
-
-export interface IListGroup extends IHasId, IHasParentId, IHasTitle, IHasTimeStamp {}
+export interface IList extends IHasId, IHasParentId, IHasTitle, IHasTimeStamp, IIsGroup, IIsDelete {}
 
 // helper functions
 

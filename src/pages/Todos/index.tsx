@@ -14,7 +14,8 @@ import { FlexBox, IFlexBoxRef } from '~/components/FlexBox';
 import { createRef } from 'react';
 import { ButtonGroup } from '~/components/ButtonGroup';
 import { TodoDetail } from '~/components/TodoDetail';
-import { StoreContext } from '~/store/Store';
+import { useDispatch } from 'react-redux';
+import {toggle} from '~/store/slice/viewModeSlice';
 import IconSousuo from '~/components/@iconfont/IconSousuo';
 import IconShibai from '~/components/@iconfont/IconShibai';
 import IconQitadingdan from '~/components/@iconfont/IconQitadingdan';
@@ -39,7 +40,7 @@ interface ITodoInAction {
 export const Todos = (props: ITodosProps) => {
 
     const theme = useContext(ThemeContext);
-    const store = useContext(StoreContext);
+    const dispatch = useDispatch();
 
     const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
     const [currentNode, setCurrentNode] = useState(nodeHome); // 层级导航当前节点
@@ -100,7 +101,7 @@ export const Todos = (props: ITodosProps) => {
     const viewModeBtns = () => [
         {
             render: () => (<IconSousuo size={theme.iconSize1}/>),
-            func: () => store.setViewModeToSearch()
+            func: () => dispatch(toggle())
         },
     ];
 
@@ -123,7 +124,7 @@ export const Todos = (props: ITodosProps) => {
         clearBeforeRequest && setTodos([]);
 
         const { id: idNode } = currentNode || {};
-        window.Main.invoke(new MsgTodoSelectList({ parentId: idNode, status: todoStatus })).then((todos: ITodo[]) => {
+        window.Main.invoke(new MsgTodoSelectList({ listId: 1, parentId: idNode, status: todoStatus })).then((todos: ITodo[]) => {
             console.log("todos : ", todos);
             setTodos(todos);
         });
@@ -139,7 +140,7 @@ export const Todos = (props: ITodosProps) => {
     const insertTodo = () => {
         const { id } = currentNode || {};
         if (newTodo.content.trim().length > 0) {
-            window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id })).then((ok) => {
+            window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id, listId: 1 })).then((ok) => {
                 if (ok) {
                     setNewTodo(todoBlank);
                     selectTodoListAndTodoStat();

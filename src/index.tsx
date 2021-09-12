@@ -1,6 +1,7 @@
 import ReactDOM from "react-dom";
-import { rootStore, StoreContext } from "./store/Store";
 import {FontStyle} from './styles/FontStyle';
+import { store } from './store/store';
+import { Provider } from 'react-redux';
 
 const loadFonts = () => {
     const head = document.getElementsByTagName('head')[0];
@@ -16,6 +17,6 @@ Promise.resolve(window.Main.env.isTrial())
     if (trial) {
         import("./components/FlexBox/trial").then(({App}) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
     } else {
-        import("./App").then(({App}) => ReactDOM.render(<StoreContext.Provider value={rootStore}><App /></StoreContext.Provider>, document.getElementById("root"), loadFonts));
+        import("./App").then(({App}) => ReactDOM.render(<Provider store={store}><App /></Provider>, document.getElementById("root"), loadFonts));
     }
 });

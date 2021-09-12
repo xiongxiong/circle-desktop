@@ -1,4 +1,4 @@
-import {ITodoDuplicate, IHasId, ITodoInsert, ITodoUpdate, ITodoSearch, IListGroupSearch, IListSearch, ITodoDelete, IListInsert, IListUpdate, IListDelete, IListGroupInsert, IListGroupUpdate, IListGroupDelete} from './Data'
+import {ITodoDuplicate, IHasId, ITodoInsert, ITodoUpdate, ITodoSearch, IListSearch, ITodoDelete, IListInsert, IListUpdate, IListDelete, IHasListId} from './Data'
 
 export interface IBridgeMsg {
     channel: string,
@@ -77,11 +77,8 @@ export enum DataActions {
     TodoDuplicate = "TodoDuplicate",
     TodoUpdate = "TodoUpdate",
     TodoDelete = "TodoDelete",
-    ListGroupSelectList = "ListGroupSelectList",
-    ListGroupInsert = "ListGroupInsert",
-    ListGroupUpdate = "ListGroupInsert",
-    ListGroupDelete = "ListGroupInsert",
-    ListSelectList = "ListSelectList",
+    ListTreeSelect = "ListTreeSelect",
+    ListNodeSelect = "ListNodeSelect",
     ListInsert = "ListInsert",
     ListUpdate = "ListUpdate",
     ListDelete = "ListDelete",
@@ -113,10 +110,11 @@ export class MsgTodoSelect extends DataMsg {
 }
 
 export class MsgTodoSelectStatAll extends DataMsg {
-    constructor() {
+    constructor(data: IHasListId) {
         super();
         this.message = {
             action: DataActions.TodoSelectStatAll,
+            body: data
         };
     }
 }
@@ -161,11 +159,21 @@ export class MsgTodoDelete extends DataMsg {
     }
 }
 
-export class MsgListSelectList extends DataMsg {
+export class MsgListTreeSelect extends DataMsg {
+    constructor() {
+        super();
+        this.message = {
+            action: DataActions.ListTreeSelect,
+            body: {}
+        };
+    }
+}
+
+export class MsgListNodeSelect extends DataMsg {
     constructor(data: IListSearch) {
         super();
         this.message = {
-            action: DataActions.ListSelectList,
+            action: DataActions.ListNodeSelect,
             body: data
         };
     }
@@ -196,46 +204,6 @@ export class MsgListDelete extends DataMsg {
         super();
         this.message = {
             action: DataActions.ListDelete,
-            body: data
-        };
-    }
-}
-
-export class MsgListGroupSelectList extends DataMsg {
-    constructor(data: IListGroupSearch) {
-        super();
-        this.message = {
-            action: DataActions.ListGroupSelectList,
-            body: data
-        };
-    }
-}
-
-export class MsgListGroupInsert extends DataMsg {
-    constructor(data: IListGroupInsert) {
-        super();
-        this.message = {
-            action: DataActions.ListGroupInsert,
-            body: data
-        };
-    }
-}
-
-export class MsgListGroupUpdate extends DataMsg {
-    constructor(data: IListGroupUpdate) {
-        super();
-        this.message = {
-            action: DataActions.ListGroupUpdate,
-            body: data
-        };
-    }
-}
-
-export class MsgListGroupDelete extends DataMsg {
-    constructor(data: IListGroupDelete) {
-        super();
-        this.message = {
-            action: DataActions.ListGroupDelete,
             body: data
         };
     }

@@ -35,7 +35,7 @@ class DataService implements IDataService {
 			case DataActions.TodoSelect:
 				return dbService.todoSelect(body);
 			case DataActions.TodoSelectStatAll:
-				return dbService.todoSelectStatAll();
+				return dbService.todoSelectStatAll(body);
 			case DataActions.TodoInsert:
 				return dbService.todoInsert(body);
 			case DataActions.TodoDuplicate:
@@ -44,22 +44,16 @@ class DataService implements IDataService {
 				return dbService.todoUpdate(body);
 			case DataActions.TodoDelete:
 				return dbService.todoDelete(body);
-			case DataActions.ListSelectList:
-				return dbService.listSelectList(body);
+			case DataActions.ListTreeSelect:
+				return dbService.listTreeSelect();
+			case DataActions.ListNodeSelect:
+				return dbService.listNodeSelect(body);
 			case DataActions.ListInsert:
 				return dbService.listInsert(body);
 			case DataActions.ListUpdate:
 				return dbService.listUpdate(body);
 			case DataActions.ListDelete:
 				return dbService.listDelete(body);
-			case DataActions.ListGroupSelectList:
-				return dbService.listGroupSelectList(body);
-			case DataActions.ListGroupInsert:
-				return dbService.listGroupInsert(body);
-			case DataActions.ListGroupUpdate:
-				return dbService.listGroupUpdate(body);
-			case DataActions.ListGroupDelete:
-				return dbService.listGroupDelete(body);
 			default:
 				console.error('NOT SUPPORTED ACTION IN [ TodoActions ]');
 		}

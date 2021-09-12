@@ -5,33 +5,27 @@ import { themeDefault } from './styles/Themes';
 import { FlexBox } from './components/FlexBox';
 import React, { Suspense } from 'react';
 import { Spin } from 'antd';
-import { Observer } from 'mobx-react';
-import { StoreContext } from './store/Store';
 import { ListPanel } from './components/ListPanel';
+import { useAppSelector } from './store/hooks';
+import { selectViewMode, ViewMode } from './store/slice/viewModeSlice';
 
 export const App = () => {
+
+    const viewMode = useAppSelector(selectViewMode);
 
     const boxRender = () => <ListPanel />
 
     return (
-        <StoreContext.Consumer>
-            {(store) => (
-                <>
-                    <GlobalStyle />
-                    <ThemeProvider theme={themeDefault}>
-                        <Suspense fallback={<Spin size="large" />}>
-                            <Observer>
-                                {() => (
-                                    <Container stairs={['200px']} stairAt={1} boxRender={boxRender}>
-                                        {(store.viewMode === "list" && <Todos />) || (store.viewMode === "search" && <TodosForSearch />)}
-                                    </Container>
-                                )}
-                            </Observer>
-                        </Suspense>
-                    </ThemeProvider>
-                </>
-            )}
-        </StoreContext.Consumer>
+        <>
+                <GlobalStyle />
+                <ThemeProvider theme={themeDefault}>
+                    <Suspense fallback={<Spin size="large" />}>
+                        <Container stairs={['200px']} stairAt={1} boxRender={boxRender}>
+                            {(viewMode === ViewMode.CASCADE && <Todos />) || (viewMode === ViewMode.SEARCH && <TodosForSearch />)}
+                        </Container>
+                    </Suspense>
+                </ThemeProvider>
+        </>
     );
 }
 

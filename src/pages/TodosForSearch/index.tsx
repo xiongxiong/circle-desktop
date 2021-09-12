@@ -11,7 +11,8 @@ import { FlexBox, IFlexBoxRef } from '~/components/FlexBox';
 import { createRef } from 'react';
 import { ButtonGroup } from '~/components/ButtonGroup';
 import { TodoDetail } from '~/components/TodoDetail';
-import { StoreContext } from '~/store/Store';
+import { useDispatch } from 'react-redux';
+import {toggle} from '~/store/slice/viewModeSlice';
 import IconZhengque from '~/components/@iconfont/IconZhengque';
 import IconXiaolian from '~/components/@iconfont/IconXiaolian';
 import IconShaixuan1 from '~/components/@iconfont/IconShaixuan1';
@@ -28,7 +29,7 @@ export interface ITodosProps {
 export const Todos = (props: ITodosProps) => {
 
     const theme = useContext(ThemeContext);
-    const store = useContext(StoreContext);
+    const dispatch = useDispatch();
 
     const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
     const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 } as ITodoStat); // 待办数量统计
@@ -45,7 +46,7 @@ export const Todos = (props: ITodosProps) => {
         currentTodo ? openDetail() : shutDetail();
     }, [currentTodo]);
 
-    searchTextObs.pipe(debounceTime(600)).subscribe(toSearch => window.Main.invoke(new MsgTodoSelectList({ content: toSearch, status: todoStatus })).then((todos: ITodo[]) => {
+    searchTextObs.pipe(debounceTime(600)).subscribe(toSearch => window.Main.invoke(new MsgTodoSelectList({ listId: 1, content: toSearch, status: todoStatus })).then((todos: ITodo[]) => {
         console.log("todos : ", todos);
         setTodos(todos);
     }));
@@ -92,7 +93,7 @@ export const Todos = (props: ITodosProps) => {
     const viewModeBtns = () => [
         {
             render: () => (<IconShaixuan size={theme.iconSize1} />),
-            func: () => store.setViewModeToList()
+            func: () => dispatch(toggle())
         },
     ];
 
@@ -103,12 +104,12 @@ export const Todos = (props: ITodosProps) => {
     const selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false) => {
         clearBeforeRequest && setTodos([]);
 
-        window.Main.invoke(new MsgTodoSelectList({ content: '', status: todoStatus })).then((todos: ITodo[]) => {
+        window.Main.invoke(new MsgTodoSelectList({ listId: 1, content: '', status: todoStatus })).then((todos: ITodo[]) => {
             console.log("todos : ", todos);
             setTodos(todos);
         });
 
-        window.Main.invoke(new MsgTodoSelectStatAll()).then(node => {
+        window.Main.invoke(new MsgTodoSelectStatAll({listId: 1})).then(node => {
             const { childrenCount, childrenFinish, childrenDelete } = node || {};
             setTodoStat({ childrenCount, childrenFinish, childrenDelete });
         });

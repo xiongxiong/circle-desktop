@@ -1,35 +1,14 @@
-import { Instance, onSnapshot, onPatch, types } from "mobx-state-tree";
-import React from "react";
+import { configureStore } from "@reduxjs/toolkit";
+import viewModeReducer from "./slice/viewModeSlice";
+import curListReducer from "./slice/curListSlice";
 
-const List = types.model({
-    id: types.identifier,
-    title: types.string,
-});
-
-const RootStore = types.model({
-    viewMode: types.enumeration("viewMode", ["list", "search"]),
-    curList: types.maybe(types.reference(List)),
-}).actions(self => ({
-    setViewModeToList: () => {
-        self.viewMode = "list";
-    },
-    setViewModeToSearch: () => {
-        self.viewMode = "search";
+export const store = configureStore({
+    reducer: {
+        viewMode: viewModeReducer,
+        curList: curListReducer
     }
-}));
-
-export interface IRootStore extends Instance<typeof RootStore> {}
-
-export const rootStore = RootStore.create({
-    viewMode: "list"
 });
 
-export const StoreContext = React.createContext(rootStore);
+export type RootState = ReturnType<typeof store.getState>;
 
-onSnapshot(rootStore, snapshot => {
-    console.log("ROOT STORE :", snapshot);
-});
-
-onPatch(rootStore, patch => {
-    console.log("ROOT STORE CHANGE :", patch);
-});
+export type AppDispatch = typeof store.dispatch;
