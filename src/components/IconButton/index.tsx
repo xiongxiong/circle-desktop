@@ -5,27 +5,28 @@ import { IClassName } from "~/interfaces/Component";
 export interface IIconProps {
     size?: number,
     color?: string,
+    padding?: string,
 }
 
 export interface IIconButtonProps extends IIconProps, IClassName {
     disabled?: boolean,
-    onClick?: () => void,
+    onClick?: (event: React.MouseEvent<HTMLDivElement>) => void,
 }
 
 export const IconButton = (Icon: React.FunctionComponent) => (props: IIconButtonProps) => {
 
-    const {disabled = false, onClick, size, color, className} = props;
+    const {disabled = false, onClick = () => {}, size, color, padding, className} = props;
     const icon = React.createElement(Icon, {size, color} as JSX.IntrinsicAttributes);
 
     return (
-        <Container className={className} disabled={disabled} onClick={disabled ? undefined : onClick}>
+        <Container className={className} disabled={disabled} padding={padding} onClick={disabled ? undefined : (event) => onClick(event)}>
             <icon.type />
         </Container>
     );
 }
 
-const Container = styled.div.attrs({} as {disabled: boolean})`
-    padding: 4px;
+const Container = styled.div.attrs({} as {disabled: boolean, padding: string})`
+    padding: ${props => props.padding ? props.padding : '4px'};
     border-radius: 2px;
     ${props => props.disabled && css`
         cursor: default;

@@ -158,7 +158,7 @@ export interface ITodoDelete extends IHasId {}
 
 export interface ITodoDuplicate extends IHasId, IHasParentId {}
 
-export interface ITodoHasIdContent extends IHasId, IHasContent {}
+export interface ITodoBasic extends IHasId, IHasContent {}
 
 export interface ITodo extends IHasId, IHasParentId, IHasListId, IHasContent, IHasComment, IHasTimeStamp, IIsFinish, IIsDelete, IIsAncestorDelete, IHasPriority, IHasChildrenPriority, ITodoStat {}
 
@@ -178,7 +178,7 @@ export interface IListUpdate extends IHasId, OHasTitle, OHasParentId, OIsDelete 
 
 export interface IListDelete extends IHasId {}
 
-export interface IListHasIdContent extends IHasId, IHasContent {}
+export interface IListBasic extends IHasId, IHasParentId, IHasTitle, IIsGroup {}
 
 export interface IList extends IHasId, IHasParentId, IHasTitle, IHasTimeStamp, IIsGroup, IIsDelete {}
 

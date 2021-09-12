@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoHasIdContent, ITodoUpdate, ITodoStat, TodoStatus } from '@/interface/Data';
+import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, TodoStatus } from '@/interface/Data';
 import { MsgTodoUpdate, MsgTodoSelectList, MsgTodoSelectStatAll } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { useState } from 'react';
@@ -115,7 +115,7 @@ export const Todos = (props: ITodosProps) => {
         });
     }
 
-    const updateTodoContent = (todo: ITodoHasIdContent) => {
+    const updateTodoContent = (todo: ITodoBasic) => {
         window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
@@ -267,7 +267,7 @@ const TodoList = styled.div`
     flex: 1;
 `
 
-const nodeHome: ITodoHasIdContent = { id: 0, content: 'Home' };
+const nodeHome: ITodoBasic = { id: 0, content: 'Home' };
 
 const ButtonBox = styled.div`
     display: flex;

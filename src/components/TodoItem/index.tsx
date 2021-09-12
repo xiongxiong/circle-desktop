@@ -1,4 +1,4 @@
-import { ITodo, ITodoHasIdContent, ITodoUpdate, todoCanFinish } from '@/interface/Data';
+import { ITodo, ITodoBasic, ITodoUpdate, todoCanFinish } from '@/interface/Data';
 import React, { useContext, useState } from 'react';
 import { useEffect } from 'react';
 import styled, { ThemeContext } from 'styled-components';
@@ -15,17 +15,17 @@ export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
-    onLevNext?: (todo: ITodoHasIdContent) => void,
+    onLevNext?: (todo: ITodoBasic) => void,
     onFinish: (todo: ITodoUpdate) => void,
-    onUpdateContent: (todo: ITodoHasIdContent) => void,
+    onUpdateContent: (todo: ITodoBasic) => void,
     onUpdatePriority: (todo: ITodoUpdate) => void,
     inAction?: boolean, // 是否有待办正处于移动或者复制模式
-    onAction?: (todo: ITodoHasIdContent) => void, // 待办粘贴操作
+    onAction?: (todo: ITodoBasic) => void, // 待办粘贴操作
 }
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, comment, isFinish, isDelete, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onLevNext, onFinish = (todo: ITodoUpdate) => { }, onUpdateContent = (todo: ITodoHasIdContent) => { }, onUpdatePriority = (todo: ITodoUpdate) => { }, inAction = false, onAction, className } = props;
+    const { todo, todo: { content: initContent, comment, isFinish, isDelete, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onLevNext, onFinish = (todo: ITodoUpdate) => { }, onUpdateContent = (todo: ITodoBasic) => { }, onUpdatePriority = (todo: ITodoUpdate) => { }, inAction = false, onAction, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);

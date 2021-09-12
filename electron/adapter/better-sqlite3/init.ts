@@ -178,6 +178,11 @@ create trigger onTodoDeleteIsDelete after delete on todo
 drop trigger if exists onListInsert;
 
 create trigger onListInsert after insert on list
+    when
+        case
+            when (select isGroup from list where id = new.parentId) != 1 then raise(fail, 'LIST_PARENT_NOT_GROUP')
+            else 1
+        end
 	begin
         insert into list_closure (idAncestor, idDescendant, length) select idAncestor, new.id, length + 1 from list_closure where idDescendant = new.parentId union all select new.id, new.id, 0;
     end;
@@ -240,7 +245,7 @@ export const initData: string = `
 
 -- [DATA]
 
-insert into list (title, parentId) values ('ROOT', -1);
+insert into list (title, parentId, isGroup) values ('ROOT', -1, 1);
 insert into list (title, parentId) values ('default list', (select id from list where parentId = -1));
 
 `;

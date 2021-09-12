@@ -95,7 +95,7 @@ app.on('window-all-closed', () => {
 
 app.on('will-quit', () => {
 	if (!env.isTrial()) {
-		uLog(dataService.close, 'DATABASE DISCONNECT');
+		dataService.close();
 	}
 });
 

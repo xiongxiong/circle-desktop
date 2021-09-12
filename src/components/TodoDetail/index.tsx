@@ -1,4 +1,4 @@
-import { ITodo, ITodoUpdate, ITodoHasIdContent } from "@/interface/Data";
+import { ITodo, ITodoUpdate, ITodoBasic } from "@/interface/Data";
 import { useContext, useState } from "react";
 import { useEffect } from "react";
 import { MouseEvent } from "react"
@@ -13,11 +13,11 @@ import IconWeizhidifang from "../@iconfont/IconWeizhidifang";
 export interface ITodoDetailProps extends IClassName {
     todo: ITodo,
     closePanel: (e: MouseEvent<SVGElement>) => void,
-    updateTodoCotent: (todo: ITodoHasIdContent) => void,
+    updateTodoCotent: (todo: ITodoBasic) => void,
     updateTodoComment: (todo: ITodoUpdate) => void,
     updateTodoIsDelete: (e: MouseEvent<SVGElement>, todo: ITodoUpdate) => void,
-    moveTodo?: (todo: ITodoHasIdContent) => void,
-    copyTodo?: (todo: ITodoHasIdContent) => void,
+    moveTodo?: (todo: ITodoBasic) => void,
+    copyTodo?: (todo: ITodoBasic) => void,
 }
 
 export const TodoDetail = (props: ITodoDetailProps) => {

@@ -1,7 +1,7 @@
 import { Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoHasIdContent, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Data';
+import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Data';
 import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { useState } from 'react';
@@ -34,7 +34,7 @@ enum TodoActions {
 
 interface ITodoInAction {
     action: TodoActions,
-    todo: ITodoHasIdContent
+    todo: ITodoBasic
 }
 
 export const Todos = (props: ITodosProps) => {
@@ -149,7 +149,7 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
-    const updateTodoContent = (todo: ITodoHasIdContent) => {
+    const updateTodoContent = (todo: ITodoBasic) => {
         window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
@@ -184,11 +184,11 @@ export const Todos = (props: ITodosProps) => {
         window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
-    const moveTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: TodoActions.MOVE, todo });
+    const moveTodo = (todo: ITodoBasic) => setTodoInAction({ action: TodoActions.MOVE, todo });
 
-    const copyTodo = (todo: ITodoHasIdContent) => setTodoInAction({ action: TodoActions.COPY, todo });
+    const copyTodo = (todo: ITodoBasic) => setTodoInAction({ action: TodoActions.COPY, todo });
 
-    const todoOnAction = (parentTodo: ITodoHasIdContent) => {
+    const todoOnAction = (parentTodo: ITodoBasic) => {
         if (todoInAction) {
             const { id: parentId } = parentTodo;
             const { action, todo: { id } } = todoInAction;
@@ -209,18 +209,18 @@ export const Todos = (props: ITodosProps) => {
 
     const todoSelectedClear = () => setCurrentTodo(undefined);
 
-    const toLevNext = (todo: ITodoHasIdContent) => {
+    const toLevNext = (todo: ITodoBasic) => {
         setNavNodes(navNodes.concat([todo]));
         setCurrentNode(todo);
         todoSelectedClear();
     }
 
-    const toLevPrev = (todo: ITodoHasIdContent) => {
+    const toLevPrev = (todo: ITodoBasic) => {
         setNavNodes(navNodes.slice(0, navNodes.indexOf(todo) + 1));
         setCurrentNode(todo);
     }
 
-    const navNodeRender = (node: ITodoHasIdContent, index: number, nodes: ITodoHasIdContent[]) => {
+    const navNodeRender = (node: ITodoBasic, index: number, nodes: ITodoBasic[]) => {
         const isHead = index === 0;
         const isTail = index === nodes.length - 1;
         return isTail ? (
@@ -376,9 +376,9 @@ const HomeNodeBox = styled.div`
     align-items: center;
 `
 
-const isHomeNode = (todo: ITodoHasIdContent) => todo.id === 0;
+const isHomeNode = (todo: ITodoBasic) => todo.id === 0;
 
-const nodeHome: ITodoHasIdContent = { id: 0, content: 'Home' };
+const nodeHome: ITodoBasic = { id: 0, content: 'Home' };
 
 const todoBlank: IHasContent = { content: '' };
 

@@ -1,10 +1,10 @@
-import { IListHasIdContent } from "@/interface/Data";
+import { IListBasic } from "@/interface/Data";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from '../store';
 
 
 interface CurListState {
-    value?: IListHasIdContent
+    value?: IListBasic
 }
 
 const initialState: CurListState = {
