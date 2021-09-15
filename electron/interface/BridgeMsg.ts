@@ -72,6 +72,7 @@ export interface IDataActionMsg {
 export enum DataActions {
     TodoSelectList = "TodoSelectList",
     TodoSelect = "TodoSelect",
+    TodoSelectRoot = "TodoSelectRoot",
     TodoSelectStatAll = "TodoSelectStatAll", // 查询所有待办的统计信息
     TodoInsert = "TodoInsert",
     TodoDuplicate = "TodoDuplicate",
@@ -104,6 +105,16 @@ export class MsgTodoSelect extends DataMsg {
         super();
         this.message = {
             action: DataActions.TodoSelect,
+            body: data
+        };
+    }
+}
+
+export class MsgTodoSelectRoot extends DataMsg {
+    constructor(data: IHasListId) {
+        super();
+        this.message = {
+            action: DataActions.TodoSelectRoot,
             body: data
         };
     }

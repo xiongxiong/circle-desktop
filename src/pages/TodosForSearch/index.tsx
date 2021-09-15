@@ -12,7 +12,7 @@ import { createRef } from 'react';
 import { ButtonGroup } from '~/components/ButtonGroup';
 import { TodoDetail } from '~/components/TodoDetail';
 import { useDispatch } from 'react-redux';
-import {toggle} from '~/store/slice/viewModeSlice';
+import {toggle} from '~/store/slice/ViewModeSlice';
 import IconZhengque from '~/components/@iconfont/IconZhengque';
 import IconXiaolian from '~/components/@iconfont/IconXiaolian';
 import IconShaixuan1 from '~/components/@iconfont/IconShaixuan1';

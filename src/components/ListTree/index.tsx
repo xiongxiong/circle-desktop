@@ -6,12 +6,11 @@ import { useDispatch } from "react-redux";
 import styled, { css, ThemeContext } from "styled-components"
 import { IClassName } from "~/interfaces/Component";
 import { useAppSelector } from "~/store/hooks";
-import { selectCurList, setCurList } from "~/store/slice/curListSlice";
+import { addListExpanded, delListExpanded, expandedList, selectedList, setListSelected } from "~/store/slice/ListStateSlice";
+import IconDown from "../@iconfont/IconDown";
 import IconHangcheng from "../@iconfont/IconHangcheng";
-import IconJinrujiantou from "../@iconfont/IconJinrujiantou";
 import IconMulu from "../@iconfont/IconMulu";
-import IconXialajiantouxiao from "../@iconfont/IconXialajiantouxiao";
-import { IconButton } from "../IconButton";
+import IconUp from "../@iconfont/IconUp";
 
 export interface INodeData {
     id: number,
@@ -32,49 +31,52 @@ export interface IListTreeProps extends IClassName {
     nodes: INodeData[]
 }
 
+const map = new Map<number, INodeItem>();
+
 export const ListTree = (props: IListTreeProps) => {
 
     const {nodes: rawNodes, className} = props;
 
     const theme = useContext(ThemeContext);
     const dispatch = useDispatch();
-    const curList = useAppSelector(selectCurList);
-
-    const map = new Map<number, INodeItem>();
-    initMap(map, rawNodes, curList);
+    const listSelected = useAppSelector(selectedList);
+    const listExpanded = useAppSelector(expandedList);
 
     const [nodes, setNodes] = useState([] as INodeItem[]);
 
     useEffect(() => {
-        const sawNodes = getSawNodes(map);
+        initMap(map, rawNodes, listSelected);
+        const sawNodes = getSawNodes(map, listSelected, listExpanded);
         setNodes(sawNodes);
-    }, [rawNodes, curList]);
+    }, [rawNodes, listSelected, listExpanded]);
 
-    const toggleExpand = (event: React.MouseEvent<HTMLDivElement>, node: INodeItem) => {
+    const toggleExpand = (node: INodeItem) => {
+        const {id, expanded, isGroup} = node;
+        isGroup && dispatch(expanded ? delListExpanded(id) : addListExpanded(id));
+    }
+
+    const onToggleExpand = (event: React.MouseEvent<HTMLDivElement>, node: INodeItem) => {
         event.stopPropagation();
-        
-        const {id, expanded} = node;
-        map.get(id)!.expanded = !expanded;
-        const sawNodes = getSawNodes(map);
-        setNodes(sawNodes);
+        toggleExpand(node);
     }
 
     const onListSelect = (node: INodeItem) => {
-        dispatch(setCurList(node));
+        dispatch(setListSelected(node));
+        toggleExpand(node);
     }
 
     const nodeRender = (node: INodeItem) => {
         const {id, parentId, title, isGroup, level, selected, expanded} = node;
 
         const IconHead = isGroup ? IconHangcheng : IconMulu;
-        const IconTail = isGroup ? IconButton(expanded ? IconXialajiantouxiao : IconJinrujiantou) : undefined;
+        const IconTail = isGroup ? expanded ? IconUp : IconDown : undefined;
 
         return (
             <NodeContainer key={id} selected={selected} onClick={() => onListSelect(node)}>
                 <NodePadding level={level} />
                 <IconHead size={theme.iconSize1} />
                 <NodeText>{title}</NodeText>
-                {IconTail && <IconTail size={theme.iconSize1} padding={"0px"} onClick={(event) => toggleExpand(event, node)} />}
+                {IconTail && <IconTail size={theme.iconSize1} />}
             </NodeContainer>
         );
     }
@@ -86,12 +88,14 @@ export const ListTree = (props: IListTreeProps) => {
     );
 }
 
-const initMap = (map: Map<number, INodeItem>, rawNodes: INodeData[], curList: IListBasic | undefined) => {
+const initMap = (map: Map<number, INodeItem>, rawNodes: INodeData[], listSelected: IListBasic | undefined) => {
+    map.clear();
+
     let rootId;
     rawNodes.forEach(node => {
         const {id, parentId, isGroup} = node;
         let children = map.get(id)?.children || [];
-        const newNode = {...node, children, level: -1, selectable: !isGroup, selected: curList ? curList.id === id : false, expanded: false};
+        const newNode = {...node, children, level: -1, selectable: !isGroup, selected: listSelected ? listSelected.id === id : false, expanded: false};
         map.set(id, newNode)
         const parent = map.get(parentId);
         if (parent) {
@@ -113,12 +117,21 @@ const initMap = (map: Map<number, INodeItem>, rawNodes: INodeData[], curList: IL
 
 const updateNodeLevel = (parentLevel: number, node: INodeItem) => {
     node.level = parentLevel + 1;
-    node.children.forEach(item => updateNodeLevel(node.level, item));
+    node.children.sort(({isGroup: a}, {isGroup: b}) => {
+        if (a && !b) {
+            return -1;
+        } else if (!a && b) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }).forEach(item => updateNodeLevel(node.level, item));
 }
 
-const getSawNodes = (map: Map<number, INodeItem>) => {
+const getSawNodes = (map: Map<number, INodeItem>, listSelected: IListBasic | undefined, listExpanded: Array<number>) => {
     let sawNodes: INodeItem[] = [];
     let rootId;
+
     map.forEach(item => {
         const {id, parentId} = item;
         if (parentId === -1) {
@@ -128,25 +141,29 @@ const getSawNodes = (map: Map<number, INodeItem>) => {
     
     if (rootId !== undefined) {
         const root = map.get(rootId)!;
-        sawNodes = appendSawNodes(sawNodes, root.children);
+        sawNodes = appendSawNodes(sawNodes, root.children, listSelected, listExpanded);
     }
     return sawNodes;
 }
 
-const appendSawNodes = (sawNodes: INodeItem[], nodes: INodeItem[]) => {
-    nodes.sort(({isGroup: a}, {isGroup: b}) => {
-        if (a && !b) {
-            return -1;
-        } else if (!a && b) {
-            return 1;
-        } else {
-            return 0;
+const appendSawNodes = (sawNodes: INodeItem[], nodes: INodeItem[], listSelected: IListBasic | undefined, listExpanded: Array<number>) => {
+    nodes.forEach(item => {
+        const {id} = item;
+        let selected = false;
+        let expanded = false;
+        if (listSelected) {
+            const {id: curId} = listSelected;
+            if (curId === id) {
+                selected = true;
+            }
         }
-    }).forEach(item => {
-        sawNodes.push(item);
-        const {isGroup, expanded} = item;
+        if (listExpanded.includes(id)) {
+            expanded = true;
+        }
+        sawNodes.push({...item, selected, expanded});
+        const {isGroup} = item;
         if (isGroup && expanded) {
-            sawNodes = sawNodes.concat(appendSawNodes([], item.children));
+            sawNodes = sawNodes.concat(appendSawNodes([], item.children, listSelected, listExpanded));
         }
     });
     return sawNodes;
@@ -168,8 +185,15 @@ const NodeContainer = styled.div.attrs({} as {selected: boolean})`
     cursor: default;
     ${props => props.selected && css`
         color: ${props => props.theme.color1};
-        background-color: ${props => props.theme.color0};
+        background-color: ${props => props.theme.color6};
     `}
+
+    &:hover {
+        ${props => !props.selected && css`
+            color: ${props => props.theme.color1};
+            background-color: ${props => props.theme.color3};
+        `}
+    }
 `
 
 const NodePadding = styled.div.attrs({} as {level: number})`

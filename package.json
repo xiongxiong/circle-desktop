@@ -15,7 +15,7 @@
 		"lint": "eslint . --ext js,ts",
 		"test": "jest",
 		"rebuild": "electron-rebuild -f -w better-sqlite3",
-		"iconfont": "iconfont-h5"
+		"iconfont": "npx iconfont-h5"
 	},
 	"keywords": [],
 	"license": "MIT",

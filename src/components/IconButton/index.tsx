@@ -16,11 +16,11 @@ export interface IIconButtonProps extends IIconProps, IClassName {
 export const IconButton = (Icon: React.FunctionComponent) => (props: IIconButtonProps) => {
 
     const {disabled = false, onClick = () => {}, size, color, padding, className} = props;
-    const icon = React.createElement(Icon, {size, color} as JSX.IntrinsicAttributes);
+    const icon = React.createElement(Icon, {size, color});
 
     return (
         <Container className={className} disabled={disabled} padding={padding} onClick={disabled ? undefined : (event) => onClick(event)}>
-            <icon.type />
+            <icon.type size={size} color={color}/>
         </Container>
     );
 }

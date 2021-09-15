@@ -96,7 +96,7 @@ export const TodoItem = (props: ITodoItem) => {
                     </ContentGroup>
                     <IconGroup onClick={(e) => e.stopPropagation()}>
                         {inAction && onAction && <IconQitadingdan size={theme.iconSize1} onClick={() => onAction(todo)} />}
-                        <IconFinish size={theme.iconSize1} color={!todoCanFinish(todo) ? 'lightgray' : 'black'} onClick={() => updateTodoIsFinish(!isFinish)} />
+                        <IconFinish disabled={!todoCanFinish(todo)} size={theme.iconSize1} color={!todoCanFinish(todo) ? 'orange' : 'green'} onClick={() => updateTodoIsFinish(!isFinish)} />
                         {onLevNext && <IconLevNext size={theme.iconSize1} color={colors[childrenPriority - 1]} onClick={() => onLevNext(todo)} />}
                     </IconGroup>
                 </ContentContainer>

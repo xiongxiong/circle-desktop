@@ -2,7 +2,7 @@ import { Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
 import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Data';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate } from '@/interface/BridgeMsg';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { useState } from 'react';
 import { useEffect } from 'react';
@@ -15,13 +15,15 @@ import { createRef } from 'react';
 import { ButtonGroup } from '~/components/ButtonGroup';
 import { TodoDetail } from '~/components/TodoDetail';
 import { useDispatch } from 'react-redux';
-import {toggle} from '~/store/slice/viewModeSlice';
+import { toggle } from '~/store/slice/ViewModeSlice';
 import IconSousuo from '~/components/@iconfont/IconSousuo';
 import IconShibai from '~/components/@iconfont/IconShibai';
 import IconQitadingdan from '~/components/@iconfont/IconQitadingdan';
 import IconXiaolian from '~/components/@iconfont/IconXiaolian';
 import IconZhengque from '~/components/@iconfont/IconZhengque';
 import IconShaixuan1 from '~/components/@iconfont/IconShaixuan1';
+import { useAppSelector } from '~/store/hooks';
+import { selectedList } from '~/store/slice/ListStateSlice';
 
 export interface ITodosProps {
 
@@ -41,15 +43,20 @@ export const Todos = (props: ITodosProps) => {
 
     const theme = useContext(ThemeContext);
     const dispatch = useDispatch();
+    const listSelected = useAppSelector(selectedList);
 
     const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
-    const [currentNode, setCurrentNode] = useState(nodeHome); // 层级导航当前节点
-    const [navNodes, setNavNodes] = useState([nodeHome]); // 层级导航
+    const [currentNode, setCurrentNode] = useState(undefined as ITodoBasic | undefined); // 层级导航当前节点
+    const [navNodes, setNavNodes] = useState([] as ITodoBasic[]); // 层级导航
     const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 } as ITodoStat); // 待办数量统计
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined)); // 选中待办
     const [newTodo, setNewTodo] = useState(todoBlank); // 新待办
     const [todoStatus, setTodoStatus] = useState(TodoStatus.DOING); // 待办列表状态筛选
     const [todoInAction, setTodoInAction] = useState(undefined as (ITodoInAction | undefined)); // 待办移动或复制
+
+    useEffect(() => {
+        selectTodoRoot();
+    }, [listSelected]);
 
     useEffect(() => {
         selectTodoListAndTodoStat(true);
@@ -65,7 +72,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: () => (
                     <ButtonBox>
-                        <IconXiaolian size={theme.iconSize1}/>
+                        <IconXiaolian size={theme.iconSize1} />
                         <ButtonText>
                             {childrenCount - childrenFinish - childrenDelete}
                         </ButtonText>
@@ -76,7 +83,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: () => (
                     <ButtonBox>
-                        <IconZhengque size={theme.iconSize1}/>
+                        <IconZhengque size={theme.iconSize1} />
                         <ButtonText>
                             {childrenFinish}
                         </ButtonText>
@@ -87,7 +94,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: () => (
                     <ButtonBox>
-                        <IconShaixuan1 size={theme.iconSize1}/>
+                        <IconShaixuan1 size={theme.iconSize1} />
                         <ButtonText>
                             {childrenDelete}
                         </ButtonText>
@@ -100,21 +107,35 @@ export const Todos = (props: ITodosProps) => {
 
     const viewModeBtns = () => [
         {
-            render: () => (<IconSousuo size={theme.iconSize1}/>),
+            render: () => (<IconSousuo size={theme.iconSize1} />),
             func: () => dispatch(toggle())
         },
     ];
 
     const todoPasteBtns = [
         {
-            render: () => (<IconShibai size={theme.iconSize1}/>),
+            render: () => (<IconShibai size={theme.iconSize1} />),
             func: () => setTodoInAction(undefined)
         },
         {
-            render: () => (<IconQitadingdan size={theme.iconSize1}/>),
+            render: () => (<IconQitadingdan size={theme.iconSize1} />),
             func: () => todoOnAction(currentNode)
         },
     ];
+
+    const selectTodoRoot = () => {
+        if (listSelected) {
+            const { id: listId } = listSelected;
+            window.Main.invoke(new MsgTodoSelectRoot({ listId })).then(todo => {
+                console.log("root : ", todo);
+                setCurrentNode(todo);
+                setNavNodes([todo]);
+            });
+        } else {
+            setCurrentNode(undefined);
+            setNavNodes([]);
+        }
+    }
 
     /**
      * 查询待办列表
@@ -123,29 +144,35 @@ export const Todos = (props: ITodosProps) => {
     const selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false) => {
         clearBeforeRequest && setTodos([]);
 
-        const { id: idNode } = currentNode || {};
-        window.Main.invoke(new MsgTodoSelectList({ listId: 1, parentId: idNode, status: todoStatus })).then((todos: ITodo[]) => {
-            console.log("todos : ", todos);
-            setTodos(todos);
-        });
+        if (listSelected && currentNode) {
+            const { id: listId } = listSelected;
+            const { id: idNode } = currentNode;
+            window.Main.invoke(new MsgTodoSelectList({ listId, parentId: idNode, status: todoStatus })).then((todos: ITodo[]) => {
+                console.log("todos : ", todos);
+                setTodos(todos);
+            });
 
-        window.Main.invoke(new MsgTodoSelect(currentNode)).then(node => {
-            const { childrenCount, childrenFinish, childrenDelete } = node || {};
-            setTodoStat({ childrenCount, childrenFinish, childrenDelete });
-        });
+            window.Main.invoke(new MsgTodoSelect(currentNode)).then(node => {
+                const { childrenCount, childrenFinish, childrenDelete } = node || {};
+                setTodoStat({ childrenCount, childrenFinish, childrenDelete });
+            });
+        }
     }
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
 
     const insertTodo = () => {
-        const { id } = currentNode || {};
-        if (newTodo.content.trim().length > 0) {
-            window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id, listId: 1 })).then((ok) => {
-                if (ok) {
-                    setNewTodo(todoBlank);
-                    selectTodoListAndTodoStat();
-                }
-            });
+        if (listSelected) {
+            const { id: listId } = listSelected;
+            const { id } = currentNode || {};
+            if (newTodo.content.trim().length > 0) {
+                window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id, listId })).then((ok) => {
+                    if (ok) {
+                        setNewTodo(todoBlank);
+                        selectTodoListAndTodoStat();
+                    }
+                });
+            }
         }
     }
 
@@ -188,8 +215,8 @@ export const Todos = (props: ITodosProps) => {
 
     const copyTodo = (todo: ITodoBasic) => setTodoInAction({ action: TodoActions.COPY, todo });
 
-    const todoOnAction = (parentTodo: ITodoBasic) => {
-        if (todoInAction) {
+    const todoOnAction = (parentTodo?: ITodoBasic) => {
+        if (todoInAction && parentTodo) {
             const { id: parentId } = parentTodo;
             const { action, todo: { id } } = todoInAction;
             setTodoInAction(undefined);
@@ -274,10 +301,12 @@ export const Todos = (props: ITodosProps) => {
                         </TodoList>
                     )}
                 </Body>
-                <InputContainer>
-                    <IconZengjia color={theme.color1} />
-                    <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
-                </InputContainer>
+                {listSelected && (
+                    <InputContainer>
+                        <IconZengjia color={theme.color1} />
+                        <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
+                    </InputContainer>
+                )}
             </Container>
         </FlexBox>
     );
@@ -375,10 +404,6 @@ const HomeNodeBox = styled.div`
     display: flex;
     align-items: center;
 `
-
-const isHomeNode = (todo: ITodoBasic) => todo.id === 0;
-
-const nodeHome: ITodoBasic = { id: 0, content: 'Home' };
 
 const todoBlank: IHasContent = { content: '' };
 

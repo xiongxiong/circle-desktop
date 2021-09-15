@@ -7,7 +7,7 @@ import React, { Suspense } from 'react';
 import { Spin } from 'antd';
 import { ListPanel } from './components/ListPanel';
 import { useAppSelector } from './store/hooks';
-import { selectViewMode, ViewMode } from './store/slice/viewModeSlice';
+import { selectViewMode, ViewMode } from './store/slice/ViewModeSlice';
 
 export const App = () => {
 

@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import viewModeReducer from "./slice/viewModeSlice";
-import curListReducer from "./slice/curListSlice";
+import viewModeReducer from "./slice/ViewModeSlice";
+import curListReducer from "./slice/ListStateSlice";
 
 export const store = configureStore({
     reducer: {
         viewMode: viewModeReducer,
-        curList: curListReducer
+        list: curListReducer
     }
 });
 

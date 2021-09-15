@@ -9,6 +9,7 @@ enum StmtNames {
 	TodoDuplicateTreeSelect = 'TodoDuplicateTreeSelect',
 	TodoSelectList = "TodoSelectList",
 	TodoSelect = 'TodoSelect',
+	TodoSelectRoot = 'TodoSelectRoot',
 	TodoSelectStatAll = 'TodoSelectStatAll',
 	TodoInsert = 'TodoInsert',
 	TodoDuplicate = 'TodoDuplicate',
@@ -57,6 +58,7 @@ class DbService {
 	prepare = () => {
 		this.stmt(StmtNames.TodoSelectList, "select * from todo where coalesce(listId = @listId, 1) and coalesce(content like '%' || @content || '%', 1) and coalesce(parentId = @parentId, 1) and coalesce(isFinish = @isFinish, 1) and (case @isFinish is null when 1 then (isDelete = 1 or isAncestorDelete = 1) else (isDelete = 0 and isAncestorDelete = 0) end) and parentId != -1 order by priority desc, childrenPriority desc, updatedAt desc");
 		this.stmt(StmtNames.TodoSelect, 'select * from todo where id = @id');
+		this.stmt(StmtNames.TodoSelectRoot, 'select * from todo where listId = @listId and parentId = -1');
 		this.stmt(StmtNames.TodoSelectStatAll, 'select (select count(1) from todo where listId = @listId and parentId != -1) as childrenCount, (select count(1) from todo where isFinish = 1 and isDelete = 0 and isAncestorDelete = 0 and listId = @listId and parentId != -1) as childrenFinish, (select count(1) from todo where (isDelete = 1 or isAncestorDelete = 1) and listId = @listId and parentId != -1) as childrenDelete');
 		this.stmt(StmtNames.TodoInsert, 'insert into todo (content, parentId, listId) values (@content, coalesce(@parentId, (select id from todo where listId = @listId and parentId = -1)), @listId)');
 		this.stmt(StmtNames.TodoDuplicateTreeSelect, 'select idAncestor, idDescendant, length from todo_closure where idAncestor in (select idDescendant from todo_closure where idAncestor = @id) and length = 1 order by idDescendant');
@@ -98,22 +100,27 @@ class DbService {
 	}
 
 	todoSelect = (data: IHasId) => {
-		const {id} = data || {id: 0};
+		const {id} = data;
 		return this.stmt(StmtNames.TodoSelect)?.get({id});
 	}
 
+	todoSelectRoot = (data: IHasListId) => {
+		const {listId} = data;
+		return this.stmt(StmtNames.TodoSelectRoot)?.get({listId});
+	}
+
 	todoSelectStatAll = (data: IHasListId) => {
-		const {listId} = data || {};
+		const {listId} = data;
 		return this.stmt(StmtNames.TodoSelectStatAll)?.get({listId});
 	}
 
 	todoInsert = (data: ITodoInsert) => {
-		const {listId, content, parentId} = data || {};
+		const {listId, content, parentId} = data;
 		return this.db.transaction(() => (this.stmt(StmtNames.TodoInsert)?.run({listId, content, parentId}).changes || 0) > 0).immediate();
 	}
 
 	todoDuplicate = (data: ITodoDuplicate) => {
-		const {id, parentId} = data || {};
+		const {id, parentId} = data;
 		if (id === parentId) return false;
 		return this.db.transaction(() => {
 			const idMap = new Map<number, number>(); // key: oldId, value: newId
@@ -137,12 +144,12 @@ class DbService {
 	}
 
 	todoUpdate = (data: ITodoUpdate) => {
-		const {id, content, comment, isFinish, isDelete, priority, parentId} = data || {};
+		const {id, content, comment, isFinish, isDelete, priority, parentId} = data;
 		return this.db.transaction(() => (this.stmt(StmtNames.TodoUpdate)?.run({id, content, comment, isFinish: this.booleanToNumber(isFinish), isDelete: this.booleanToNumber(isDelete), priority, parentId}).changes || 0) > 0).immediate();
 	}
 
 	todoDelete = (data: ITodoDelete) => {
-		const {id} = data || {};
+		const {id} = data;
 		return this.db.transaction(() => (this.stmt(StmtNames.TodoDelete)?.run({id}).changes || 0) > 0).immediate();
 	}
 
@@ -151,23 +158,23 @@ class DbService {
 	}
 
 	listNodeSelect = (data: IListSearch) => {
-		const {parentId} = data || {};
+		const {parentId} = data;
 		const items = this.stmt(StmtNames.ListTreeSelect)?.all({parentId}) || [];
 		return items.map(item => ({...item, key: item.id}));
 	}
 
 	listInsert = (data: IListInsert) => {
-		const {title, parentId, isGroup = false} = data || {};
+		const {title, parentId, isGroup = false} = data;
 		return this.db.transaction(() => (this.stmt(StmtNames.ListInsert)?.run({title, parentId, isGroup: this.booleanToNumber(isGroup)}).changes || 0) > 0).immediate();
 	}
 
 	listUpdate = (data: IListUpdate) => {
-		const {id, title, parentId, isDelete} = data || {};
+		const {id, title, parentId, isDelete} = data;
 		return this.db.transaction(() => (this.stmt(StmtNames.ListUpdate)?.run({id, title, parentId, isDelete: this.booleanToNumber(isDelete)}).changes || 0) > 0).immediate();
 	}
 
 	listDelete = (data: IListDelete) => {
-		const {id} = data || {};
+		const {id} = data;
 		return this.db.transaction(() => (this.stmt(StmtNames.ListDelete)?.run({id}).changes || 0) > 0).immediate();
 	}
 }
