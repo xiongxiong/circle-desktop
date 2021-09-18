@@ -25,6 +25,7 @@
 		"@reduxjs/toolkit": "^1.6.1",
 		"antd": "^4.16.9",
 		"better-sqlite3": "^7.4.3",
+		"css-loader": "^6.2.0",
 		"downshift": "^6.1.7",
 		"formik": "^2.2.9",
 		"immer": "^9.0.6",
@@ -38,9 +39,13 @@
 		"react-virtualized-auto-sizer": "^1.0.6",
 		"react-window": "^1.8.6",
 		"redux": "^4.1.1",
+		"redux-persist": "^6.0.0",
+		"redux-thunk": "^2.3.0",
 		"reflect-metadata": "^0.1.13",
 		"rxjs": "^7.3.0",
+		"style-loader": "^3.2.1",
 		"styled-components": "5.3.0",
+		"url-loader": "^4.1.1",
 		"use-immer": "^0.6.0"
 	},
 	"devDependencies": {

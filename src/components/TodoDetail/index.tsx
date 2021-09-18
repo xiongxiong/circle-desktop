@@ -1,4 +1,4 @@
-import { ITodo, ITodoUpdate, ITodoBasic } from "@/interface/Data";
+import { ITodo, ITodoUpdate, ITodoBasic, ITodoStat } from "@/interface/Data";
 import { useContext, useState } from "react";
 import { useEffect } from "react";
 import { MouseEvent } from "react"
@@ -15,14 +15,14 @@ export interface ITodoDetailProps extends IClassName {
     closePanel: (e: MouseEvent<SVGElement>) => void,
     updateTodoCotent: (todo: ITodoBasic) => void,
     updateTodoComment: (todo: ITodoUpdate) => void,
-    updateTodoIsDelete: (e: MouseEvent<SVGElement>, todo: ITodoUpdate) => void,
+    updateTodoIsDelete: (e: MouseEvent<SVGElement>, todo: ITodoUpdate & ITodoStat) => void,
     moveTodo?: (todo: ITodoBasic) => void,
     copyTodo?: (todo: ITodoBasic) => void,
 }
 
 export const TodoDetail = (props: ITodoDetailProps) => {
 
-    const { todo, todo: { id, content: initContent, comment: initComment, updatedAt, isDelete }, closePanel, updateTodoIsDelete, updateTodoCotent, updateTodoComment, moveTodo, copyTodo, className } = props;
+    const { todo, todo: { id, content: initContent, comment: initComment, updatedAt, isDelete, childrenCount, childrenFinish, childrenDelete }, closePanel, updateTodoIsDelete, updateTodoCotent, updateTodoComment, moveTodo, copyTodo, className } = props;
 
     const [content, setContent] = useState(initContent);
     const [comment, setComment] = useState(initComment);
@@ -60,7 +60,7 @@ export const TodoDetail = (props: ITodoDetailProps) => {
                 <IconJinrujiantou size={theme.iconSize1} onClick={closePanel} />
                 {moveTodo && <IconDaohang size={theme.iconSize1} onClick={() => moveTodo(todo)} />}
                 {copyTodo && <IconDingdanjihe size={theme.iconSize1} onClick={() => copyTodo(todo)} />}
-                <IconDeletion size={theme.iconSize1} onClick={(e) => updateTodoIsDelete(e, { id, isDelete: !isDelete })} />
+                <IconDeletion size={theme.iconSize1} onClick={(e) => updateTodoIsDelete(e, { id, isDelete: !isDelete, childrenCount, childrenFinish, childrenDelete })} />
             </Header>
             <Body>
                 <Content value={content} onChange={event => onContentChange(event)} onBlur={event => onContentFinish(event)} />

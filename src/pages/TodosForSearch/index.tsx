@@ -165,7 +165,7 @@ export const Todos = (props: ITodosProps) => {
     const boxRender = () => currentTodo && (<TodoDetail todo={currentTodo} closePanel={shutDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} updateTodoComment={updateTodoComment} />);
 
     return (
-        <FlexBox ref={detailRef} direction='row-reverse' stairs={['30%']} boxRender={boxRender}>
+        <FlexBox ref={detailRef} direction='row-reverse' stairs={[{width: '30%', minWidth: '200px'}]} boxRender={boxRender}>
             <Container onClick={todoSelectedClear}>
                 <Header>
                     <SearchBox>

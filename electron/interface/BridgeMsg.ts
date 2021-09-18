@@ -10,6 +10,11 @@ export interface IDialogActionMsg {
     body: any
 }
 
+export interface IDialogButtonProps {
+    label: string,
+    func: () => void
+}
+
 export enum DialogActions {
     MessageBox = "MessageBox",
     ErrorBox = "ErrorBox"

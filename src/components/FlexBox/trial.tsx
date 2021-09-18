@@ -9,7 +9,16 @@ export function App() {
 
   const theRef: React.ForwardedRef<IFlexBoxRef> = createRef();
 
-  const stairs = ['30%', '50%'];
+  const stairs = [
+    {
+      width: '30%',
+      minWidth: '200px',
+    },
+    {
+      width: '50%',
+      minWidth: '300px',
+    }
+  ];
 
   let stairIndex = 0;
   const changeStair = () => theRef.current?.stairTo((stairIndex += 1) % stairs.length);

@@ -5,9 +5,15 @@ import { useState } from "react";
 import styled, { css, Keyframes, keyframes } from "styled-components";
 import { IComponent } from "~/interfaces/Component";
 
+export interface IFlexBoxStair {
+    width: string,
+    minWidth?: string,
+    maxWidth?: string
+}
+
 export interface IFlexBoxProps extends IComponent {
     direction?: Direction,
-    stairs: string[],
+    stairs: IFlexBoxStair[],
     boxRender?: () => React.ReactNode,
     stairAt?: number,
     animTime?: number
@@ -23,7 +29,7 @@ const FlexBoxBase = (props: IFlexBoxProps, ref: React.ForwardedRef<IFlexBoxRef>)
 
     const { direction = 'row', stairs: initStairs = [], boxRender = () => undefined, stairAt = 0, animTime = 200, className, children } = props;
 
-    const stairs = ['0px'].concat(initStairs);
+    const stairs = [{width: '0px'}].concat(initStairs);
 
     const [stairNext, setStairNext] = useState(stairAt);
     const [stairPrev, setStairPrev] = useState(stairAt);
@@ -37,13 +43,17 @@ const FlexBoxBase = (props: IFlexBoxProps, ref: React.ForwardedRef<IFlexBoxRef>)
         }
     }));
 
-    const animation = (stairs: string[], stairNext: number, stairPrev: number) => keyframes`
+    const animation = (stairs: IFlexBoxStair[], stairNext: number, stairPrev: number) => keyframes`
         from {
-            width: ${stairs[stairPrev]};
+            width: ${stairs[stairPrev].width};
+            min-width: ${stairs[stairPrev].minWidth};
+            max-width: ${stairs[stairPrev].maxWidth};
         }
 
         to {
-            width: ${stairs[stairNext]};
+            width: ${stairs[stairNext].width};
+            min-width: ${stairs[stairNext].minWidth};
+            max-width: ${stairs[stairNext].maxWidth};
         }
     `;
 
@@ -68,10 +78,12 @@ const Container = styled.div.attrs({} as { direction: Direction })`
     align-items: stretch;
 `
 
-const HeadBox = styled.div.attrs({} as { stairs: string[], stairNext: number, stairPrev: number, animTime: number, animation: (stairs: string[], stairNext: number, stairPrev: number) => Keyframes })`
+const HeadBox = styled.div.attrs({} as { stairs: IFlexBoxStair[], stairNext: number, stairPrev: number, animTime: number, animation: (stairs: IFlexBoxStair[], stairNext: number, stairPrev: number) => Keyframes })`
     display: flex;
     overflow: hidden;
-    width: ${props => props.stairs[props.stairNext]};
+    width: ${props => props.stairs[props.stairNext].width};
+    min-width: ${props => props.stairs[props.stairNext].minWidth};
+    max-width: ${props => props.stairs[props.stairNext].maxWidth};
     animation: ${props => props.animation(props.stairs, props.stairNext, props.stairPrev)} ${props => props.animTime}ms ease-out;
 `;
 

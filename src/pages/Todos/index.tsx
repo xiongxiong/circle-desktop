@@ -2,7 +2,7 @@ import { Input, InputProps } from 'antd';
 import React from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
 import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Data';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot } from '@/interface/BridgeMsg';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { useState } from 'react';
 import { useEffect } from 'react';
@@ -188,14 +188,44 @@ export const Todos = (props: ITodosProps) => {
         window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
-    const updateTodoIsDelete = (event: React.MouseEvent, todo?: ITodoUpdate) => {
-        if (todo) {
+    const updateTodoIsDelete = (event: React.MouseEvent, todo?: ITodoUpdate & ITodoStat) => {
+        const updateFunc = (todo: ITodoUpdate & ITodoStat) => {
             window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => {
                 if (ok) {
                     todoSelectedClear();
                     selectTodoListAndTodoStat();
                 }
             });
+        }
+        const buttons: IDialogButtonProps[] = [
+            {
+                label: '取消',
+                func: () => {}
+            },
+            {
+                label: '确定',
+                func: () => todo && updateFunc(todo)
+            }
+        ]
+
+        if (todo) {
+            const {childrenCount} = todo;
+            if (childrenCount > 0) {
+                window.Main.invoke(new MsgDialogMessageBox({
+                    type: 'warning',
+                    title: '「待办」删除',
+                    message: '该待办包含子待办，确定删除？',
+                    buttons: buttons.map(({label}) => label),
+                    defaultId: 1,
+                    cancelId: 0,
+                    noLink: true
+                })).then(res => {
+                    const {response = 0} = res || {};
+                    buttons[response] && buttons[response].func();
+                });
+            } else {
+                updateFunc(todo);
+            }
         }
     }
 
@@ -274,7 +304,7 @@ export const Todos = (props: ITodosProps) => {
     const boxRender = () => currentTodo && (<TodoDetail todo={currentTodo} closePanel={shutDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} updateTodoComment={updateTodoComment} moveTodo={moveTodo} copyTodo={copyTodo} />);
 
     return (
-        <FlexBox ref={detailRef} direction='row-reverse' stairs={['30%']} boxRender={boxRender}>
+        <FlexBox ref={detailRef} direction='row-reverse' stairs={[{width: '30%', minWidth: '200px'}]} boxRender={boxRender}>
             <Container onClick={todoSelectedClear}>
                 <Header>
                     <TodoNavBox>
@@ -301,7 +331,7 @@ export const Todos = (props: ITodosProps) => {
                         </TodoList>
                     )}
                 </Body>
-                {listSelected && (
+                {listSelected && !listSelected.isGroup && (
                     <InputContainer>
                         <IconZengjia color={theme.color1} />
                         <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />

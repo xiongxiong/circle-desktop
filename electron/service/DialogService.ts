@@ -23,6 +23,7 @@ class DialogService implements IDialogService {
 			default:
 				console.error('NOT SUPPORTED ACTION IN [ DialogActions ]');
 		}
+        return undefined;
     }
 
 }

@@ -20,7 +20,7 @@ export const App = () => {
                 <GlobalStyle />
                 <ThemeProvider theme={themeDefault}>
                     <Suspense fallback={<Spin size="large" />}>
-                        <Container stairs={['200px']} stairAt={1} boxRender={boxRender}>
+                        <Container stairs={[{width: '200px', minWidth: '200px'}]} stairAt={1} boxRender={boxRender}>
                             {(viewMode === ViewMode.CASCADE && <Todos />) || (viewMode === ViewMode.SEARCH && <TodosForSearch />)}
                         </Container>
                     </Suspense>
