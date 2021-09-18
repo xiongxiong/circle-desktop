@@ -35,6 +35,7 @@
 		"react-dom": "17.0.2",
 		"react-hot-loader": "4.13.0",
 		"react-redux": "^7.2.5",
+		"react-sizeme": "^3.0.2",
 		"react-transition-group": "^4.4.2",
 		"react-virtualized-auto-sizer": "^1.0.6",
 		"react-window": "^1.8.6",

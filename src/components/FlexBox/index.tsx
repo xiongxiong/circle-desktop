@@ -84,7 +84,7 @@ const HeadBox = styled.div.attrs({} as { stairs: IFlexBoxStair[], stairNext: num
     width: ${props => props.stairs[props.stairNext].width};
     min-width: ${props => props.stairs[props.stairNext].minWidth};
     max-width: ${props => props.stairs[props.stairNext].maxWidth};
-    animation: ${props => props.animation(props.stairs, props.stairNext, props.stairPrev)} ${props => props.animTime}ms ease-out;
+    /* animation: ${props => props.animation(props.stairs, props.stairNext, props.stairPrev)} ${props => props.animTime}ms ease-out; */
 `;
 
 const TailBox = styled.div`

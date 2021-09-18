@@ -1,5 +1,5 @@
 import { Input, InputProps } from 'antd';
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
 import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Data';
 import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps } from '@/interface/BridgeMsg';
@@ -62,7 +62,7 @@ export const Todos = (props: ITodosProps) => {
         selectTodoListAndTodoStat(true);
     }, [currentNode, todoStatus]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         currentTodo ? openDetail() : shutDetail();
     }, [currentTodo]);
 
