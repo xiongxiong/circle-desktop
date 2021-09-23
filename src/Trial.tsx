@@ -3,10 +3,6 @@ import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import { useState } from "react";
 
-import 'primereact/resources/themes/saga-blue/theme.css';
-import 'primereact/resources/primereact.min.css';
-import 'primeicons/primeicons.css';
-
 export const Trial = () => {
 
     const [showDialog, setShowDialog] = useState(false);

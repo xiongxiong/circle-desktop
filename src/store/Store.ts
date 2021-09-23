@@ -1,8 +1,7 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import viewModeReducer from "./slice/ViewModeSlice";
-import curListReducer from "./slice/ListStateSlice";
+import appReducer from "./slice/AppSlice";
 import thunk from "redux-thunk";
 
 const persistConfig = {
@@ -11,8 +10,7 @@ const persistConfig = {
 };
 
 const rootReducer = combineReducers({
-    viewMode: viewModeReducer,
-    list: curListReducer
+    app: appReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

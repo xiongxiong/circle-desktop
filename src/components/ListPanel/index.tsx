@@ -5,11 +5,14 @@ import { useDispatch } from "react-redux";
 import styled, { ThemeContext } from "styled-components";
 import { IComponent } from "~/interfaces/Component";
 import { useAppSelector } from "~/store/hooks";
-import { selectedList } from "~/store/slice/ListStateSlice";
+import { contentToSearch, selectedList, setContentToSearch } from "~/store/slice/AppSlice";
 import IconHangcheng from "../@iconfont/IconHangcheng";
 import IconJia from "../@iconfont/IconJia";
 import { IconButton } from "../IconButton";
 import { ListTree } from "../ListTree";
+import { createSignal } from "@react-rxjs/utils";
+import { bind } from "@react-rxjs/core";
+import { debounceTime } from "rxjs";
 
 export interface IListPanelProps extends IComponent {
 
@@ -26,9 +29,14 @@ export const ListPanel = (props: IListPanelProps) => {
     const [treeNodes, setTreeNodes] = useState([]);
     const [creating, setCreating] = useState(undefined as Creating | undefined);
     const [newTitle, setNewTitle] = useState('');
+    const [searchValue, setSearchValue] = useState('');
+    const [searchText, setSearchText] = createSignal<string>();
+    const [useSearchText, searchTextObs] = bind(searchText);
 
     useEffect(() => selectTreeNodes(), [true])
     useEffect(() => setNewTitle(''), [creating]);
+
+    searchTextObs.pipe(debounceTime(600)).subscribe(searchContent => dispatch(setContentToSearch(searchContent)));
 
     const IconNewList = IconButton(IconJia);
     const IconNewGroup = IconButton(IconHangcheng);
@@ -63,10 +71,20 @@ export const ListPanel = (props: IListPanelProps) => {
         }
     }
 
+    const onSearchFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+        dispatch(setContentToSearch(''));
+        setSearchValue('');
+    }
+
+    const onSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchValue(event.target.value);
+        setSearchText(event.target.value);
+    }
+
     return (
         <Container className={className}>
             <Header>
-
+                <Search placeholder="Search" value={searchValue} onChange={onSearch} onFocus={onSearchFocus} />
             </Header>
             <Body>
                 <ListTree nodes={treeNodes}/> 
@@ -99,7 +117,27 @@ const Container = styled.div`
 `
 
 const Header = styled.div`
-    height: 100px;
+    padding: 4px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    font-size: 12px;
+`
+
+const Search = styled.input`
+    border-radius: 4px;
+    border: 1px solid gray;
+    padding: 4px 8px 4px;
+    background-color: ${props => props.theme.color1};
+    font-family: inherit;
+
+    &:focus {
+        outline: none;
+    }
+
+    &::placeholder {
+        color: lightgray;
+    }
 `
 
 const Body = styled.div`

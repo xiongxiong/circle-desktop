@@ -1,29 +1,23 @@
 import { Input, InputProps } from 'antd';
-import React, { useLayoutEffect } from 'react';
+import React, { useState, useEffect, createRef } from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
 import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Data';
 import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
-import { useState } from 'react';
-import { useEffect } from 'react';
-import { TodoNav } from '~/components/TodoNav';
+import { TodoNavi } from '~/components/TodoNavi';
 import IconZengjia from '~/components/@iconfont/IconZengjia';
 import { useContext } from 'react';
 import { Empty } from '~/components/Empty';
-import { FlexBox, IFlexBoxRef } from '~/components/FlexBox';
-import { createRef } from 'react';
 import { ButtonGroup } from '~/components/ButtonGroup';
-import { TodoDetail } from '~/components/TodoDetail';
 import { useDispatch } from 'react-redux';
-import { toggle } from '~/store/slice/ViewModeSlice';
-import IconSousuo from '~/components/@iconfont/IconSousuo';
 import IconShibai from '~/components/@iconfont/IconShibai';
 import IconQitadingdan from '~/components/@iconfont/IconQitadingdan';
 import IconXiaolian from '~/components/@iconfont/IconXiaolian';
 import IconZhengque from '~/components/@iconfont/IconZhengque';
 import IconShaixuan1 from '~/components/@iconfont/IconShaixuan1';
 import { useAppSelector } from '~/store/hooks';
-import { selectedList } from '~/store/slice/ListStateSlice';
+import { selectedList } from '~/store/slice/AppSlice';
+import { ContextMenu } from 'primereact/contextmenu';
 
 export interface ITodosProps {
 
@@ -44,27 +38,31 @@ export const Todos = (props: ITodosProps) => {
     const theme = useContext(ThemeContext);
     const dispatch = useDispatch();
     const listSelected = useAppSelector(selectedList);
+    const cm = createRef<ContextMenu>();
 
     const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
     const [currentNode, setCurrentNode] = useState(undefined as ITodoBasic | undefined); // 层级导航当前节点
     const [navNodes, setNavNodes] = useState([] as ITodoBasic[]); // 层级导航
     const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 } as ITodoStat); // 待办数量统计
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined)); // 选中待办
+    const [contextTodo, setContextTodo] = useState(undefined as (ITodo | undefined)); // 上下文菜单对应待办
     const [newTodo, setNewTodo] = useState(todoBlank); // 新待办
     const [todoStatus, setTodoStatus] = useState(TodoStatus.DOING); // 待办列表状态筛选
     const [todoInAction, setTodoInAction] = useState(undefined as (ITodoInAction | undefined)); // 待办移动或复制
 
     useEffect(() => {
         selectTodoRoot();
+        return () => {
+            selectTodoRoot = () => {};
+        };
     }, [listSelected]);
 
     useEffect(() => {
         selectTodoListAndTodoStat(true);
+        return () => {
+            selectTodoListAndTodoStat = () => {};
+        };
     }, [currentNode, todoStatus]);
-
-    useLayoutEffect(() => {
-        currentTodo ? openDetail() : shutDetail();
-    }, [currentTodo]);
 
     const finishStatusBtns = () => {
         const { childrenCount = 0, childrenFinish = 0, childrenDelete = 0 } = todoStat || {};
@@ -105,13 +103,6 @@ export const Todos = (props: ITodosProps) => {
         ];
     };
 
-    const viewModeBtns = () => [
-        {
-            render: () => (<IconSousuo size={theme.iconSize1} />),
-            func: () => dispatch(toggle())
-        },
-    ];
-
     const todoPasteBtns = [
         {
             render: () => (<IconShibai size={theme.iconSize1} />),
@@ -123,7 +114,7 @@ export const Todos = (props: ITodosProps) => {
         },
     ];
 
-    const selectTodoRoot = () => {
+    let selectTodoRoot = () => {
         if (listSelected) {
             const { id: listId } = listSelected;
             window.Main.invoke(new MsgTodoSelectRoot({ listId })).then(todo => {
@@ -141,7 +132,7 @@ export const Todos = (props: ITodosProps) => {
      * 查询待办列表
      * @param clearBeforeRequest 是否在查询发起前清空当前待办列表
      */
-    const selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false) => {
+    let selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false) => {
         clearBeforeRequest && setTodos([]);
 
         if (listSelected && currentNode) {
@@ -188,7 +179,7 @@ export const Todos = (props: ITodosProps) => {
         window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => ok && selectTodoListAndTodoStat());
     }
 
-    const updateTodoIsDelete = (event: React.MouseEvent, todo?: ITodoUpdate & ITodoStat) => {
+    const updateTodoIsDelete = (todo: ITodoUpdate & ITodoStat) => {
         const updateFunc = (todo: ITodoUpdate & ITodoStat) => {
             window.Main.invoke(new MsgTodoUpdate(todo)).then(ok => {
                 if (ok) {
@@ -200,7 +191,7 @@ export const Todos = (props: ITodosProps) => {
         const buttons: IDialogButtonProps[] = [
             {
                 label: '取消',
-                func: () => {}
+                func: () => { }
             },
             {
                 label: '确定',
@@ -208,25 +199,23 @@ export const Todos = (props: ITodosProps) => {
             }
         ]
 
-        if (todo) {
-            const {childrenCount} = todo;
+        const { childrenCount } = todo;
             if (childrenCount > 0) {
                 window.Main.invoke(new MsgDialogMessageBox({
                     type: 'warning',
                     title: '「待办」删除',
                     message: '该待办包含子待办，确定删除？',
-                    buttons: buttons.map(({label}) => label),
+                    buttons: buttons.map(({ label }) => label),
                     defaultId: 1,
                     cancelId: 0,
                     noLink: true
                 })).then(res => {
-                    const {response = 0} = res || {};
+                    const { response = 0 } = res || {};
                     buttons[response] && buttons[response].func();
                 });
             } else {
                 updateFunc(todo);
             }
-        }
     }
 
     const updateTodoParentId = (id: number, parentId: number) => {
@@ -277,51 +266,61 @@ export const Todos = (props: ITodosProps) => {
         setCurrentNode(todo);
     }
 
-    const navNodeRender = (node: ITodoBasic, index: number, nodes: ITodoBasic[]) => {
-        const isHead = index === 0;
-        const isTail = index === nodes.length - 1;
-        return isTail ? (
-            <span>{node.content}</span>
-        ) : (
-            <TodoNode onClick={() => toLevPrev(node)}>{node.content}</TodoNode>
-        );
+    const menuItems = [
+        {
+            label: '详情',
+            icon: 'pi pi-fw pi-info-circle',
+        },
+        {
+            separator: true
+        },
+        {
+            label: '复制',
+            icon: 'pi pi-fw pi-copy',
+            command: () => contextTodo && copyTodo(contextTodo),
+        },
+        {
+            label: '剪切',
+            icon: 'pi pi-fw pi-send',
+            command: () => contextTodo && moveTodo(contextTodo),
+        },
+        {
+            label: '删除',
+            icon: 'pi pi-fw pi-trash',
+            command: () => contextTodo && updateTodoIsDelete({...contextTodo, isDelete: true}),
+        },
+    ];
+
+    const onTodoContextMenu = (e: React.MouseEvent<HTMLDivElement>, todo: ITodo) => {
+        setContextTodo(todo);
+        cm.current?.show(e);
     }
-
-    const detailRef: React.ForwardedRef<IFlexBoxRef> = createRef();
-
-    const openDetail = () => detailRef.current?.stairTo(1);
-
-    const shutDetail = () => detailRef.current?.stairTo(0);
 
     const listItemRender = (item: ITodo) => {
         const { id } = item;
         const { id: idCurrent } = currentTodo || {};
         return (
-            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} inAction={!!todoInAction} onAction={todoOnAction} />
+            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu}/>
         );
     }
 
-    const boxRender = () => currentTodo && (<TodoDetail todo={currentTodo} closePanel={shutDetail} updateTodoIsDelete={updateTodoIsDelete} updateTodoCotent={updateTodoContent} updateTodoComment={updateTodoComment} moveTodo={moveTodo} copyTodo={copyTodo} />);
-
     return (
-        <FlexBox ref={detailRef} direction='row-reverse' stairs={[{width: '30%', minWidth: '200px'}]} boxRender={boxRender}>
-            <Container onClick={todoSelectedClear}>
+        <>
+        <TodoContextMenu model={menuItems} ref={cm} />
+        <Container onClick={todoSelectedClear}>
                 <Header>
-                    <TodoNavBox>
-                        {navNodes.length <= 1 ? undefined : (<TodoNav renderItem={navNodeRender} nodes={navNodes} />)}
-                    </TodoNavBox>
                     {todoInAction && (
                         <ButtonGroupBox>
                             <ButtonGroup buttons={todoPasteBtns} />
                         </ButtonGroupBox>
                     )}
                     <ButtonGroupBox>
-                        <ButtonGroup buttons={viewModeBtns()} />
-                    </ButtonGroupBox>
-                    <ButtonGroupBox>
                         <ButtonGroup buttons={finishStatusBtns()} radio />
                     </ButtonGroupBox>
                 </Header>
+                <NaviBox>
+                    <TodoNavi nodes={navNodes} toLevPrev={toLevPrev} />
+                </NaviBox>
                 <Body>
                     {todos.length === 0 ? (
                         <Empty width="30%" />
@@ -338,9 +337,18 @@ export const Todos = (props: ITodosProps) => {
                     </InputContainer>
                 )}
             </Container>
-        </FlexBox>
+            </>
     );
 }
+
+const TodoContextMenu = styled(ContextMenu)`
+    font-size: 12px;
+    width: 100px;
+
+    & .p-menuitem-link {
+        padding: 0.5em 1em;
+    }
+`
 
 const Container = styled.div`
     flex: 1;
@@ -352,15 +360,11 @@ const Container = styled.div`
 `
 
 const Header = styled.div`
-    height: 36px;
+    margin: 0px 0px 8px 0px;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
-`
-
-const TodoNavBox = styled.div`
-    flex: 1;
 `
 
 const ButtonGroupBox = styled.div`
@@ -368,11 +372,22 @@ const ButtonGroupBox = styled.div`
     font-size: ${props => props.theme.fontSize1};
 `
 
+const NaviBox = styled.div`
+    margin: 0px 0px 4px 0px;
+    padding: 0px 12px;
+    border-radius: 4px;
+    min-width: 160px;
+    max-height: 100px;
+    font-size: 10px;
+    overflow-y: auto;
+    background-color: ${props => props.theme.color3};
+`
+
 const Body = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    margin: 8px 0px;
+    margin: 0px 0px 4px 0px;
     overflow-y: auto;
     
     &::-webkit-scrollbar  
@@ -420,19 +435,6 @@ const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(
     &::placeholder {
         color: ${props => props.theme.color3};
     }
-`
-
-const TodoNode = styled.a`
-
-    &:hover {
-        cursor: default;
-        color: ${props => props.theme.color6};
-    }
-`
-
-const HomeNodeBox = styled.div`
-    display: flex;
-    align-items: center;
 `
 
 const todoBlank: IHasContent = { content: '' };

@@ -1,6 +1,5 @@
-import { ITodo, ITodoBasic, ITodoUpdate, todoCanFinish } from '@/interface/Data';
-import React, { useContext, useState } from 'react';
-import { useEffect } from 'react';
+import { ITodo, ITodoBasic, ITodoStat, ITodoUpdate, todoCanFinish } from '@/interface/Data';
+import React, { useContext, useState, useEffect, createRef, MouseEvent } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 import { IComponent } from '~/interfaces/Component';
 import IconDuigouWeigouxuan from '../@iconfont/IconDuigouWeigouxuan';
@@ -10,6 +9,7 @@ import IconLiebiao from '../@iconfont/IconLiebiao';
 import IconQitadingdan from '../@iconfont/IconQitadingdan';
 import { IconButton } from '../IconButton';
 import { PriorityButtonGroup } from '../PriorityButtonGroup';
+import { ContextMenu } from "primereact/contextmenu";
 
 export interface ITodoItem extends IComponent {
     todo: ITodo,
@@ -20,12 +20,13 @@ export interface ITodoItem extends IComponent {
     onUpdateContent: (todo: ITodoBasic) => void,
     onUpdatePriority: (todo: ITodoUpdate) => void,
     inAction?: boolean, // 是否有待办正处于移动或者复制模式
-    onAction?: (todo: ITodoBasic) => void, // 待办粘贴操作
+    onAction?: (todo: ITodoBasic) => void, // 待办粘贴操作,
+    onContextMenu: (e: MouseEvent<HTMLDivElement>, todo: ITodo) => void,
 }
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, comment, isFinish, isDelete, childrenCount, priority, childrenPriority }, isSelected = false, onClick = () => { }, onLevNext, onFinish = (todo: ITodoUpdate) => { }, onUpdateContent = (todo: ITodoBasic) => { }, onUpdatePriority = (todo: ITodoUpdate) => { }, inAction = false, onAction, className } = props;
+    const { todo, todo: { content: initContent, comment, isFinish, isDelete, childrenCount, priority, childrenPriority }, isSelected = false, onClick, onLevNext, onFinish, onUpdateContent, onUpdatePriority, inAction = false, onContextMenu, onAction, className } = props;
 
     const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
@@ -78,33 +79,35 @@ export const TodoItem = (props: ITodoItem) => {
      * Container区域内IconGroup区域外第一次点击默认行为为选中条目，控件仅可以对之后的点击作出响应，IconGroup区域内的控件不受限制
      */
     return (
-        <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
-            <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
-            <PrioritySwitchArea>
-                <ContentContainer>
-                    <ContentGroup>
-                        {isSelected ? (
-                            <ContentInput value={content} onChange={onChange} onBlur={onInputBlur} onKeyPress={onKeyPress} />
-                        ) : (
-                            <InfoShowBox>
-                                <Content hasComment={!!comment}>{content}</Content>
-                                {comment && (
-                                    <Comment>{comment}</Comment>
-                                )}
-                            </InfoShowBox>
-                        )}
-                    </ContentGroup>
-                    <IconGroup onClick={(e) => e.stopPropagation()}>
-                        {inAction && onAction && <IconQitadingdan size={theme.iconSize1} onClick={() => onAction(todo)} />}
-                        <IconFinish disabled={!todoCanFinish(todo)} size={theme.iconSize1} color={!todoCanFinish(todo) ? 'orange' : 'green'} onClick={() => updateTodoIsFinish(!isFinish)} />
-                        {onLevNext && <IconLevNext size={theme.iconSize1} color={colors[childrenPriority - 1]} onClick={() => onLevNext(todo)} />}
-                    </IconGroup>
-                </ContentContainer>
-                <PriorityContainer show={priorityMode && isSelected} onClick={() => setPriorityMode(false)}>
-                    <PriorityButtonGroup colors={colors} setPriority={todoUpdatePriority} />
-                </PriorityContainer>
-            </PrioritySwitchArea>
-        </Container>
+        <>
+            <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
+                <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
+                <PrioritySwitchArea>
+                    <ContentContainer onContextMenu={e => onContextMenu(e, todo)}>
+                        <ContentGroup>
+                            {isSelected ? (
+                                <ContentInput value={content} onChange={onChange} onBlur={onInputBlur} onKeyPress={onKeyPress} />
+                            ) : (
+                                <InfoShowBox>
+                                    <Content hasComment={!!comment}>{content}</Content>
+                                    {comment && (
+                                        <Comment>{comment}</Comment>
+                                    )}
+                                </InfoShowBox>
+                            )}
+                        </ContentGroup>
+                        <IconGroup onClick={(e) => e.stopPropagation()}>
+                            {inAction && onAction && <IconQitadingdan size={theme.iconSize1} onClick={() => onAction(todo)} />}
+                            <IconFinish disabled={!todoCanFinish(todo)} size={theme.iconSize1} color={!todoCanFinish(todo) ? 'orange' : 'green'} onClick={() => updateTodoIsFinish(!isFinish)} />
+                            {onLevNext && <IconLevNext size={theme.iconSize1} color={colors[childrenPriority - 1]} onClick={() => onLevNext(todo)} />}
+                        </IconGroup>
+                    </ContentContainer>
+                    <PriorityContainer show={priorityMode && isSelected} onClick={() => setPriorityMode(false)}>
+                        <PriorityButtonGroup colors={colors} setPriority={todoUpdatePriority} />
+                    </PriorityContainer>
+                </PrioritySwitchArea>
+            </Container>
+        </>
     );
 }
 
@@ -183,7 +186,7 @@ const InfoShowBox = styled.div`
     padding: 4px 8px;
 `
 
-const Content = styled.p.attrs({} as {hasComment: boolean})`
+const Content = styled.p.attrs({} as { hasComment: boolean })`
     min-width: 20%;
     max-width: ${props => props.hasComment ? 80 : 100}%;
     font-size: 12px;

@@ -7,11 +7,11 @@ import React, { Suspense } from 'react';
 import { Spin } from 'antd';
 import { ListPanel } from './components/ListPanel';
 import { useAppSelector } from './store/hooks';
-import { selectViewMode, ViewMode } from './store/slice/ViewModeSlice';
+import { contentToSearch } from './store/slice/AppSlice';
 
 export const App = () => {
 
-    const viewMode = useAppSelector(selectViewMode);
+    const searchContent = useAppSelector(contentToSearch);
 
     const boxRender = () => <ListPanel />
 
@@ -21,7 +21,7 @@ export const App = () => {
                 <ThemeProvider theme={themeDefault}>
                     <Suspense fallback={<Spin size="large" />}>
                         <Container stairs={[{width: '200px', minWidth: '200px'}]} stairAt={1} boxRender={boxRender}>
-                            {(viewMode === ViewMode.CASCADE && <Todos />) || (viewMode === ViewMode.SEARCH && <TodosForSearch />)}
+                            {searchContent === undefined ? <Todos /> : <TodosForSearch />}
                         </Container>
                     </Suspense>
                 </ThemeProvider>

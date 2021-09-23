@@ -1,12 +1,13 @@
 import { IListBasic } from "@/interface/Data";
-import { useContext } from "react";
+import { ContextMenu } from "primereact/contextmenu";
+import { createRef, useContext } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import styled, { css, ThemeContext } from "styled-components"
 import { IClassName } from "~/interfaces/Component";
 import { useAppSelector } from "~/store/hooks";
-import { addListExpanded, delListExpanded, expandedList, selectedList, setListSelected } from "~/store/slice/ListStateSlice";
+import { addListExpanded, delListExpanded, expandedList, selectedList, setContentToSearch, setListSelected } from "~/store/slice/AppSlice";
 import IconDown from "../@iconfont/IconDown";
 import IconHangcheng from "../@iconfont/IconHangcheng";
 import IconMulu from "../@iconfont/IconMulu";
@@ -35,10 +36,11 @@ const map = new Map<number, INodeItem>();
 
 export const ListTree = (props: IListTreeProps) => {
 
-    const {nodes: rawNodes, className} = props;
+    const { nodes: rawNodes, className } = props;
 
     const theme = useContext(ThemeContext);
     const dispatch = useDispatch();
+    const cm = createRef<ContextMenu>();
     const listSelected = useAppSelector(selectedList);
     const listExpanded = useAppSelector(expandedList);
 
@@ -51,28 +53,24 @@ export const ListTree = (props: IListTreeProps) => {
     }, [rawNodes, listSelected, listExpanded]);
 
     const toggleExpand = (node: INodeItem) => {
-        const {id, expanded, isGroup} = node;
+        const { id, expanded, isGroup } = node;
         isGroup && dispatch(expanded ? delListExpanded(id) : addListExpanded(id));
-    }
-
-    const onToggleExpand = (event: React.MouseEvent<HTMLDivElement>, node: INodeItem) => {
-        event.stopPropagation();
-        toggleExpand(node);
     }
 
     const onListSelect = (node: INodeItem) => {
         dispatch(setListSelected(node));
+        dispatch(setContentToSearch(undefined));
         toggleExpand(node);
     }
 
     const nodeRender = (node: INodeItem) => {
-        const {id, parentId, title, isGroup, level, selected, expanded} = node;
+        const { id, parentId, title, isGroup, level, selected, expanded } = node;
 
         const IconHead = isGroup ? IconHangcheng : IconMulu;
         const IconTail = isGroup ? expanded ? IconUp : IconDown : undefined;
 
         return (
-            <NodeContainer key={id} selected={selected} onClick={() => onListSelect(node)}>
+            <NodeContainer key={id} selected={selected} onClick={() => onListSelect(node)} onContextMenu={e => cm.current?.show(e)}>
                 <NodePadding level={level} />
                 <IconHead size={theme.iconSize1} />
                 <NodeText>{title}</NodeText>
@@ -82,26 +80,40 @@ export const ListTree = (props: IListTreeProps) => {
     }
 
     return (
-        <Container className={className}>
-            {nodes.map(node => nodeRender(node))}
-        </Container>
+        <>
+            <NodeContextMenu model={menuItems} ref={cm} />
+            <Container className={className}>
+                {nodes.map(node => nodeRender(node))}
+            </Container>
+        </>
     );
 }
+
+const menuItems = [
+    {
+        label: '重命名',
+        icon: 'pi pi-fw pi-link',
+    },
+    {
+        label: '删除',
+        icon: 'pi pi-fw pi-trash',
+    },
+];
 
 const initMap = (map: Map<number, INodeItem>, rawNodes: INodeData[], listSelected: IListBasic | undefined) => {
     map.clear();
 
     let rootId;
     rawNodes.forEach(node => {
-        const {id, parentId, isGroup} = node;
+        const { id, parentId, isGroup } = node;
         let children = map.get(id)?.children || [];
-        const newNode = {...node, children, level: -1, selectable: !isGroup, selected: listSelected ? listSelected.id === id : false, expanded: false};
+        const newNode = { ...node, children, level: -1, selectable: !isGroup, selected: listSelected ? listSelected.id === id : false, expanded: false };
         map.set(id, newNode)
         const parent = map.get(parentId);
         if (parent) {
             parent.children = parent.children.concat([newNode]);
         } else {
-            parentId >= 0 && map.set(parentId, {id: parentId, parentId: -2, title: '', isGroup: true, children: [newNode], level: 0, selectable: false, selected: false, expanded: false});
+            parentId >= 0 && map.set(parentId, { id: parentId, parentId: -2, title: '', isGroup: true, children: [newNode], level: 0, selectable: false, selected: false, expanded: false });
         }
 
         if (parentId === -1) {
@@ -117,7 +129,7 @@ const initMap = (map: Map<number, INodeItem>, rawNodes: INodeData[], listSelecte
 
 const updateNodeLevel = (parentLevel: number, node: INodeItem) => {
     node.level = parentLevel + 1;
-    node.children.sort(({isGroup: a}, {isGroup: b}) => {
+    node.children.sort(({ isGroup: a }, { isGroup: b }) => {
         if (a && !b) {
             return -1;
         } else if (!a && b) {
@@ -133,12 +145,12 @@ const getSawNodes = (map: Map<number, INodeItem>, listSelected: IListBasic | und
     let rootId;
 
     map.forEach(item => {
-        const {id, parentId} = item;
+        const { id, parentId } = item;
         if (parentId === -1) {
             rootId = id;
         }
     });
-    
+
     if (rootId !== undefined) {
         const root = map.get(rootId)!;
         sawNodes = appendSawNodes(sawNodes, root.children, listSelected, listExpanded);
@@ -148,11 +160,11 @@ const getSawNodes = (map: Map<number, INodeItem>, listSelected: IListBasic | und
 
 const appendSawNodes = (sawNodes: INodeItem[], nodes: INodeItem[], listSelected: IListBasic | undefined, listExpanded: Array<number>) => {
     nodes.forEach(item => {
-        const {id} = item;
+        const { id } = item;
         let selected = false;
         let expanded = false;
         if (listSelected) {
-            const {id: curId} = listSelected;
+            const { id: curId } = listSelected;
             if (curId === id) {
                 selected = true;
             }
@@ -160,8 +172,8 @@ const appendSawNodes = (sawNodes: INodeItem[], nodes: INodeItem[], listSelected:
         if (listExpanded.includes(id)) {
             expanded = true;
         }
-        sawNodes.push({...item, selected, expanded});
-        const {isGroup} = item;
+        sawNodes.push({ ...item, selected, expanded });
+        const { isGroup } = item;
         if (isGroup && expanded) {
             sawNodes = sawNodes.concat(appendSawNodes([], item.children, listSelected, listExpanded));
         }
@@ -178,7 +190,16 @@ const Container = styled.div`
     font-size: ${props => props.theme.fontSize2};
 `
 
-const NodeContainer = styled.div.attrs({} as {selected: boolean})`
+const NodeContextMenu = styled(ContextMenu)`
+    font-size: 12px;
+    width: 100px;
+
+    & .p-menuitem-link {
+        padding: 0.5em 1em;
+    }
+`
+
+const NodeContainer = styled.div.attrs({} as { selected: boolean })`
     padding: 4px 8px;
     display: flex;
     align-items: center;
@@ -196,7 +217,7 @@ const NodeContainer = styled.div.attrs({} as {selected: boolean})`
     }
 `
 
-const NodePadding = styled.div.attrs({} as {level: number})`
+const NodePadding = styled.div.attrs({} as { level: number })`
     width: ${props => props.level * 16}px;
 `
 
