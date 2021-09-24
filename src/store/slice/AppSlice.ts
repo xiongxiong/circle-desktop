@@ -6,13 +6,11 @@ import type { RootState } from '../store';
 interface State {
     listSelected?: IListBasic,
     listExpanded: Array<number>,
-    contentToSearch?: string,
 }
 
 const initialState: State = {
     listSelected: undefined,
     listExpanded: [],
-    contentToSearch: undefined,
 }
 
 const slice = createSlice({
@@ -31,18 +29,13 @@ const slice = createSlice({
         delListExpanded: (state, action) => {
             state.listExpanded = state.listExpanded.filter(id => id !== action.payload);
         },
-        setContentToSearch: (state, action) => {
-            state.contentToSearch = action.payload;
-        }
     }
 });
 
-export const {setListSelected, clrListSelected, addListExpanded, delListExpanded, setContentToSearch} = slice.actions;
+export const {setListSelected, clrListSelected, addListExpanded, delListExpanded} = slice.actions;
 
 export const selectedList = (state: RootState) => state.app.listSelected;
 
 export const expandedList = (state: RootState) => state.app.listExpanded;
-
-export const contentToSearch = (state: RootState) => state.app.contentToSearch;
 
 export default slice.reducer;

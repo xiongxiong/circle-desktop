@@ -2,19 +2,23 @@ import { MsgListInsert } from "@/interface/BridgeMsg";
 import { useEffect } from "react";
 import { useContext, useState } from "react";
 import { useDispatch } from "react-redux";
-import styled, { ThemeContext } from "styled-components";
+import styled, { css, ThemeContext } from "styled-components";
 import { IComponent } from "~/interfaces/Component";
 import { useAppSelector } from "~/store/hooks";
-import { selectedList, setContentToSearch } from "~/store/slice/AppSlice";
+import { selectedList, setListSelected } from "~/store/slice/AppSlice";
 import IconHangcheng from "../@iconfont/IconHangcheng";
 import IconJia from "../@iconfont/IconJia";
-import { IconButton } from "../IconButton";
+import { IconButton, IconProps } from "../IconButton";
 import { ListTree } from "../ListTree";
-import { createSignal } from "@react-rxjs/utils";
-import { bind } from "@react-rxjs/core";
-import { debounceTime } from "rxjs";
 import { trigger } from "~/events";
 import { Events } from "~/events/Events";
+import IconSousuo from "../@iconfont/IconSousuo";
+
+interface MenuItemProps {
+    label: string,
+    icon: React.FunctionComponent<IconProps>,
+    func: () => void,
+}
 
 export interface IListPanelProps extends IComponent {
 
@@ -30,16 +34,26 @@ export const ListPanel = (props: IListPanelProps) => {
 
     const [creating, setCreating] = useState(undefined as Creating | undefined);
     const [newTitle, setNewTitle] = useState('');
-    const [searchValue, setSearchValue] = useState('');
-    const [searchText, setSearchText] = createSignal<string>();
-    const [useSearchText, searchTextObs] = bind(searchText);
 
     useEffect(() => setNewTitle(''), [creating]);
 
-    searchTextObs.pipe(debounceTime(600)).subscribe(searchContent => dispatch(setContentToSearch(searchContent)));
-
     const IconNewList = IconButton(IconJia);
     const IconNewGroup = IconButton(IconHangcheng);
+
+    const menuItems: MenuItemProps[] = [
+        {
+            label: '搜索全部',
+            icon: IconSousuo,
+            func: () => dispatch(setListSelected(undefined)),
+        }
+    ];
+
+    const menuItemRender = (menu: MenuItemProps, index: number) => (
+        <MenuItemContainer key={index} onClick={menu.func}>
+            <menu.icon size={theme.iconSize1} />
+            <MenuItemText>{menu.label}</MenuItemText>
+        </MenuItemContainer>
+    );
 
     const insertList = () => {
         setCreating(Creating.LIST);
@@ -67,20 +81,10 @@ export const ListPanel = (props: IListPanelProps) => {
         }
     }
 
-    const onSearchFocus = (event: React.FocusEvent<HTMLInputElement>) => {
-        dispatch(setContentToSearch(''));
-        setSearchValue('');
-    }
-
-    const onSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(event.target.value);
-        setSearchText(event.target.value);
-    }
-
     return (
         <Container className={className}>
             <Header>
-                <Search placeholder="Search" value={searchValue} onChange={onSearch} onFocus={onSearchFocus} />
+                {menuItems.map((menu, index) => menuItemRender(menu, index))}
             </Header>
             <Body>
                 <ListTree/> 
@@ -120,20 +124,30 @@ const Header = styled.div`
     font-size: 12px;
 `
 
-const Search = styled.input`
-    border-radius: 4px;
-    border: 1px solid gray;
-    padding: 4px 8px 4px;
-    background-color: ${props => props.theme.color1};
-    font-family: inherit;
+const MenuItemContainer = styled.div.attrs({} as {selected: boolean})`
+    padding: 4px 4px;
+    display: flex;
+    align-items: center;
+    cursor: default;
+    ${props => props.selected && css`
+        color: ${props => props.theme.color1};
+        background-color: ${props => props.theme.color6};
+    `}
 
-    &:focus {
-        outline: none;
+    &:hover {
+        ${props => !props.selected && css`
+            color: ${props => props.theme.color1};
+            background-color: ${props => props.theme.color3};
+        `}
     }
+`
 
-    &::placeholder {
-        color: lightgray;
-    }
+const MenuItemText = styled.span`
+    flex: 1;
+    margin: 0px 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 `
 
 const Body = styled.div`

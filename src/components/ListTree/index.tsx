@@ -10,7 +10,7 @@ import { off, on } from "~/events";
 import { Events } from "~/events/Events";
 import { IClassName } from "~/interfaces/Component";
 import { useAppSelector } from "~/store/hooks";
-import { addListExpanded, delListExpanded, expandedList, selectedList, setContentToSearch, setListSelected } from "~/store/slice/AppSlice";
+import { addListExpanded, delListExpanded, expandedList, selectedList, setListSelected } from "~/store/slice/AppSlice";
 import IconDown from "../@iconfont/IconDown";
 import IconHangcheng from "../@iconfont/IconHangcheng";
 import IconMulu from "../@iconfont/IconMulu";
@@ -78,7 +78,6 @@ export const ListTree = (props: IListTreeProps) => {
 
     const onListSelect = (node: INodeItem) => {
         dispatch(setListSelected(node));
-        dispatch(setContentToSearch(undefined));
         toggleExpand(node);
     }
 

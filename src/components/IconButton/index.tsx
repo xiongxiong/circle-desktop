@@ -2,7 +2,7 @@ import React, { SVGAttributes } from "react";
 import styled, { css } from "styled-components";
 import { IClassName } from "~/interfaces/Component";
 
-interface Props extends Omit<SVGAttributes<SVGElement>, 'color'> {
+export interface IconProps extends Omit<SVGAttributes<SVGElement>, 'color'> {
     size?: number;
     color?: string | string[];
 }
@@ -18,7 +18,7 @@ export interface IIconButtonProps extends IIconProps, IClassName {
     onClick?: (event: React.MouseEvent<HTMLDivElement>) => void,
 }
 
-export const IconButton = (Icon: React.FunctionComponent<Props>) => (props: IIconButtonProps) => {
+export const IconButton = (Icon: React.FunctionComponent<IconProps>) => (props: IIconButtonProps) => {
 
     const {disabled = false, onClick = () => {}, size, color, padding, className} = props;
     const icon = React.createElement(Icon, {size, color});

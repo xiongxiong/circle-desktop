@@ -64,6 +64,10 @@ export const Todos = (props: ITodosProps) => {
     const [todoInAction, setTodoInAction] = useState(undefined as (ITodoInAction | undefined)); // 待办移动或复制
 
     useEffect(() => {
+        listSelected ? setViewMode(ViewMode.CASCADE) : setViewMode(ViewMode.SEARCH);
+    }, [listSelected]);
+
+    useEffect(() => {
         viewMode === ViewMode.CASCADE && selectTodoRoot();
         return () => {
             selectTodoRoot = () => { };
@@ -71,7 +75,7 @@ export const Todos = (props: ITodosProps) => {
     }, [viewMode, listSelected]);
 
     useEffect(() => {
-        selectTodoListAndTodoStat(true);
+        selectTodoListAndTodoStat();
         return () => {
             selectTodoListAndTodoStat = () => { };
         };
@@ -161,7 +165,10 @@ export const Todos = (props: ITodosProps) => {
      * @param content 要搜索的内容
      */
     let selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false, content?: string) => {
-        clearBeforeRequest && setTodos([]);
+        if (clearBeforeRequest) {
+            setTodos([]);
+            setTodoStat({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 });
+        }
 
         switch (viewMode) {
             case ViewMode.CASCADE:
@@ -355,10 +362,14 @@ export const Todos = (props: ITodosProps) => {
             <TodoContextMenu model={menuItems()} ref={cm} />
             <Container onClick={todoSelectedClear}>
                 <Header>
-                    <ButtonGroupBox>
-                        <ButtonGroup buttons={viewModeBtns} radio />
-                    </ButtonGroupBox>
-                    <HeaderSeparator />
+                    {listSelected && (
+                        <>
+                            <ButtonGroupBox>
+                                <ButtonGroup buttons={viewModeBtns} radio />
+                            </ButtonGroupBox>
+                            <HeaderSeparator />
+                        </>
+                    )}
                     {viewMode === ViewMode.CASCADE && <NaviBox><TodoNavi nodes={navNodes} toLevPrev={toLevPrev} /></NaviBox>}
                     {viewMode === ViewMode.SEARCH && <SearchBox><Search placeholder="Search" onChange={onSearchTextChange} /></SearchBox>}
                     <HeaderSeparator />
