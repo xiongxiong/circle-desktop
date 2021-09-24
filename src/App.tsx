@@ -5,23 +5,27 @@ import { themeDefault } from './styles/Themes';
 import { FlexBox } from './components/FlexBox';
 import React, { Suspense } from 'react';
 import { Spin } from 'antd';
-
-const Todos = React.lazy(() => import('./pages/Todos'));
+import { ListPanel } from './components/ListPanel';
 
 export const App = () => {
+
+    const boxRender = () => <ListPanel />
+
     return (
         <>
-            <GlobalStyle />
-            <ThemeProvider theme={themeDefault}>
-                <Suspense fallback={<Spin size="large" />}>
-                    <Container stairs={['200px']} stairAt={0}>
-                        <Todos />
-                    </Container>
-                </Suspense>
-            </ThemeProvider>
+                <GlobalStyle />
+                <ThemeProvider theme={themeDefault}>
+                    <Suspense fallback={<Spin size="large" />}>
+                        <Container stairs={[{width: '200px', minWidth: '200px'}]} stairAt={1} boxRender={boxRender}>
+                            <Todos />
+                        </Container>
+                    </Suspense>
+                </ThemeProvider>
         </>
     );
 }
+
+const Todos = React.lazy(() => import('./pages/Todos'));
 
 const Container = styled(FlexBox)`
     height: 100vh;

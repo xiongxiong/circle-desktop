@@ -21,11 +21,15 @@ module.exports = [
 		}
 	},
 	{
-		test: /\.(eot|woff|woff2?|ttf|svg)$/,
-		use: [
-			{
-				loader: 'file-loader',
-			}
-		]
-	}
+		test: /\.css$/,
+		use: [ 'style-loader', 'css-loader' ]
+	},
+	{
+		test: /\.(png|jpg|jpeg)$/,
+		type: 'asset/resource',
+	},
+	{
+		test: /\.(woff|woff2|eot|ttf|svg)$/,
+		type: 'asset/inline',
+	},
 ];

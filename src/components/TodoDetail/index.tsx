@@ -1,24 +1,28 @@
-import { ITodo, ITodoHasIdComment, ITodoHasIdContent, ITodoUpdateIsDelete } from "@/interface/Todo";
+import { ITodo, ITodoUpdate, ITodoBasic, ITodoStat } from "@/interface/Data";
 import { useContext, useState } from "react";
 import { useEffect } from "react";
 import { MouseEvent } from "react"
 import styled, { ThemeContext } from "styled-components"
 import { IClassName } from "~/interfaces/Component";
-import { IconButton } from "../IconButton";
+import IconDaohang from "../@iconfont/IconDaohang";
+import IconDingdanjihe from "../@iconfont/IconDingdanjihe";
+import IconJinrujiantou from "../@iconfont/IconJinrujiantou";
+import IconShanchu from "../@iconfont/IconShanchu";
+import IconWeizhidifang from "../@iconfont/IconWeizhidifang";
 
 export interface ITodoDetailProps extends IClassName {
     todo: ITodo,
-    closePanel: (e: MouseEvent<HTMLDivElement>) => void,
-    updateTodoCotent: (todo: ITodoHasIdContent) => void,
-    updateTodoComment: (todo: ITodoHasIdComment) => void,
-    updateTodoIsDelete: (e: MouseEvent<HTMLDivElement>, todo: ITodoUpdateIsDelete) => void,
-    moveTodo: (todo: ITodoHasIdContent) => void,
-    copyTodo: (todo: ITodoHasIdContent) => void,
+    closePanel: (e: MouseEvent<SVGElement>) => void,
+    updateTodoCotent: (todo: ITodoBasic) => void,
+    updateTodoComment: (todo: ITodoUpdate) => void,
+    updateTodoIsDelete: (e: MouseEvent<SVGElement>, todo: ITodoUpdate & ITodoStat) => void,
+    moveTodo?: (todo: ITodoBasic) => void,
+    copyTodo?: (todo: ITodoBasic) => void,
 }
 
 export const TodoDetail = (props: ITodoDetailProps) => {
 
-    const { todo, todo: { id, content: initContent, comment: initComment, updatedAt }, closePanel, updateTodoIsDelete, updateTodoCotent, updateTodoComment, moveTodo, copyTodo, className } = props;
+    const { todo, todo: { id, content: initContent, comment: initComment, updatedAt, isDelete, childrenCount, childrenFinish, childrenDelete }, closePanel, updateTodoIsDelete, updateTodoCotent, updateTodoComment, moveTodo, copyTodo, className } = props;
 
     const [content, setContent] = useState(initContent);
     const [comment, setComment] = useState(initComment);
@@ -47,14 +51,16 @@ export const TodoDetail = (props: ITodoDetailProps) => {
             updateTodoComment({id, comment});
         }
     }
+
+    const IconDeletion = isDelete ? IconWeizhidifang : IconShanchu;
     
     return (
         <Container className={className}>
             <Header>
-                <Icon name="jinrujiantou" size={theme.iconSize0} onClick={closePanel} />
-                <Icon name="daohang" size={theme.iconSize0} onClick={() => moveTodo(todo)} />
-                <Icon name="dingdanjihe" size={theme.iconSize0} onClick={() => copyTodo(todo)} />
-                <Icon name="shanchu" size={theme.iconSize0} onClick={(e) => updateTodoIsDelete(e, { id, isDelete: true })} />
+                <IconJinrujiantou size={theme.iconSize1} onClick={closePanel} />
+                {moveTodo && <IconDaohang size={theme.iconSize1} onClick={() => moveTodo(todo)} />}
+                {copyTodo && <IconDingdanjihe size={theme.iconSize1} onClick={() => copyTodo(todo)} />}
+                <IconDeletion size={theme.iconSize1} onClick={(e) => updateTodoIsDelete(e, { id, isDelete: !isDelete, childrenCount, childrenFinish, childrenDelete })} />
             </Header>
             <Body>
                 <Content value={content} onChange={event => onContentChange(event)} onBlur={event => onContentFinish(event)} />
@@ -97,6 +103,7 @@ const Footer = styled.div`
 `
 
 const Content = styled.textarea`
+    height: 30%;
     resize: none;
     padding: 4px;
     border: 1px solid lightgray;
@@ -106,9 +113,4 @@ const Content = styled.textarea`
     &:focus{
         outline: none;
     }
-`
-
-const Icon = styled(IconButton)`
-    padding: 2px;
-    border-radius: 2px;
 `

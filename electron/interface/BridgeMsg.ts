@@ -1,4 +1,4 @@
-import {ITodoHasIdContent, ITodoDuplicate, IHasId, ITodoInsert, ITodoList, ITodoUpdateIsDelete, ITodoUpdateIsFinish, ITodoUpdateParentId, ITodoUpdatePriority, ITodoHasIdComment} from './Todo'
+import {ITodoDuplicate, IHasId, ITodoInsert, ITodoUpdate, ITodoSearch, IListSearch, ITodoDelete, IListInsert, IListUpdate, IListDelete, IHasListId, OHasListId, OHasContent} from './Data'
 
 export interface IBridgeMsg {
     channel: string,
@@ -8,6 +8,11 @@ export interface IBridgeMsg {
 export interface IDialogActionMsg {
     action: DialogActions,
     body: any
+}
+
+export interface IDialogButtonProps {
+    label: string,
+    func: () => void
 }
 
 export enum DialogActions {
@@ -64,136 +69,158 @@ export class MsgMenuContextMenu extends MsgMenu {
     }
 }
 
-export interface ITodoActionMsg {
-    action: TodoActions,
-    body: any
+export interface IDataActionMsg {
+    action: DataActions,
+    body?: any
 }
 
-export enum TodoActions {
+export enum DataActions {
     TodoSelectList = "TodoSelectList",
     TodoSelect = "TodoSelect",
+    TodoSelectRoot = "TodoSelectRoot",
+    TodoSelectStat = "TodoSelectStat", // 查询所有待办的统计信息
     TodoInsert = "TodoInsert",
     TodoDuplicate = "TodoDuplicate",
-    TodoUpdateContent = "TodoUpdateContent",
-    TodoUpdateComment = "TodoUpdateComment",
-    TodoUpdateIsFinish = "TodoUpdateIsFinish",
-    TodoUpdateIsDelete = "TodoUpdateIsDelete",
-    TodoUpdateParentId = "TodoUpdateParentId",
-    TodoUpdatePriority = "TodoUpdatePriority",
+    TodoUpdate = "TodoUpdate",
     TodoDelete = "TodoDelete",
+    ListTreeSelect = "ListTreeSelect",
+    ListNodeSelect = "ListNodeSelect",
+    ListInsert = "ListInsert",
+    ListUpdate = "ListUpdate",
+    ListDelete = "ListDelete",
 }
 
-abstract class MsgTodo implements IBridgeMsg {
-    readonly channel: string = 'todo';
-    message: ITodoActionMsg;
+abstract class DataMsg implements IBridgeMsg {
+    readonly channel: string = 'data';
+    message: IDataActionMsg;
 }
 
-export class MsgTodoSelectList extends MsgTodo {
-    constructor(todo?: ITodoList) {
+export class MsgTodoSelectList extends DataMsg {
+    constructor(data?: ITodoSearch) {
         super();
         this.message = {
-            action: TodoActions.TodoSelectList,
-            body: todo
+            action: DataActions.TodoSelectList,
+            body: data
         };
     }
 }
 
-export class MsgTodoSelect extends MsgTodo {
-    constructor(todo?: IHasId) {
+export class MsgTodoSelect extends DataMsg {
+    constructor(data?: IHasId) {
         super();
         this.message = {
-            action: TodoActions.TodoSelect,
-            body: todo
+            action: DataActions.TodoSelect,
+            body: data
         };
     }
 }
 
-export class MsgTodoInsert extends MsgTodo {
-    constructor(todo: ITodoInsert) {
+export class MsgTodoSelectRoot extends DataMsg {
+    constructor(data: IHasListId) {
         super();
         this.message = {
-            action: TodoActions.TodoInsert,
-            body: todo
+            action: DataActions.TodoSelectRoot,
+            body: data
         };
     }
 }
 
-export class MsgTodoDuplicate extends MsgTodo {
-    constructor(todo: ITodoDuplicate) {
+export class MsgTodoSelectStat extends DataMsg {
+    constructor(data: OHasListId & OHasContent) {
         super();
         this.message = {
-            action: TodoActions.TodoDuplicate,
-            body: todo
+            action: DataActions.TodoSelectStat,
+            body: data
         };
     }
 }
 
-export class MsgTodoUpdateContent extends MsgTodo {
-    constructor(todo: ITodoHasIdContent) {
+export class MsgTodoInsert extends DataMsg {
+    constructor(data: ITodoInsert) {
         super();
         this.message = {
-            action: TodoActions.TodoUpdateContent,
-            body: todo
+            action: DataActions.TodoInsert,
+            body: data
         };
     }
 }
 
-export class MsgTodoUpdateComment extends MsgTodo {
-    constructor(todo: ITodoHasIdComment) {
+export class MsgTodoDuplicate extends DataMsg {
+    constructor(data: ITodoDuplicate) {
         super();
         this.message = {
-            action: TodoActions.TodoUpdateComment,
-            body: todo
+            action: DataActions.TodoDuplicate,
+            body: data
         };
     }
 }
 
-export class MsgTodoUpdateIsFinish extends MsgTodo {
-    constructor(todo: ITodoUpdateIsFinish) {
+export class MsgTodoUpdate extends DataMsg {
+    constructor(data: ITodoUpdate) {
         super();
         this.message = {
-            action: TodoActions.TodoUpdateIsFinish,
-            body: todo
+            action: DataActions.TodoUpdate,
+            body: data
         };
     }
 }
 
-export class MsgTodoUpdateIsDelete extends MsgTodo {
-    constructor(todo: ITodoUpdateIsDelete) {
+export class MsgTodoDelete extends DataMsg {
+    constructor(data: ITodoDelete) {
         super();
         this.message = {
-            action: TodoActions.TodoUpdateIsDelete,
-            body: todo
+            action: DataActions.TodoDelete,
+            body: data
         };
     }
 }
 
-export class MsgTodoUpdateParentId extends MsgTodo {
-    constructor(todo: ITodoUpdateParentId) {
+export class MsgListTreeSelect extends DataMsg {
+    constructor() {
         super();
         this.message = {
-            action: TodoActions.TodoUpdateParentId,
-            body: todo
+            action: DataActions.ListTreeSelect,
+            body: {}
         };
     }
 }
 
-export class MsgTodoUpdatePriority extends MsgTodo {
-    constructor(todo: ITodoUpdatePriority) {
+export class MsgListNodeSelect extends DataMsg {
+    constructor(data: IListSearch) {
         super();
         this.message = {
-            action: TodoActions.TodoUpdatePriority,
-            body: todo
+            action: DataActions.ListNodeSelect,
+            body: data
         };
     }
 }
 
-export class MsgTodoDelete extends MsgTodo {
-    constructor(todo: IHasId) {
+export class MsgListInsert extends DataMsg {
+    constructor(data: IListInsert) {
         super();
         this.message = {
-            action: TodoActions.TodoDelete,
-            body: todo
+            action: DataActions.ListInsert,
+            body: data
+        };
+    }
+}
+
+export class MsgListUpdate extends DataMsg {
+    constructor(data: IListUpdate) {
+        super();
+        this.message = {
+            action: DataActions.ListUpdate,
+            body: data
+        };
+    }
+}
+
+export class MsgListDelete extends DataMsg {
+    constructor(data: IListDelete) {
+        super();
+        this.message = {
+            action: DataActions.ListDelete,
+            body: data
         };
     }
 }

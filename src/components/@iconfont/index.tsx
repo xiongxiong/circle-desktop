@@ -2,6 +2,10 @@
 /* eslint-disable */
 
 import React, { SVGAttributes, FunctionComponent } from 'react';
+import IconXialajiantouxiao1 from './IconXialajiantouxiao1';
+import IconShouqijiantouxiao from './IconShouqijiantouxiao';
+import IconUp from './IconUp';
+import IconDown from './IconDown';
 import IconGuanbijiantou from './IconGuanbijiantou';
 import IconShoucang from './IconShoucang';
 import IconSousuo from './IconSousuo';
@@ -133,7 +137,7 @@ import IconXiyanqu from './IconXiyanqu';
 import IconKongtiao from './IconKongtiao';
 import IconIconJipiaodancheng from './IconIconJipiaodancheng';
 
-export type IconNames = 'guanbijiantou' | 'shoucang' | 'sousuo' | 'fenxiang' | 'xiaoxi' | 'xihuan' | 'zan' | 'huafu' | 'lvjing' | 'huafu1' | 'fanzhuanjingtou' | 'paizhao' | 'shanguangdengdakai' | 'shanguangdengzidong' | 'huafu2' | 'huafu3' | 'shanguangdengguanbi' | 'paizhao1' | 'kuaitui' | 'bianda' | 'kuaijin' | 'xuanzhuanshouji' | 'liangdu' | 'yinliang' | 'suoxiao' | 'bofang' | 'yueduxiao' | 'xialajiantouxiao' | 'zhekou' | 'tishi' | 'youhuiquan' | 'tupian' | 'zengjia' | 'neirong2' | 'daohang' | 'fujian' | 'gengduo' | 'liebiao' | 'mulu' | 'saoyisao' | 'toutiao' | 'shezhi' | 'tuichu' | 'wenda' | 'wifi' | 'changge' | 'dianpu' | 'anquanzhongxin' | 'dingdandaifukuan' | 'dingdan' | 'dingdanjihe' | 'faxian' | 'dingdanyichenggong' | 'gouwu' | 'gouwuche' | 'huochepiao' | 'mudedi' | 'lubiao' | 'qitadingdan' | 'rili' | 'shikebiao' | 'wode' | 'hangcheng' | 'zhoubianyou' | 'yijianfankui' | 'bangzhu' | 'bofang1' | 'bangdan' | 'feiyongbaohan' | 'ditudingwei' | 'fanhui' | 'gantanhao' | 'feiyongbuhan' | 'gengduo1' | 'huiyuan' | 'jia' | 'jian' | 'jingdianwanfa' | 'jiaoxing' | 'kuandai' | 'qianzheng' | 'shibai' | 'qiehuan' | 'shijian' | 'shuaxin' | 'tingche' | 'reshui' | 'xiaolian' | 'weizhixiangqing' | 'tuikuan' | 'youji' | 'zhengque' | 'shaixuan' | 'shaixuan1' | 'fanhuijiantou' | 'dangdiwanle' | 'duigouzhong' | 'shanchu' | 'biaodankongjianfuxuan' | 'biaodankongjianfuxuankong' | 'qiehuanchengshi' | 'weizhidifang' | 'xiugai' | 'lishihangcheng' | 'huochepiaomianxing' | 'wangfandijia' | 'hangbandongtai' | 'fanhuijiantouxiangqingye' | 'duigou-weigouxuan' | 'kouling' | 'lianjie' | 'zhifubao' | 'gantanhaozhong' | 'pailie' | 'dibiao' | 'lingquanzhongxin' | 'ARsaoyisao' | 'jinrujiantou' | 'tongzhan' | 'yuyin' | 'tongxunlu' | 'shibai2' | 'fangzi' | 'shoucang1' | 'fapiao' | 'youxiang' | 'dianshiji' | 'xiyanqu' | 'kongtiao' | 'icon_jipiaodancheng';
+export type IconNames = 'xialajiantouxiao1' | 'shouqijiantouxiao' | 'up' | 'down' | 'guanbijiantou' | 'shoucang' | 'sousuo' | 'fenxiang' | 'xiaoxi' | 'xihuan' | 'zan' | 'huafu' | 'lvjing' | 'huafu1' | 'fanzhuanjingtou' | 'paizhao' | 'shanguangdengdakai' | 'shanguangdengzidong' | 'huafu2' | 'huafu3' | 'shanguangdengguanbi' | 'paizhao1' | 'kuaitui' | 'bianda' | 'kuaijin' | 'xuanzhuanshouji' | 'liangdu' | 'yinliang' | 'suoxiao' | 'bofang' | 'yueduxiao' | 'xialajiantouxiao' | 'zhekou' | 'tishi' | 'youhuiquan' | 'tupian' | 'zengjia' | 'neirong2' | 'daohang' | 'fujian' | 'gengduo' | 'liebiao' | 'mulu' | 'saoyisao' | 'toutiao' | 'shezhi' | 'tuichu' | 'wenda' | 'wifi' | 'changge' | 'dianpu' | 'anquanzhongxin' | 'dingdandaifukuan' | 'dingdan' | 'dingdanjihe' | 'faxian' | 'dingdanyichenggong' | 'gouwu' | 'gouwuche' | 'huochepiao' | 'mudedi' | 'lubiao' | 'qitadingdan' | 'rili' | 'shikebiao' | 'wode' | 'hangcheng' | 'zhoubianyou' | 'yijianfankui' | 'bangzhu' | 'bofang1' | 'bangdan' | 'feiyongbaohan' | 'ditudingwei' | 'fanhui' | 'gantanhao' | 'feiyongbuhan' | 'gengduo1' | 'huiyuan' | 'jia' | 'jian' | 'jingdianwanfa' | 'jiaoxing' | 'kuandai' | 'qianzheng' | 'shibai' | 'qiehuan' | 'shijian' | 'shuaxin' | 'tingche' | 'reshui' | 'xiaolian' | 'weizhixiangqing' | 'tuikuan' | 'youji' | 'zhengque' | 'shaixuan' | 'shaixuan1' | 'fanhuijiantou' | 'dangdiwanle' | 'duigouzhong' | 'shanchu' | 'biaodankongjianfuxuan' | 'biaodankongjianfuxuankong' | 'qiehuanchengshi' | 'weizhidifang' | 'xiugai' | 'lishihangcheng' | 'huochepiaomianxing' | 'wangfandijia' | 'hangbandongtai' | 'fanhuijiantouxiangqingye' | 'duigou-weigouxuan' | 'kouling' | 'lianjie' | 'zhifubao' | 'gantanhaozhong' | 'pailie' | 'dibiao' | 'lingquanzhongxin' | 'ARsaoyisao' | 'jinrujiantou' | 'tongzhan' | 'yuyin' | 'tongxunlu' | 'shibai2' | 'fangzi' | 'shoucang1' | 'fapiao' | 'youxiang' | 'dianshiji' | 'xiyanqu' | 'kongtiao' | 'icon_jipiaodancheng';
 
 interface Props extends Omit<SVGAttributes<SVGElement>, 'color'> {
   name: IconNames;
@@ -143,6 +147,14 @@ interface Props extends Omit<SVGAttributes<SVGElement>, 'color'> {
 
 const IconFont: FunctionComponent<Props> = ({ name, ...rest }) => {
   switch (name) {
+    case 'xialajiantouxiao1':
+      return <IconXialajiantouxiao1 {...rest} />;
+    case 'shouqijiantouxiao':
+      return <IconShouqijiantouxiao {...rest} />;
+    case 'up':
+      return <IconUp {...rest} />;
+    case 'down':
+      return <IconDown {...rest} />;
     case 'guanbijiantou':
       return <IconGuanbijiantou {...rest} />;
     case 'shoucang':

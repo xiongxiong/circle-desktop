@@ -8,8 +8,7 @@ export interface IButtonGroupProps {
 }
 
 export interface IButton {
-    icon?: () => React.ReactElement,
-    text?: string,
+    render: () => React.ReactNode,
     func: () => void
 }
 
@@ -19,7 +18,7 @@ export const ButtonGroup = (props: IButtonGroupProps) => {
 
     const [checkedIdx, setCheckedIdx] = useState(initCheckedIdx);
 
-    const onClick = (idx: number, func: () => void) => {
+    const onClick = (idx: number, func: () => void = () => undefined) => {
         if (radio) {
             setCheckedIdx(idx);
             if (idx !== checkedIdx) {
@@ -30,17 +29,14 @@ export const ButtonGroup = (props: IButtonGroupProps) => {
         }
     }
 
-    const elems: React.ReactNode[] = buttons.reduce((els, { icon, text, func }, idx, arr) => {
+    const elems: React.ReactNode[] = buttons.reduce((els, { render, func }, idx, arr) => {
         els.push(
             <ButtonBox key={idx} checked={radio ? idx === checkedIdx : false} onClick={() => onClick(idx, func)}>
-                {icon && icon()}
-                <ButtonText hasIcon={!!icon}>
-                    {text}
-                </ButtonText>
+                {render && render()}
             </ButtonBox>
         );
         if (idx < arr.length - 1) {
-            els.push(<Divider key={-1} />);
+            els.push(<Divider key={-1 * (idx + 1)} />);
         }
         return els;
     }, [] as JSX.Element[]);
@@ -64,7 +60,6 @@ const ButtonBox = styled.div.attrs({} as {checked: boolean})`
     display: flex;
     cursor: default;
     padding: 4px 8px;
-    font-size: 11px;
     color: ${props => props.checked ? props.theme.color1 : props.theme.color2};
     background-color: ${props => props.checked ? props.theme.color3 : props.theme.color1};
 
@@ -83,10 +78,6 @@ const ButtonBox = styled.div.attrs({} as {checked: boolean})`
             `
         }
     }}
-`
-
-const ButtonText = styled.div.attrs({} as {hasIcon: boolean})`
-    margin-left: ${props => props.hasIcon ? 2 : 0}px;
 `
 
 const Divider = styled.div`
