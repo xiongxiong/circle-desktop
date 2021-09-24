@@ -25,8 +25,8 @@ Promise.resolve(window.Main.env.isTrial())
 
         if (trial) {
             // import("./components/FlexBox/trial").then(({ App }) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
-            // import("./components/TodoNavi/trial").then(({ App }) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
-            import("./Trial").then(({ Trial }) => ReactDOM.render(<Trial />, document.getElementById("root"), loadFonts));
+            import("./components/TodoNavi/trial").then(({ App }) => ReactDOM.render(<App />, document.getElementById("root"), loadFonts));
+            // import("./Trial").then(({ Trial }) => ReactDOM.render(<Trial />, document.getElementById("root"), loadFonts));
         } else {
             import("./App").then(({ App }) => ReactDOM.render((
                 <React.StrictMode>

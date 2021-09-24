@@ -34,8 +34,8 @@ export const TodoNavi = (props: ITodoNaviProps) => {
 const Container = styled.div`
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    overflow: hidden;
+    flex-wrap: nowrap;
+    overflow: auto;
 `
 
 const ItemContainer = styled.div`

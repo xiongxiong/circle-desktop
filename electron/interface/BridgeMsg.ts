@@ -1,4 +1,4 @@
-import {ITodoDuplicate, IHasId, ITodoInsert, ITodoUpdate, ITodoSearch, IListSearch, ITodoDelete, IListInsert, IListUpdate, IListDelete, IHasListId} from './Data'
+import {ITodoDuplicate, IHasId, ITodoInsert, ITodoUpdate, ITodoSearch, IListSearch, ITodoDelete, IListInsert, IListUpdate, IListDelete, IHasListId, OHasListId, OHasContent} from './Data'
 
 export interface IBridgeMsg {
     channel: string,
@@ -78,7 +78,7 @@ export enum DataActions {
     TodoSelectList = "TodoSelectList",
     TodoSelect = "TodoSelect",
     TodoSelectRoot = "TodoSelectRoot",
-    TodoSelectStatAll = "TodoSelectStatAll", // 查询所有待办的统计信息
+    TodoSelectStat = "TodoSelectStat", // 查询所有待办的统计信息
     TodoInsert = "TodoInsert",
     TodoDuplicate = "TodoDuplicate",
     TodoUpdate = "TodoUpdate",
@@ -125,11 +125,11 @@ export class MsgTodoSelectRoot extends DataMsg {
     }
 }
 
-export class MsgTodoSelectStatAll extends DataMsg {
-    constructor(data: IHasListId) {
+export class MsgTodoSelectStat extends DataMsg {
+    constructor(data: OHasListId & OHasContent) {
         super();
         this.message = {
-            action: DataActions.TodoSelectStatAll,
+            action: DataActions.TodoSelectStat,
             body: data
         };
     }

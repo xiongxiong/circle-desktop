@@ -2,7 +2,7 @@ import { Input, InputProps } from 'antd';
 import React, { useState, useEffect, createRef } from 'react';
 import styled, { StyledComponent, ThemeContext } from 'styled-components';
 import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Data';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps } from '@/interface/BridgeMsg';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps, MsgTodoSelectStat } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { TodoNavi } from '~/components/TodoNavi';
 import IconZengjia from '~/components/@iconfont/IconZengjia';
@@ -18,19 +18,29 @@ import IconShaixuan1 from '~/components/@iconfont/IconShaixuan1';
 import { useAppSelector } from '~/store/hooks';
 import { selectedList } from '~/store/slice/AppSlice';
 import { ContextMenu } from 'primereact/contextmenu';
+import IconKuandai from '~/components/@iconfont/IconKuandai';
+import IconSousuo from '~/components/@iconfont/IconSousuo';
+import { createSignal } from '@react-rxjs/utils';
+import { bind } from '@react-rxjs/core';
+import { debounceTime } from 'rxjs';
 
-export interface ITodosProps {
-
+enum ViewMode {
+    CASCADE,
+    SEARCH,
 }
 
 enum TodoActions {
     MOVE,
-    COPY
+    COPY,
 }
 
 interface ITodoInAction {
     action: TodoActions,
     todo: ITodoBasic
+}
+
+export interface ITodosProps {
+
 }
 
 export const Todos = (props: ITodosProps) => {
@@ -40,29 +50,58 @@ export const Todos = (props: ITodosProps) => {
     const listSelected = useAppSelector(selectedList);
     const cm = createRef<ContextMenu>();
 
+    const [viewMode, setViewMode] = useState(ViewMode.CASCADE); // 视图模式
     const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
     const [currentNode, setCurrentNode] = useState(undefined as ITodoBasic | undefined); // 层级导航当前节点
     const [navNodes, setNavNodes] = useState([] as ITodoBasic[]); // 层级导航
     const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 } as ITodoStat); // 待办数量统计
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined)); // 选中待办
     const [contextTodo, setContextTodo] = useState(undefined as (ITodo | undefined)); // 上下文菜单对应待办
+    const [searchText, setSearchText] = createSignal<string>(); // 搜索内容
+    const [useSearchText, searchTextObs] = bind(searchText); // 搜索内容观察者
     const [newTodo, setNewTodo] = useState(todoBlank); // 新待办
     const [todoStatus, setTodoStatus] = useState(TodoStatus.DOING); // 待办列表状态筛选
     const [todoInAction, setTodoInAction] = useState(undefined as (ITodoInAction | undefined)); // 待办移动或复制
 
     useEffect(() => {
-        selectTodoRoot();
+        viewMode === ViewMode.CASCADE && selectTodoRoot();
         return () => {
-            selectTodoRoot = () => {};
+            selectTodoRoot = () => { };
         };
-    }, [listSelected]);
+    }, [viewMode, listSelected]);
 
     useEffect(() => {
         selectTodoListAndTodoStat(true);
         return () => {
-            selectTodoListAndTodoStat = () => {};
+            selectTodoListAndTodoStat = () => { };
         };
-    }, [currentNode, todoStatus]);
+    }, [viewMode, currentNode, todoStatus]);
+
+    const onSearchTextChange = (event: React.ChangeEvent<HTMLInputElement>) => setSearchText(event.target.value);
+
+    searchTextObs.pipe(debounceTime(600)).subscribe(toSearch => selectTodoListAndTodoStat(false, toSearch));
+
+    const viewModeBtns = [
+        {
+            render: () => (<IconKuandai size={theme.iconSize1} />),
+            func: () => setViewMode(ViewMode.CASCADE),
+        },
+        {
+            render: () => (<IconSousuo size={theme.iconSize1} />),
+            func: () => setViewMode(ViewMode.SEARCH),
+        },
+    ];
+
+    const todoPasteBtns = [
+        {
+            render: () => (<IconShibai size={theme.iconSize1} />),
+            func: () => setTodoInAction(undefined)
+        },
+        {
+            render: () => (<IconQitadingdan size={theme.iconSize1} />),
+            func: () => todoOnAction(currentNode)
+        },
+    ];
 
     const finishStatusBtns = () => {
         const { childrenCount = 0, childrenFinish = 0, childrenDelete = 0 } = todoStat || {};
@@ -103,22 +142,10 @@ export const Todos = (props: ITodosProps) => {
         ];
     };
 
-    const todoPasteBtns = [
-        {
-            render: () => (<IconShibai size={theme.iconSize1} />),
-            func: () => setTodoInAction(undefined)
-        },
-        {
-            render: () => (<IconQitadingdan size={theme.iconSize1} />),
-            func: () => todoOnAction(currentNode)
-        },
-    ];
-
     let selectTodoRoot = () => {
         if (listSelected) {
             const { id: listId } = listSelected;
             window.Main.invoke(new MsgTodoSelectRoot({ listId })).then(todo => {
-                console.log("root : ", todo);
                 setCurrentNode(todo);
                 setNavNodes([todo]);
             });
@@ -131,21 +158,35 @@ export const Todos = (props: ITodosProps) => {
     /**
      * 查询待办列表
      * @param clearBeforeRequest 是否在查询发起前清空当前待办列表
+     * @param content 要搜索的内容
      */
-    let selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false) => {
+    let selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false, content?: string) => {
         clearBeforeRequest && setTodos([]);
 
-        if (listSelected && currentNode) {
-            const { id: listId } = listSelected;
-            const { id: idNode } = currentNode;
-            window.Main.invoke(new MsgTodoSelectList({ listId, parentId: idNode, status: todoStatus })).then((todos: ITodo[]) => {
-                setTodos(todos);
-            });
+        switch (viewMode) {
+            case ViewMode.CASCADE:
+                if (currentNode) {
+                    window.Main.invoke(new MsgTodoSelectList({ listId: listSelected?.id, parentId: currentNode.id, status: todoStatus })).then((todos: ITodo[]) => {
+                        setTodos(todos);
+                    });
 
-            window.Main.invoke(new MsgTodoSelect(currentNode)).then(node => {
-                const { childrenCount, childrenFinish, childrenDelete } = node || {};
-                setTodoStat({ childrenCount, childrenFinish, childrenDelete });
-            });
+                    window.Main.invoke(new MsgTodoSelect(currentNode)).then(node => {
+                        const { childrenCount, childrenFinish, childrenDelete } = node || {};
+                        setTodoStat({ childrenCount, childrenFinish, childrenDelete });
+                    });
+                }
+                break;
+            case ViewMode.SEARCH:
+                window.Main.invoke(new MsgTodoSelectList({ listId: listSelected?.id, content, status: todoStatus })).then((todos: ITodo[]) => {
+                    setTodos(todos);
+                });
+
+                window.Main.invoke(new MsgTodoSelectStat({ listId: listSelected?.id, content })).then(node => {
+                    const { childrenCount, childrenFinish, childrenDelete } = node || {};
+                    setTodoStat({ childrenCount, childrenFinish, childrenDelete });
+                });
+                break;
+            default: break;
         }
     }
 
@@ -199,22 +240,22 @@ export const Todos = (props: ITodosProps) => {
         ]
 
         const { childrenCount } = todo;
-            if (childrenCount > 0) {
-                window.Main.invoke(new MsgDialogMessageBox({
-                    type: 'warning',
-                    title: '「待办」删除',
-                    message: '该待办包含子待办，确定删除？',
-                    buttons: buttons.map(({ label }) => label),
-                    defaultId: 1,
-                    cancelId: 0,
-                    noLink: true
-                })).then(res => {
-                    const { response = 0 } = res || {};
-                    buttons[response] && buttons[response].func();
-                });
-            } else {
-                updateFunc(todo);
-            }
+        if (childrenCount > 0) {
+            window.Main.invoke(new MsgDialogMessageBox({
+                type: 'warning',
+                title: '「待办」删除',
+                message: '该待办包含子待办，确定删除？',
+                buttons: buttons.map(({ label }) => label),
+                defaultId: 1,
+                cancelId: 0,
+                noLink: true
+            })).then(res => {
+                const { response = 0 } = res || {};
+                buttons[response] && buttons[response].func();
+            });
+        } else {
+            updateFunc(todo);
+        }
     }
 
     const updateTodoParentId = (id: number, parentId: number) => {
@@ -265,30 +306,36 @@ export const Todos = (props: ITodosProps) => {
         setCurrentNode(todo);
     }
 
-    const menuItems = [
-        {
+    const menuItems = () => {
+        const separator = { separator: true };
+        const actionDetail = {
             label: '详情',
             icon: 'pi pi-fw pi-info-circle',
-        },
-        {
-            separator: true
-        },
-        {
+        };
+        const actionCopy = {
             label: '复制',
             icon: 'pi pi-fw pi-copy',
             command: () => contextTodo && copyTodo(contextTodo),
-        },
-        {
+        };
+        const actionMove = {
             label: '剪切',
             icon: 'pi pi-fw pi-send',
             command: () => contextTodo && moveTodo(contextTodo),
-        },
-        {
+        };
+        const actionDelete = {
             label: '删除',
             icon: 'pi pi-fw pi-trash',
-            command: () => contextTodo && updateTodoIsDelete({...contextTodo, isDelete: true}),
-        },
-    ];
+            command: () => contextTodo && updateTodoIsDelete({ ...contextTodo, isDelete: true }),
+        };
+        switch (viewMode) {
+            case ViewMode.CASCADE:
+                return [actionDetail, separator, actionCopy, actionMove, actionDelete];
+            case ViewMode.SEARCH:
+                return [actionDetail, separator, actionDelete];
+            default:
+                return [];
+        }
+    }
 
     const onTodoContextMenu = (e: React.MouseEvent<HTMLDivElement>, todo: ITodo) => {
         setContextTodo(todo);
@@ -299,27 +346,34 @@ export const Todos = (props: ITodosProps) => {
         const { id } = item;
         const { id: idCurrent } = currentTodo || {};
         return (
-            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu}/>
+            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu} />
         );
     }
 
     return (
         <>
-        <TodoContextMenu model={menuItems} ref={cm} />
-        <Container onClick={todoSelectedClear}>
+            <TodoContextMenu model={menuItems()} ref={cm} />
+            <Container onClick={todoSelectedClear}>
                 <Header>
+                    <ButtonGroupBox>
+                        <ButtonGroup buttons={viewModeBtns} radio />
+                    </ButtonGroupBox>
+                    <HeaderSeparator />
+                    {viewMode === ViewMode.CASCADE && <NaviBox><TodoNavi nodes={navNodes} toLevPrev={toLevPrev} /></NaviBox>}
+                    {viewMode === ViewMode.SEARCH && <SearchBox><Search placeholder="Search" onChange={onSearchTextChange} /></SearchBox>}
+                    <HeaderSeparator />
                     {todoInAction && (
-                        <ButtonGroupBox>
-                            <ButtonGroup buttons={todoPasteBtns} />
-                        </ButtonGroupBox>
+                        <>
+                            <ButtonGroupBox>
+                                <ButtonGroup buttons={todoPasteBtns} />
+                            </ButtonGroupBox>
+                            <HeaderSeparator />
+                        </>
                     )}
                     <ButtonGroupBox>
                         <ButtonGroup buttons={finishStatusBtns()} radio />
                     </ButtonGroupBox>
                 </Header>
-                <NaviBox>
-                    <TodoNavi nodes={navNodes} toLevPrev={toLevPrev} />
-                </NaviBox>
                 <Body>
                     {todos.length === 0 ? (
                         <Empty width="30%" />
@@ -329,14 +383,14 @@ export const Todos = (props: ITodosProps) => {
                         </TodoList>
                     )}
                 </Body>
-                {listSelected && !listSelected.isGroup && (
+                {listSelected && !listSelected.isGroup && viewMode !== ViewMode.SEARCH && (
                     <InputContainer>
                         <IconZengjia color={theme.color1} />
                         <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
                     </InputContainer>
                 )}
             </Container>
-            </>
+        </>
     );
 }
 
@@ -363,23 +417,51 @@ const Header = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
-    align-items: center;
-`
-
-const ButtonGroupBox = styled.div`
-    margin-left: 12px;
+    align-items: stretch;
     font-size: ${props => props.theme.fontSize1};
 `
 
+const HeaderSeparator = styled.div`
+    width: 8px;
+`
+
+const ButtonGroupBox = styled.div`
+`
+
 const NaviBox = styled.div`
-    margin: 0px 0px 4px 0px;
-    padding: 0px 12px;
+    flex: 1;
+    padding: 0px 8px;
     border-radius: 4px;
     min-width: 160px;
-    max-height: 100px;
-    font-size: 10px;
-    overflow-y: auto;
+    display: flex;
+    align-items: center;
     background-color: ${props => props.theme.color3};
+`
+
+const SearchBox = styled.div`
+    flex: 1;
+    border-radius: 4px;
+    min-width: 160px;
+    display: flex;
+    align-items: center;
+    background-color: ${props => props.theme.color3};
+`
+
+const Search = styled.input`
+    flex: 1;
+    border: none;
+    margin: 0px 8px;
+    background: transparent;
+    font-family: inherit;
+    font-size: inherit;
+
+    &:focus {
+        outline: none;
+    }
+
+    &::placeholder {
+        color: ${props => props.theme.color1};
+    }
 `
 
 const Body = styled.div`

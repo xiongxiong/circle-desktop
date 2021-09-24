@@ -146,7 +146,7 @@ export interface OTodoStatus {
     status?: TodoStatus
 }
 
-export interface ITodoSearch extends ITodoStatus, IHasListId, OHasContent, OHasParentId {}
+export interface ITodoSearch extends ITodoStatus, OHasListId, OHasContent, OHasParentId {}
 
 export interface ITodoStat extends IHasChildrenCount, IHasChildrenFinish, IHasChildrenDelete {}
 

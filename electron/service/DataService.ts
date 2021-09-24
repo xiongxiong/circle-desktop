@@ -27,7 +27,7 @@ class DataService implements IDataService {
 	restore = dbService.restore;
 
 	on: (message: IDataActionMsg) => any = async (message: IDataActionMsg) => {
-		console.log('message:', message);
+		console.log('>> MESSAGE :', message);
 		const { action, body } = message;
 		switch (action) {
 			case DataActions.TodoSelectList:
@@ -36,8 +36,8 @@ class DataService implements IDataService {
 				return dbService.todoSelect(body);
 			case DataActions.TodoSelectRoot:
 				return dbService.todoSelectRoot(body);
-			case DataActions.TodoSelectStatAll:
-				return dbService.todoSelectStatAll(body);
+			case DataActions.TodoSelectStat:
+				return dbService.todoSelectStat(body);
 			case DataActions.TodoInsert:
 				return dbService.todoInsert(body);
 			case DataActions.TodoDuplicate:
