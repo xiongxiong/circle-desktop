@@ -139,7 +139,6 @@ export const Todos = (props: ITodosProps) => {
             const { id: listId } = listSelected;
             const { id: idNode } = currentNode;
             window.Main.invoke(new MsgTodoSelectList({ listId, parentId: idNode, status: todoStatus })).then((todos: ITodo[]) => {
-                console.log("todos : ", todos);
                 setTodos(todos);
             });
 

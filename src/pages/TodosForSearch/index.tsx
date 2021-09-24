@@ -81,7 +81,6 @@ export const Todos = (props: ITodosProps) => {
         clearBeforeRequest && setTodos([]);
 
         window.Main.invoke(new MsgTodoSelectList({ listId: 1, content: searchContent, status: todoStatus })).then((todos: ITodo[]) => {
-            console.log("todos : ", todos);
             setTodos(todos);
         });
 

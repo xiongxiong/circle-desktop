@@ -1,10 +1,13 @@
-import { IListBasic } from "@/interface/Data";
+import { IDialogButtonProps, MsgDialogMessageBox, MsgListTreeSelect, MsgListUpdate } from "@/interface/BridgeMsg";
+import { IListBasic, IListUpdate } from "@/interface/Data";
 import { ContextMenu } from "primereact/contextmenu";
-import { createRef, useContext } from "react";
+import { createRef, useContext, MouseEvent, useLayoutEffect } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import styled, { css, ThemeContext } from "styled-components"
+import { off, on } from "~/events";
+import { Events } from "~/events/Events";
 import { IClassName } from "~/interfaces/Component";
 import { useAppSelector } from "~/store/hooks";
 import { addListExpanded, delListExpanded, expandedList, selectedList, setContentToSearch, setListSelected } from "~/store/slice/AppSlice";
@@ -29,14 +32,14 @@ interface INodeItem extends INodeData {
 }
 
 export interface IListTreeProps extends IClassName {
-    nodes: INodeData[]
+    
 }
 
 const map = new Map<number, INodeItem>();
 
 export const ListTree = (props: IListTreeProps) => {
 
-    const { nodes: rawNodes, className } = props;
+    const { className } = props;
 
     const theme = useContext(ThemeContext);
     const dispatch = useDispatch();
@@ -44,13 +47,29 @@ export const ListTree = (props: IListTreeProps) => {
     const listSelected = useAppSelector(selectedList);
     const listExpanded = useAppSelector(expandedList);
 
+    const [rawNodes, setRawNodes] = useState([] as INodeData[]);
     const [nodes, setNodes] = useState([] as INodeItem[]);
+    const [contextNode, setContextNode] = useState(undefined as INodeData | undefined);
 
     useEffect(() => {
+        selectTreeNodes();
+        on(Events.LIST_TREE_REFRESH, selectTreeNodes);
+        return () => off(Events.LIST_TREE_REFRESH, selectTreeNodes);
+    }, [true]);
+
+    useEffect(() => {
+        refreshTree(); 
+    }, [rawNodes, listSelected, listExpanded]);
+
+    const selectTreeNodes = () => {
+        window.Main.invoke(new MsgListTreeSelect()).then(nodes => setRawNodes(nodes));
+    }
+
+    const refreshTree = () => {
         initMap(map, rawNodes, listSelected);
         const sawNodes = getSawNodes(map, listSelected, listExpanded);
         setNodes(sawNodes);
-    }, [rawNodes, listSelected, listExpanded]);
+    }
 
     const toggleExpand = (node: INodeItem) => {
         const { id, expanded, isGroup } = node;
@@ -63,6 +82,56 @@ export const ListTree = (props: IListTreeProps) => {
         toggleExpand(node);
     }
 
+    const updateListIsDelete = (list: IListUpdate) => {
+        const updateFunc = (list: IListUpdate) => {
+            window.Main.invoke(new MsgListUpdate(list)).then(ok => {
+                if (ok) {
+                    refreshTree();
+                }
+            });
+        }
+        const buttons: IDialogButtonProps[] = [
+            {
+                label: '取消',
+                func: () => { }
+            },
+            {
+                label: '确定',
+                func: () => list && updateFunc(list)
+            }
+        ]
+
+        window.Main.invoke(new MsgDialogMessageBox({
+            type: 'warning',
+            title: '「清单」删除',
+            message: '清单内所有待办将一并删除，确定删除？',
+            buttons: buttons.map(({ label }) => label),
+            defaultId: 1,
+            cancelId: 0,
+            noLink: true
+        })).then(res => {
+            const { response = 0 } = res || {};
+            buttons[response] && buttons[response].func();
+        });
+    }
+
+    const menuItems = [
+        {
+            label: '重命名',
+            icon: 'pi pi-fw pi-link',
+        },
+        {
+            label: '删除',
+            icon: 'pi pi-fw pi-trash',
+            command: () => contextNode && updateListIsDelete({id: contextNode.id, isDelete: true}),
+        },
+    ];
+
+    const onContextMenu = (e: MouseEvent<HTMLDivElement>, node: INodeData) => {
+        cm.current?.show(e);
+        setContextNode(node);
+    }
+
     const nodeRender = (node: INodeItem) => {
         const { id, parentId, title, isGroup, level, selected, expanded } = node;
 
@@ -70,7 +139,7 @@ export const ListTree = (props: IListTreeProps) => {
         const IconTail = isGroup ? expanded ? IconUp : IconDown : undefined;
 
         return (
-            <NodeContainer key={id} selected={selected} onClick={() => onListSelect(node)} onContextMenu={e => cm.current?.show(e)}>
+            <NodeContainer key={id} selected={selected} onClick={() => onListSelect(node)} onContextMenu={e => onContextMenu(e, node)}>
                 <NodePadding level={level} />
                 <IconHead size={theme.iconSize1} />
                 <NodeText>{title}</NodeText>
@@ -88,17 +157,6 @@ export const ListTree = (props: IListTreeProps) => {
         </>
     );
 }
-
-const menuItems = [
-    {
-        label: '重命名',
-        icon: 'pi pi-fw pi-link',
-    },
-    {
-        label: '删除',
-        icon: 'pi pi-fw pi-trash',
-    },
-];
 
 const initMap = (map: Map<number, INodeItem>, rawNodes: INodeData[], listSelected: IListBasic | undefined) => {
     map.clear();

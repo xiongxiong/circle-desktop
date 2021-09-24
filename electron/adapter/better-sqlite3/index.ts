@@ -65,8 +65,8 @@ class DbService {
 		this.stmt(StmtNames.TodoDuplicate, 'insert into todo (content, parentId, listId) select content, @parentId, (select listId from todo where id = @parentId) from todo where id = @id');
 		this.stmt(StmtNames.TodoUpdate, 'update todo set content = (case @content is null when 1 then content else @content end), comment = (case @comment is null when 1 then comment else @comment end), isFinish = (case @isFinish is null when 1 then isFinish else @isFinish end), isDelete = (case @isDelete is null when 1 then isDelete else @isDelete end), parentId = (case @parentId is null when 1 then parentId else @parentId end), priority = (case @priority is null when 1 then priority else @priority end) where id = @id');
 		this.stmt(StmtNames.TodoDelete, 'delete from todo where id = @id');
-		this.stmt(StmtNames.ListTreeSelect, 'select * from list');
-		this.stmt(StmtNames.ListNodeSelect, 'select * from list where parentId = @parentId');
+		this.stmt(StmtNames.ListTreeSelect, 'select * from list where isDelete = 0');
+		this.stmt(StmtNames.ListNodeSelect, 'select * from list where parentId = @parentId and isDelete = 0');
 		this.stmt(StmtNames.ListInsert, 'insert into list (title, parentId, isGroup) values (@title, coalesce(@parentId, (select id from list where parentId = -1)), @isGroup)');
 		this.stmt(StmtNames.ListUpdate, 'update list set title = (case @title is null when 1 then title else @title end), parentId = (case @parentId is null when 1 then parentId else @parentId end), isDelete = (case @isDelete is null when 1 then isDelete else @isDelete end) where id = @id');
 		this.stmt(StmtNames.ListDelete, 'delete from list where id = @id');

@@ -1,11 +1,11 @@
-import { MsgListInsert, MsgListTreeSelect } from "@/interface/BridgeMsg";
+import { MsgListInsert } from "@/interface/BridgeMsg";
 import { useEffect } from "react";
 import { useContext, useState } from "react";
 import { useDispatch } from "react-redux";
 import styled, { ThemeContext } from "styled-components";
 import { IComponent } from "~/interfaces/Component";
 import { useAppSelector } from "~/store/hooks";
-import { contentToSearch, selectedList, setContentToSearch } from "~/store/slice/AppSlice";
+import { selectedList, setContentToSearch } from "~/store/slice/AppSlice";
 import IconHangcheng from "../@iconfont/IconHangcheng";
 import IconJia from "../@iconfont/IconJia";
 import { IconButton } from "../IconButton";
@@ -13,6 +13,8 @@ import { ListTree } from "../ListTree";
 import { createSignal } from "@react-rxjs/utils";
 import { bind } from "@react-rxjs/core";
 import { debounceTime } from "rxjs";
+import { trigger } from "~/events";
+import { Events } from "~/events/Events";
 
 export interface IListPanelProps extends IComponent {
 
@@ -26,14 +28,12 @@ export const ListPanel = (props: IListPanelProps) => {
     const dispatch = useDispatch();
     const listSelected = useAppSelector(selectedList);
 
-    const [treeNodes, setTreeNodes] = useState([]);
     const [creating, setCreating] = useState(undefined as Creating | undefined);
     const [newTitle, setNewTitle] = useState('');
     const [searchValue, setSearchValue] = useState('');
     const [searchText, setSearchText] = createSignal<string>();
     const [useSearchText, searchTextObs] = bind(searchText);
 
-    useEffect(() => selectTreeNodes(), [true])
     useEffect(() => setNewTitle(''), [creating]);
 
     searchTextObs.pipe(debounceTime(600)).subscribe(searchContent => dispatch(setContentToSearch(searchContent)));
@@ -49,10 +49,6 @@ export const ListPanel = (props: IListPanelProps) => {
         setCreating(Creating.GROUP);
     }
 
-    const selectTreeNodes = () => {
-        window.Main.invoke(new MsgListTreeSelect()).then(nodes => setTreeNodes(nodes));
-    }
-
     const onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setNewTitle(event.target.value);
     }
@@ -66,7 +62,7 @@ export const ListPanel = (props: IListPanelProps) => {
         if (event.key === 'Enter' && creating && newTitle) {
             window.Main.invoke(new MsgListInsert({title: newTitle, parentId: isGroup ? id : parentId, isGroup: creating === Creating.GROUP})).then(ok => {
                 setCreating(undefined);
-                selectTreeNodes();
+                trigger(Events.LIST_TREE_REFRESH);
             });
         }
     }
@@ -87,7 +83,7 @@ export const ListPanel = (props: IListPanelProps) => {
                 <Search placeholder="Search" value={searchValue} onChange={onSearch} onFocus={onSearchFocus} />
             </Header>
             <Body>
-                <ListTree nodes={treeNodes}/> 
+                <ListTree/> 
             </Body>
             <Footer>
                 {creating ? (
