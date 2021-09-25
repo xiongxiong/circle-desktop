@@ -1,24 +1,21 @@
-import { ITodo, ITodoBasic, ITodoStat, ITodoUpdate, todoCanFinish } from '@/interface/Data';
-import React, { useContext, useState, useEffect, createRef, MouseEvent } from 'react';
-import styled, { ThemeContext } from 'styled-components';
+import { childrenDoing, ITodo, ITodoBasic, ITodoUpdate, todoCanFinish } from '@/interface/Data';
+import React, { useContext, useState, useEffect, MouseEvent } from 'react';
+import styled, { css, ThemeContext } from 'styled-components';
 import { IComponent } from '~/interfaces/Component';
-import IconDuigouWeigouxuan from '../@iconfont/IconDuigouWeigouxuan';
-import IconDuigouzhong from '../@iconfont/IconDuigouzhong';
-import IconJia from '../@iconfont/IconJia';
-import IconLiebiao from '../@iconfont/IconLiebiao';
 import IconQitadingdan from '../@iconfont/IconQitadingdan';
+import { TodoStatusButton } from '../TodoStatusButton';
+import { priorityColors } from '~/styles/Themes';
+import IconZhengque from '../@iconfont/IconZhengque';
 import { IconButton } from '../IconButton';
-import { PriorityButtonGroup } from '../PriorityButtonGroup';
-import { ContextMenu } from "primereact/contextmenu";
 
 export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
-    onLevNext?: (todo: ITodoBasic) => void,
-    onFinish: (todo: ITodoUpdate) => void,
+    levNextEnabled?: boolean,
+    onLevNext: (todo: ITodoBasic) => void,
+    onUpdateIsFinish: (todo: ITodoUpdate) => void,
     onUpdateContent: (todo: ITodoBasic) => void,
-    onUpdatePriority: (todo: ITodoUpdate) => void,
     inAction?: boolean, // 是否有待办正处于移动或者复制模式
     onAction?: (todo: ITodoBasic) => void, // 待办粘贴操作,
     onContextMenu: (e: MouseEvent<HTMLDivElement>, todo: ITodo) => void,
@@ -26,15 +23,14 @@ export interface ITodoItem extends IComponent {
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { content: initContent, comment, isFinish, isDelete, childrenCount, priority, childrenPriority }, isSelected = false, onClick, onLevNext, onFinish, onUpdateContent, onUpdatePriority, inAction = false, onContextMenu, onAction, className } = props;
+    const { todo, todo: { id, content: initContent, comment, isFinish, isDelete, childrenCount, childrenFinish, childrenDelete, priority, childrenPriority }, isSelected = false, onClick, levNextEnabled = false, onLevNext, onUpdateIsFinish, onUpdateContent, inAction = false, onContextMenu, onAction, className } = props;
+    const doingCount = childrenDoing(todo);
 
-    const [priorityMode, setPriorityMode] = useState(false);
     const [content, setContent] = useState(initContent);
 
     useEffect(() => setContent(initContent), [initContent]);
 
     const theme = useContext(ThemeContext);
-    const colors = [theme.priorColor1, theme.priorColor2, theme.priorColor3, theme.priorColor4, theme.priorColor5, theme.priorColor6, theme.priorColor7, theme.priorColor8, theme.priorColor9];
 
     const onInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
         const { id } = todo;
@@ -49,71 +45,58 @@ export const TodoItem = (props: ITodoItem) => {
         }
     }
 
-    const updateTodoIsFinish = (isFinish: boolean) => {
-        const { id } = todo;
-        onFinish({ id, isFinish });
-    }
-
-    const onContainerClick = (event: React.MouseEvent) => {
+    const onContainerClick = (event: React.MouseEvent<HTMLDivElement>) => {
         onClick(event, todo);
         event.stopPropagation();
     }
 
-    const switchPriorityMode = () => {
-        if (isSelected && !isFinish && !isDelete) {
-            setPriorityMode(!priorityMode);
-        }
-    }
-
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setContent(event.target.value);
 
-    const todoUpdatePriority = (priority: number) => {
-        const { id } = todo;
-        onUpdatePriority({ id, priority });
-    }
-
-    const IconFinish = IconButton(isFinish ? IconDuigouzhong : IconDuigouWeigouxuan);
-    const IconLevNext = IconButton(childrenCount > 0 ? IconLiebiao : IconJia);
+    const IconPaste = IconButton(IconQitadingdan);
 
     /**
      * Container区域内IconGroup区域外第一次点击默认行为为选中条目，控件仅可以对之后的点击作出响应，IconGroup区域内的控件不受限制
      */
     return (
         <>
-            <Container className={className} isSelected={isSelected} onClick={onContainerClick}>
-                <PrioritySwitchButton color={colors[priority - 1]} onClick={switchPriorityMode} />
-                <PrioritySwitchArea>
-                    <ContentContainer onContextMenu={e => onContextMenu(e, todo)}>
-                        <ContentGroup>
-                            {isSelected ? (
-                                <ContentInput value={content} onChange={onChange} onBlur={onInputBlur} onKeyPress={onKeyPress} />
-                            ) : (
-                                <InfoShowBox>
-                                    <Content hasComment={!!comment}>{content}</Content>
-                                    {comment && (
-                                        <Comment>{comment}</Comment>
-                                    )}
-                                </InfoShowBox>
-                            )}
-                        </ContentGroup>
+            <Container className={className} isSelected={isSelected} onClick={onContainerClick} onContextMenu={e => onContextMenu(e, todo)}>
+                <TodoStatusButton icon={IconZhengque} iconSize={12} bgColor={priorityColors[priority]} bgColorHover={theme.color6} enabled={todoCanFinish(todo)} checked={isFinish} colorUnchecked={theme.color1} onClick={() => onUpdateIsFinish({ id, isFinish: !isFinish })} />
+                <ContentArea>
+                    <Header>
+                        <ListName />
+                        <NaviBox />
+                    </Header>
+                    <Body>
+                        {isSelected ? (
+                            <ContentInput value={content} onChange={onChange} onBlur={onInputBlur} onKeyPress={onKeyPress} />
+                        ) : (
+                            <ContentBox>
+                                <ContentRect>
+                                    <Content>{content}</Content>
+                                </ContentRect>
+                            </ContentBox>
+                        )}
                         <IconGroup onClick={(e) => e.stopPropagation()}>
-                            {inAction && onAction && <IconQitadingdan size={theme.iconSize1} onClick={() => onAction(todo)} />}
-                            <IconFinish disabled={!todoCanFinish(todo)} size={theme.iconSize1} color={!todoCanFinish(todo) ? 'orange' : 'green'} onClick={() => updateTodoIsFinish(!isFinish)} />
-                            {onLevNext && <IconLevNext size={theme.iconSize1} color={colors[childrenPriority - 1]} onClick={() => onLevNext(todo)} />}
+                            {inAction && onAction && <IconPaste size={theme.iconSize2} onClick={() => onAction(todo)} />}
                         </IconGroup>
-                    </ContentContainer>
-                    <PriorityContainer show={priorityMode && isSelected} onClick={() => setPriorityMode(false)}>
-                        <PriorityButtonGroup colors={colors} setPriority={todoUpdatePriority} />
-                    </PriorityContainer>
-                </PrioritySwitchArea>
+                    </Body>
+                    <Footer>
+
+                    </Footer>
+                </ContentArea>
+                <StatBtn enabled={levNextEnabled} onClick={() => onLevNext(todo)}>
+                    {doingCount <= 0 ? undefined : (doingCount > 99 ? '99+' : doingCount)}
+                </StatBtn>
             </Container>
         </>
     );
 }
 
+
+
 const Container = styled.div.attrs({} as { isSelected: boolean })`
-    height: 41px;
     display: flex;
+    justify-content: flex-end;
     align-items: stretch;
     margin: 1px;
     border-radius: 4px;
@@ -121,49 +104,54 @@ const Container = styled.div.attrs({} as { isSelected: boolean })`
     background-color: ${props => props.isSelected ? props.theme.color3 : props.theme.color1};
 `
 
-const PrioritySwitchButton = styled.div.attrs({} as { color: string })`
-    width: 16px;
-    background-color: ${props => props.color};
-`
-
-const PrioritySwitchArea = styled.div`
-    flex: 1;
-    position: relative;
-`
-
-const PriorityContainer = styled.div.attrs({} as { show: boolean })`
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    position: absolute;
-    z-index: ${props => props.show ? 2 : -1};
-    background-color: ${props => props.theme.color1};
-    display: flex;
-    justify-content: stretch;
-`
-
-const ContentContainer = styled.div`
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    position: absolute;
-    z-index: 1;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 8px 8px;
-`
-
-const ContentGroup = styled.div`
+const ContentArea = styled.div`
     flex: 1;
     display: flex;
+    flex-direction: column;
+    align-items: stretch;
+`
+
+const Header = styled.div`
+    display: flex;
     align-items: center;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 8px;
+    height: 12px;
+`
+
+const Body = styled.div`
+    display: flex;
+    align-items: stretch;
+`
+
+const Footer = styled.div`
+    display: flex;
+    align-items: center;
+    height: 12px;
+`
+
+const ListName = styled.div`
+
+`
+
+const NaviBox = styled.div`
+    flex: 1;
+`
+
+const StatBtn = styled.div.attrs({} as {enabled: boolean})`
+    width: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: ${props => props.theme.color0};
+    font-size: ${props => props.theme.fontSize1};
+
+    ${props => props.enabled && css`
+        &:hover{
+            cursor: pointer;
+            color: ${props.theme.color1};
+            background: ${props.theme.color3};;
+        }
+    `}
 `
 
 const IconGroup = styled.div`
@@ -178,42 +166,37 @@ const IconGroup = styled.div`
     }
 `
 
-const InfoShowBox = styled.div`
+const ContentBox = styled.div`
     flex: 1;
-    max-width: 100%;
+    position: relative;
+    height: 22px;
+`
+
+const ContentRect = styled.div`
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
     display: flex;
     align-items: center;
+`
+
+const Content = styled.p`
+    flex: 1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     padding: 4px 8px;
-`
-
-const Content = styled.p.attrs({} as { hasComment: boolean })`
-    min-width: 20%;
-    max-width: ${props => props.hasComment ? 80 : 100}%;
-    font-size: 12px;
-    font-family: inherit;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-`
-
-const Comment = styled.p`
-    min-width: 20%;
-    max-width: 80%;
-    padding: 0px 8px;
-    color: ${props => props.theme.color8};
-    font-size: 10px;
-    font-family: inherit;
-    font-style: italic;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: ${props => props.theme.fontSize1};
 `
 
 const ContentInput = styled.input`
     flex: 1;
     background-color: transparent;
     border: none;
-    font-size: 12px;
+    font-size: ${props => props.theme.fontSize1};
     font-family: inherit;
     padding: 4px 8px;
 

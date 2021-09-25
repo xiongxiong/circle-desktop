@@ -150,7 +150,7 @@ export interface ITodoSearch extends ITodoStatus, OHasListId, OHasContent, OHasP
 
 export interface ITodoStat extends IHasChildrenCount, IHasChildrenFinish, IHasChildrenDelete {}
 
-export interface ITodoInsert extends IHasListId, IHasContent, OHasParentId {}
+export interface ITodoInsert extends IHasListId, IHasContent, OHasPriority, OHasParentId {}
 
 export interface ITodoUpdate extends IHasId, OHasParentId, OHasContent, OHasComment, OIsFinish, OIsDelete, OHasPriority {}
 
@@ -187,4 +187,9 @@ export interface IList extends IHasId, IHasParentId, IHasTitle, IHasTimeStamp, I
 export const todoCanFinish = (todo: ITodo) => {
     const {isDelete, childrenCount, childrenFinish, childrenDelete} = todo;
     return !isDelete && (childrenCount === 0 ? true : childrenCount == childrenFinish + childrenDelete);
+}
+
+export const childrenDoing = (todo: ITodoStat) => {
+    const {childrenCount, childrenFinish, childrenDelete} = todo;
+    return childrenCount - childrenFinish - childrenDelete;
 }

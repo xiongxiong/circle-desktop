@@ -21,15 +21,6 @@ export interface ITheme {
     iconSize3: number,
     iconSize4: number,
     iconSize5: number,
-    priorColor1: string,
-    priorColor2: string,
-    priorColor3: string,
-    priorColor4: string,
-    priorColor5: string,
-    priorColor6: string,
-    priorColor7: string,
-    priorColor8: string,
-    priorColor9: string,
 }
 
 export const themeDefault: ITheme = {
@@ -55,13 +46,6 @@ export const themeDefault: ITheme = {
     iconSize3: 18,
     iconSize4: 20,
     iconSize5: 22,
-    priorColor1: '#1231F7',
-    priorColor2: '#4879F4',
-    priorColor3: '#74B7F2',
-    priorColor4: '#A0DEF0',
-    priorColor5: '#EDFAED',
-    priorColor6: '#F4E9C9',
-    priorColor7: '#F6B57B',
-    priorColor8: '#F87652',
-    priorColor9: '#FD0013',
 }
+
+export const priorityColors = ['#CCD2E8', '#F4E9C9', '#F6B57B', '#F87652'];

@@ -1,7 +1,7 @@
 import { Input, InputProps } from 'antd';
 import React, { useState, useEffect, createRef } from 'react';
-import styled, { StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus } from '@/interface/Data';
+import styled, { css, StyledComponent, ThemeContext } from 'styled-components';
+import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus, IHasPriority } from '@/interface/Data';
 import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps, MsgTodoSelectStat } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { TodoNavi } from '~/components/TodoNavi';
@@ -23,6 +23,7 @@ import IconSousuo from '~/components/@iconfont/IconSousuo';
 import { createSignal } from '@react-rxjs/utils';
 import { bind } from '@react-rxjs/core';
 import { debounceTime } from 'rxjs';
+import { priorityColors } from '~/styles/Themes';
 
 enum ViewMode {
     CASCADE,
@@ -68,6 +69,7 @@ export const Todos = (props: ITodosProps) => {
     }, [listSelected]);
 
     useEffect(() => {
+        setTodoStatus(TodoStatus.DOING);
         viewMode === ViewMode.CASCADE && selectTodoRoot();
         return () => {
             selectTodoRoot = () => { };
@@ -85,17 +87,21 @@ export const Todos = (props: ITodosProps) => {
 
     searchTextObs.pipe(debounceTime(600)).subscribe(toSearch => selectTodoListAndTodoStat(false, toSearch));
 
+    // 模式按钮
     const viewModeBtns = [
         {
-            render: () => (<IconKuandai size={theme.iconSize1} />),
+            render: (checked: boolean) => (<IconKuandai size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />),
             func: () => setViewMode(ViewMode.CASCADE),
         },
         {
-            render: () => (<IconSousuo size={theme.iconSize1} />),
+            render: (checked: boolean) => (<IconSousuo size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />),
             func: () => setViewMode(ViewMode.SEARCH),
         },
     ];
 
+    const viewModeBtnCheckedIndex = () => [ViewMode.CASCADE, ViewMode.SEARCH].indexOf(viewMode);
+
+    // 操作按钮
     const todoPasteBtns = [
         {
             render: () => (<IconShibai size={theme.iconSize1} />),
@@ -107,13 +113,14 @@ export const Todos = (props: ITodosProps) => {
         },
     ];
 
-    const finishStatusBtns = () => {
+    // 待办状态按钮
+    const todoStatusBtns = () => {
         const { childrenCount = 0, childrenFinish = 0, childrenDelete = 0 } = todoStat || {};
         return [
             {
-                render: () => (
+                render: (checked: boolean) => (
                     <ButtonBox>
-                        <IconXiaolian size={theme.iconSize1} />
+                        <IconXiaolian size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
                         <ButtonText>
                             {childrenCount - childrenFinish - childrenDelete}
                         </ButtonText>
@@ -122,9 +129,9 @@ export const Todos = (props: ITodosProps) => {
                 func: () => setTodoStatus(TodoStatus.DOING)
             },
             {
-                render: () => (
+                render: (checked: boolean) => (
                     <ButtonBox>
-                        <IconZhengque size={theme.iconSize1} />
+                        <IconZhengque size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
                         <ButtonText>
                             {childrenFinish}
                         </ButtonText>
@@ -133,9 +140,9 @@ export const Todos = (props: ITodosProps) => {
                 func: () => setTodoStatus(TodoStatus.DONE)
             },
             {
-                render: () => (
+                render: (checked: boolean) => (
                     <ButtonBox>
-                        <IconShaixuan1 size={theme.iconSize1} />
+                        <IconShaixuan1 size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
                         <ButtonText>
                             {childrenDelete}
                         </ButtonText>
@@ -146,12 +153,14 @@ export const Todos = (props: ITodosProps) => {
         ];
     };
 
+    const todoStatusBtnCheckedIndex = () => [TodoStatus.DOING, TodoStatus.DONE, TodoStatus.DELETED].indexOf(todoStatus);
+
     let selectTodoRoot = () => {
         if (listSelected) {
             const { id: listId } = listSelected;
             window.Main.invoke(new MsgTodoSelectRoot({ listId })).then(todo => {
                 setCurrentNode(todo);
-                setNavNodes([todo]);
+                setNavNodes(todo ? [todo] : []);
             });
         } else {
             setCurrentNode(undefined);
@@ -197,7 +206,7 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
-    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ content: event.target.value });
+    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ ...newTodo, content: event.target.value });
 
     const insertTodo = () => {
         if (listSelected) {
@@ -298,7 +307,10 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
-    const todoSelected = (event: React.MouseEvent, todo: ITodo) => setCurrentTodo(todo);
+    const todoSelected = (event: React.MouseEvent, todo: ITodo) => {
+        setCurrentTodo(todo);
+        cm.current?.hide(event);
+    };
 
     const todoSelectedClear = () => setCurrentTodo(undefined);
 
@@ -313,8 +325,16 @@ export const Todos = (props: ITodosProps) => {
         setCurrentNode(todo);
     }
 
-    const menuItems = () => {
+    // 右键菜单
+    const contextMenuItems = () => {
         const separator = { separator: true };
+        const actionPriority = {
+            template: (item: any, options: any) => (
+                <MenuItemPriorityBox className="p-menuitem-link" onClick={(e) => cm.current?.hide(e)}>
+                    {priorityColors.map((color, index) => <MenuItemPriorityBtn key={index} color={color} onClick={() => contextTodo && updateTodoPriority({ ...contextTodo, priority: index })} />)}
+                </MenuItemPriorityBox>
+            )
+        };
         const actionDetail = {
             label: '详情',
             icon: 'pi pi-fw pi-info-circle',
@@ -334,11 +354,32 @@ export const Todos = (props: ITodosProps) => {
             icon: 'pi pi-fw pi-trash',
             command: () => contextTodo && updateTodoIsDelete({ ...contextTodo, isDelete: true }),
         };
+        const actionRestore = {
+            label: '还原',
+            icon: 'pi pi-fw pi-directions-alt',
+            command: () => contextTodo && updateTodoIsDelete({ ...contextTodo, isDelete: false }),
+        };
         switch (viewMode) {
             case ViewMode.CASCADE:
-                return [actionDetail, separator, actionCopy, actionMove, actionDelete];
+                switch (todoStatus) {
+                    case TodoStatus.DOING:
+                        return [actionPriority, separator, actionDetail, separator, actionCopy, actionMove, actionDelete];
+                    case TodoStatus.DONE:
+                        return [actionDetail, separator, actionCopy];
+                    case TodoStatus.DELETED:
+                        return [actionDetail, separator, actionCopy, actionRestore];
+                    default: break;
+                }
             case ViewMode.SEARCH:
-                return [actionDetail, separator, actionDelete];
+                switch (todoStatus) {
+                    case TodoStatus.DOING:
+                        return [actionPriority, separator, actionDetail, separator, actionCopy, actionMove, actionDelete];
+                    case TodoStatus.DONE:
+                        return [actionDetail, separator, actionCopy];
+                    case TodoStatus.DELETED:
+                        return [actionDetail, separator, actionCopy, actionRestore];
+                    default: break;
+                }
             default:
                 return [];
         }
@@ -353,19 +394,19 @@ export const Todos = (props: ITodosProps) => {
         const { id } = item;
         const { id: idCurrent } = currentTodo || {};
         return (
-            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} onLevNext={toLevNext} onFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} onUpdatePriority={updateTodoPriority} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu} />
+            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} levNextEnabled={viewMode === ViewMode.CASCADE} onLevNext={toLevNext} onUpdateIsFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu} />
         );
     }
 
     return (
         <>
-            <TodoContextMenu model={menuItems()} ref={cm} />
+            <TodoContextMenu model={contextMenuItems()} ref={cm} />
             <Container onClick={todoSelectedClear}>
                 <Header>
                     {listSelected && (
                         <>
                             <ButtonGroupBox>
-                                <ButtonGroup buttons={viewModeBtns} radio />
+                                <ButtonGroup buttons={viewModeBtns} radio checkedIdx={viewModeBtnCheckedIndex()} />
                             </ButtonGroupBox>
                             <HeaderSeparator />
                         </>
@@ -382,7 +423,7 @@ export const Todos = (props: ITodosProps) => {
                         </>
                     )}
                     <ButtonGroupBox>
-                        <ButtonGroup buttons={finishStatusBtns()} radio />
+                        <ButtonGroup buttons={todoStatusBtns()} radio checkedIdx={todoStatusBtnCheckedIndex()} />
                     </ButtonGroupBox>
                 </Header>
                 <Body>
@@ -395,10 +436,14 @@ export const Todos = (props: ITodosProps) => {
                     )}
                 </Body>
                 {listSelected && !listSelected.isGroup && viewMode !== ViewMode.SEARCH && (
-                    <InputContainer>
+                    <NewTodoContainer>
                         <IconZengjia color={theme.color1} />
                         <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
-                    </InputContainer>
+                        <PriorityBox>
+                            {priorityColors.map((color, index) => <PriorityBtn key={index} color={color} selected={index === newTodo.priority} onClick={() => setNewTodo({...newTodo, priority: index})}/>)}
+                        </PriorityBox>
+                        <ConfirmBtn onClick={insertTodo}>OK</ConfirmBtn>
+                    </NewTodoContainer>
                 )}
             </Container>
         </>
@@ -479,7 +524,7 @@ const Body = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    margin: 0px 0px 4px 0px;
+    margin: 0px 0px 8px 0px;
     overflow-y: auto;
     
     &::-webkit-scrollbar  
@@ -503,18 +548,20 @@ const TodoList = styled.div`
     flex: 1;
 `
 
-const InputContainer = styled.div`
+const NewTodoContainer = styled.div`
     display: flex;
     align-items: center;
-    padding: 8px 8px;
+    padding: 0px 0px 0px 8px;
     background-color: ${props => props.theme.color2};
     border-radius: 4px;
+    overflow: hidden;
 `
 
 const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(Input)`
     flex: 1;
     border: none;
     padding: 4px 8px 4px;
+    margin: 6px 0px;
     color: ${props => props.theme.color1};
     background-color: transparent;
     font-family: inherit;
@@ -529,7 +576,45 @@ const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(
     }
 `
 
-const todoBlank: IHasContent = { content: '' };
+const PriorityBox = styled.div`
+    display: flex;
+    align-items: center;
+    margin: 0px 4px;
+`
+
+const PriorityBtn = styled.div.attrs({} as {color: string, selected: boolean})`
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    margin: 0px 2px;
+    background-color: ${props => props.color};
+    border: 2px solid ${props => props.theme.color2};
+
+    ${props => props.selected && css`
+        border: 2px solid ${props.theme.color1};
+    `}
+    &:hover{
+        border: 2px solid ${props => props.theme.color1};
+    }
+`
+
+const ConfirmBtn = styled.div`
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    padding: 0px 8px;
+    font-size: ${props => props.theme.fontSize3};
+    background-color: ${props => props.theme.color1};
+    border-radius: 4px;
+
+    &:hover{
+        cursor: pointer;
+        color: ${props => props.theme.color1};
+        background-color: ${props => props.theme.color8};
+    }
+`
+
+const todoBlank: IHasContent & IHasPriority = { content: '', priority: 0 };
 
 const ButtonBox = styled.div`
     display: flex;
@@ -539,6 +624,20 @@ const ButtonText = styled.div`
     min-width: 26px;
     display: flex;
     justify-content: center;
+`
+
+const MenuItemPriorityBox = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+`
+
+const MenuItemPriorityBtn = styled.div.attrs({} as { color: string })`
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    border: 1px solid;
+    background-color: ${props => props.color};
 `
 
 export default Todos;

@@ -50,7 +50,7 @@ export const ListTree = (props: IListTreeProps) => {
     const [rawNodes, setRawNodes] = useState([] as INodeData[]);
     const [nodes, setNodes] = useState([] as INodeItem[]);
     const [contextNode, setContextNode] = useState(undefined as INodeData | undefined);
-
+    
     useEffect(() => {
         selectTreeNodes();
         on(Events.LIST_TREE_REFRESH, selectTreeNodes);
@@ -77,7 +77,8 @@ export const ListTree = (props: IListTreeProps) => {
     }
 
     const onListSelect = (node: INodeItem) => {
-        dispatch(setListSelected(node));
+        const { isGroup } = node;
+        isGroup || dispatch(setListSelected(node));
         toggleExpand(node);
     }
 

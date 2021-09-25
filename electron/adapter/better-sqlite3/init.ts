@@ -27,7 +27,7 @@ CREATE TABLE "todo" (
     "childrenFinish" integer NOT NULL DEFAULT (0),
     "childrenDelete" integer NOT NULL DEFAULT (0),
     "childrenPriority" integer NOT NULL DEFAULT (0),
-    "priority" integer NOT NULL DEFAULT (5),
+    "priority" integer NOT NULL DEFAULT (0),
     PRIMARY KEY("id" AUTOINCREMENT)
 );
 

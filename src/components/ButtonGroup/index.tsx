@@ -8,31 +8,19 @@ export interface IButtonGroupProps {
 }
 
 export interface IButton {
-    render: () => React.ReactNode,
+    render: (checked: boolean) => React.ReactNode,
     func: () => void
 }
 
 export const ButtonGroup = (props: IButtonGroupProps) => {
 
-    const { buttons = [], radio = false, checkedIdx: initCheckedIdx = 0 } = props;
-
-    const [checkedIdx, setCheckedIdx] = useState(initCheckedIdx);
-
-    const onClick = (idx: number, func: () => void = () => undefined) => {
-        if (radio) {
-            setCheckedIdx(idx);
-            if (idx !== checkedIdx) {
-                func();
-            }
-        } else {
-            func();
-        }
-    }
+    const { buttons = [], radio = false, checkedIdx } = props;
 
     const elems: React.ReactNode[] = buttons.reduce((els, { render, func }, idx, arr) => {
+        const checked = radio ? idx === checkedIdx : false;
         els.push(
-            <ButtonBox key={idx} checked={radio ? idx === checkedIdx : false} onClick={() => onClick(idx, func)}>
-                {render && render()}
+            <ButtonBox key={idx} checked={checked} onClick={() => func()}>
+                {render && render(checked)}
             </ButtonBox>
         );
         if (idx < arr.length - 1) {

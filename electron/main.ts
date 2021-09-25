@@ -22,10 +22,10 @@ function createWindow() {
 	mainWindow = new BrowserWindow({
 		icon: path.join(assetsPath, 'assets', 'icon.png'),
 		// titleBarStyle: 'hiddenInset',
-		width: 1600,
-		minWidth: 600,
+		width: 1000,
+		minWidth: 800,
 		height: 500,
-		minHeight: 400,
+		minHeight: 500,
 		backgroundColor: themeDefault.color0,
 		webPreferences: {
 			nodeIntegration: false,
