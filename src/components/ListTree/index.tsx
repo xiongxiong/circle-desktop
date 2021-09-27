@@ -55,7 +55,7 @@ export const ListTree = (props: IListTreeProps) => {
         selectTreeNodes();
         on(Events.LIST_TREE_REFRESH, selectTreeNodes);
         return () => off(Events.LIST_TREE_REFRESH, selectTreeNodes);
-    }, [true]);
+    }, []);
 
     useEffect(() => {
         refreshTree(); 

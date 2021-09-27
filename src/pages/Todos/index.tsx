@@ -24,6 +24,7 @@ import { createSignal } from '@react-rxjs/utils';
 import { bind } from '@react-rxjs/core';
 import { debounceTime } from 'rxjs';
 import { priorityColors } from '~/styles/Themes';
+import { serialAsync } from '~/util/SerialAsync';
 
 enum ViewMode {
     CASCADE,
@@ -53,8 +54,9 @@ export const Todos = (props: ITodosProps) => {
 
     const [viewMode, setViewMode] = useState(ViewMode.CASCADE); // 视图模式
     const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
-    const [currentNode, setCurrentNode] = useState(undefined as ITodoBasic | undefined); // 层级导航当前节点
-    const [navNodes, setNavNodes] = useState([] as ITodoBasic[]); // 层级导航
+    const [rootNode, setRootNode] = useState(undefined as ITodo | undefined);
+    const [currentNode, setCurrentNode] = useState(undefined as ITodo | undefined); // 层级导航当前节点
+    const [navNodes, setNavNodes] = useState([] as ITodo[]); // 层级导航
     const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 } as ITodoStat); // 待办数量统计
     const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined)); // 选中待办
     const [contextTodo, setContextTodo] = useState(undefined as (ITodo | undefined)); // 上下文菜单对应待办
@@ -65,16 +67,10 @@ export const Todos = (props: ITodosProps) => {
     const [todoInAction, setTodoInAction] = useState(undefined as (ITodoInAction | undefined)); // 待办移动或复制
 
     useEffect(() => {
+        selectTodoRoot();
         listSelected ? setViewMode(ViewMode.CASCADE) : setViewMode(ViewMode.SEARCH);
-    }, [listSelected]);
-
-    useEffect(() => {
         setTodoStatus(TodoStatus.DOING);
-        viewMode === ViewMode.CASCADE && selectTodoRoot();
-        return () => {
-            selectTodoRoot = () => { };
-        };
-    }, [viewMode, listSelected]);
+    }, [listSelected]);
 
     useEffect(() => {
         selectTodoListAndTodoStat();
@@ -109,7 +105,19 @@ export const Todos = (props: ITodosProps) => {
         },
         {
             render: () => (<IconQitadingdan size={theme.iconSize1} />),
-            func: () => todoOnAction(currentNode)
+            func: () => {
+                if (listSelected) {
+                    switch (viewMode) {
+                        case ViewMode.CASCADE:
+                            todoOnAction(currentNode);
+                            break;
+                        case ViewMode.SEARCH:
+                            todoOnAction(rootNode);
+                            break;
+                        default: break;
+                    }
+                }
+            }
         },
     ];
 
@@ -155,17 +163,33 @@ export const Todos = (props: ITodosProps) => {
 
     const todoStatusBtnCheckedIndex = () => [TodoStatus.DOING, TodoStatus.DONE, TodoStatus.DELETED].indexOf(todoStatus);
 
+    const changeRootNode = (todo?: ITodo) => {
+        setRootNode(todo);
+        setCurrentNode(todo);
+        setNavNodes(todo ? [todo] : []);
+    }
+
     let selectTodoRoot = () => {
+        setCurrentNode(undefined);
         if (listSelected) {
             const { id: listId } = listSelected;
             window.Main.invoke(new MsgTodoSelectRoot({ listId })).then(todo => {
-                setCurrentNode(todo);
-                setNavNodes(todo ? [todo] : []);
+                changeRootNode(todo);
             });
         } else {
-            setCurrentNode(undefined);
-            setNavNodes([]);
+            changeRootNode(undefined);
         }
+    }
+
+    const selectTodoListAndTodoStatForSearch = (content?: string) => {
+        console.log("CCC");
+        window.Main.invoke(new MsgTodoSelectList({ listId: listSelected?.id, content, status: todoStatus })).then((todos: ITodo[]) => {
+            setTodos(todos);
+        });
+        window.Main.invoke(new MsgTodoSelectStat({ listId: listSelected?.id, content })).then(node => {
+            const { childrenCount, childrenFinish, childrenDelete } = node || {};
+            setTodoStat({ childrenCount, childrenFinish, childrenDelete });
+        });
     }
 
     /**
@@ -179,30 +203,31 @@ export const Todos = (props: ITodosProps) => {
             setTodoStat({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 });
         }
 
-        switch (viewMode) {
-            case ViewMode.CASCADE:
-                if (currentNode) {
-                    window.Main.invoke(new MsgTodoSelectList({ listId: listSelected?.id, parentId: currentNode.id, status: todoStatus })).then((todos: ITodo[]) => {
-                        setTodos(todos);
-                    });
-
-                    window.Main.invoke(new MsgTodoSelect(currentNode)).then(node => {
-                        const { childrenCount, childrenFinish, childrenDelete } = node || {};
+        if (listSelected) {
+            switch (viewMode) {
+                case ViewMode.CASCADE:
+                    if (currentNode) {
+                        console.log("CCC");
+                        const { childrenCount, childrenFinish, childrenDelete } = currentNode;
                         setTodoStat({ childrenCount, childrenFinish, childrenDelete });
-                    });
-                }
-                break;
-            case ViewMode.SEARCH:
-                window.Main.invoke(new MsgTodoSelectList({ listId: listSelected?.id, content, status: todoStatus })).then((todos: ITodo[]) => {
-                    setTodos(todos);
-                });
 
-                window.Main.invoke(new MsgTodoSelectStat({ listId: listSelected?.id, content })).then(node => {
-                    const { childrenCount, childrenFinish, childrenDelete } = node || {};
-                    setTodoStat({ childrenCount, childrenFinish, childrenDelete });
-                });
-                break;
-            default: break;
+                        window.Main.invoke(new MsgTodoSelectList({ listId: listSelected?.id, parentId: currentNode.id, status: todoStatus })).then((todos: ITodo[]) => {
+                            setTodos(todos);
+                        });
+                    }
+                    break;
+                case ViewMode.SEARCH:
+                    selectTodoListAndTodoStatForSearch(content);
+                    break;
+                default: break;
+            }
+        } else {
+            switch (viewMode) {
+                case ViewMode.SEARCH:
+                    selectTodoListAndTodoStatForSearch(content);
+                    break;
+                default: break;
+            }
         }
     }
 
@@ -314,13 +339,13 @@ export const Todos = (props: ITodosProps) => {
 
     const todoSelectedClear = () => setCurrentTodo(undefined);
 
-    const toLevNext = (todo: ITodoBasic) => {
+    const toLevNext = (todo: ITodo) => {
         setNavNodes(navNodes.concat([todo]));
         setCurrentNode(todo);
         todoSelectedClear();
     }
 
-    const toLevPrev = (todo: ITodoBasic) => {
+    const toLevPrev = (todo: ITodo) => {
         setNavNodes(navNodes.slice(0, navNodes.indexOf(todo) + 1));
         setCurrentNode(todo);
     }
@@ -435,12 +460,12 @@ export const Todos = (props: ITodosProps) => {
                         </TodoList>
                     )}
                 </Body>
-                {listSelected && !listSelected.isGroup && viewMode !== ViewMode.SEARCH && (
+                {listSelected && !listSelected.isGroup && (
                     <NewTodoContainer>
                         <IconZengjia color={theme.color1} />
                         <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
                         <PriorityBox>
-                            {priorityColors.map((color, index) => <PriorityBtn key={index} color={color} selected={index === newTodo.priority} onClick={() => setNewTodo({...newTodo, priority: index})}/>)}
+                            {priorityColors.map((color, index) => <PriorityBtn key={index} color={color} selected={index === newTodo.priority} onClick={() => setNewTodo({ ...newTodo, priority: index })} />)}
                         </PriorityBox>
                         <ConfirmBtn onClick={insertTodo}>OK</ConfirmBtn>
                     </NewTodoContainer>
@@ -582,7 +607,7 @@ const PriorityBox = styled.div`
     margin: 0px 4px;
 `
 
-const PriorityBtn = styled.div.attrs({} as {color: string, selected: boolean})`
+const PriorityBtn = styled.div.attrs({} as { color: string, selected: boolean })`
     width: 24px;
     height: 24px;
     border-radius: 12px;

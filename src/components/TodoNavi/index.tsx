@@ -1,14 +1,14 @@
-import { ITodoBasic } from "@/interface/Data";
+import { ITodo } from "@/interface/Data";
 import styled, { css } from "styled-components";
 import { IClassName } from "~/interfaces/Component";
 
 
 export interface ITodoNaviProps extends IClassName {
-    nodes: ITodoBasic[],
-    toLevPrev: (node: ITodoBasic) => void
+    nodes: ITodo[],
+    toLevPrev: (node: ITodo) => void
 }
 
-const NaviNode = (node: ITodoBasic, isTail: boolean, toLevPrev: (node: ITodoBasic) => void = () => { }) => {
+const NaviNode = (node: ITodo, isTail: boolean, toLevPrev: (node: ITodo) => void = () => { }) => {
     const { id, content } = node;
     return (
         <ItemContainer key={id}>

@@ -7,13 +7,14 @@ import { TodoStatusButton } from '../TodoStatusButton';
 import { priorityColors } from '~/styles/Themes';
 import IconZhengque from '../@iconfont/IconZhengque';
 import { IconButton } from '../IconButton';
+import IconGouwu from '../@iconfont/IconGouwu';
 
 export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
     levNextEnabled?: boolean,
-    onLevNext: (todo: ITodoBasic) => void,
+    onLevNext: (todo: ITodo) => void,
     onUpdateIsFinish: (todo: ITodoUpdate) => void,
     onUpdateContent: (todo: ITodoBasic) => void,
     inAction?: boolean, // 是否有待办正处于移动或者复制模式
@@ -85,7 +86,8 @@ export const TodoItem = (props: ITodoItem) => {
                     </Footer>
                 </ContentArea>
                 <StatBtn enabled={levNextEnabled} onClick={() => onLevNext(todo)}>
-                    {doingCount <= 0 ? undefined : (doingCount > 99 ? '99+' : doingCount)}
+                    <StatBtnLayer className="stat-btn-text"><p>{doingCount <= 0 ? undefined : (doingCount > 99 ? '99+' : doingCount)}</p></StatBtnLayer>
+                    <StatBtnLayer className="stat-btn-icon"><IconGouwu size={theme.iconSize2} color={theme.color1} /></StatBtnLayer>
                 </StatBtn>
             </Container>
         </>
@@ -137,21 +139,42 @@ const NaviBox = styled.div`
     flex: 1;
 `
 
-const StatBtn = styled.div.attrs({} as {enabled: boolean})`
+const StatBtn = styled.div.attrs({} as { enabled: boolean })`
     width: 24px;
+    color: ${props => props.theme.color0};
+    font-size: ${props => props.theme.fontSize1};
+
     display: flex;
     justify-content: center;
     align-items: center;
-    color: ${props => props.theme.color0};
-    font-size: ${props => props.theme.fontSize1};
+
+    & .stat-btn-text {
+        display: flex;
+    }
+    & .stat-btn-icon {
+        display: none;
+    }
 
     ${props => props.enabled && css`
         &:hover{
             cursor: pointer;
             color: ${props.theme.color1};
-            background: ${props.theme.color3};;
+            background: ${props.theme.color3};
+
+            & .stat-btn-text {
+                display: none;
+            }
+            & .stat-btn-icon {
+                display: flex;
+            }
         }
     `}
+`
+
+const StatBtnLayer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
 `
 
 const IconGroup = styled.div`
