@@ -78,7 +78,7 @@ export const ListTree = (props: IListTreeProps) => {
 
     const onListSelect = (node: INodeItem) => {
         const { isGroup } = node;
-        isGroup || dispatch(setListSelected(node));
+        isGroup || (node.id === listSelected?.id) || dispatch(setListSelected(node));
         toggleExpand(node);
     }
 

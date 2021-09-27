@@ -19,7 +19,7 @@ export const TodoStatusButton = (props: ITodoStatusButtonProps & IClassName) => 
     const {iconSize = 12, icon, bgColor, bgColorHover="lightcyan", enabled = false, checked = false, colorChecked = "green", colorUnchecked = "white", onClick, className} = props;
     const Icon = React.createElement(icon);
     return (
-        <Container className={className} color={bgColor} enabled={enabled} bgColorHover={bgColorHover} onClick={onClick}>
+        <Container className={className} color={bgColor} enabled={enabled} bgColorHover={bgColorHover} onClick={enabled ? onClick : undefined}>
             {enabled && <Icon.type size={iconSize} color={checked ? colorChecked : colorUnchecked} />}
         </Container>
     );

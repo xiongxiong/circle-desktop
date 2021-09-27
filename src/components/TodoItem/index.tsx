@@ -85,7 +85,7 @@ export const TodoItem = (props: ITodoItem) => {
 
                     </Footer>
                 </ContentArea>
-                <StatBtn enabled={levNextEnabled} onClick={() => onLevNext(todo)}>
+                <StatBtn enabled={levNextEnabled} onClick={() => levNextEnabled && onLevNext(todo)}>
                     <StatBtnLayer className="stat-btn-text"><p>{doingCount <= 0 ? undefined : (doingCount > 99 ? '99+' : doingCount)}</p></StatBtnLayer>
                     <StatBtnLayer className="stat-btn-icon"><IconGouwu size={theme.iconSize2} color={theme.color1} /></StatBtnLayer>
                 </StatBtn>

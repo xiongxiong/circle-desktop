@@ -73,6 +73,10 @@ export const Todos = (props: ITodosProps) => {
     }, [listSelected]);
 
     useEffect(() => {
+        viewMode === ViewMode.SEARCH && changeCurrentNodeToRoot();
+    }, [viewMode]);
+
+    useEffect(() => {
         selectTodoListAndTodoStat();
         return () => {
             selectTodoListAndTodoStat = () => { };
@@ -81,103 +85,30 @@ export const Todos = (props: ITodosProps) => {
 
     const onSearchTextChange = (event: React.ChangeEvent<HTMLInputElement>) => setSearchText(event.target.value);
 
-    searchTextObs.pipe(debounceTime(600)).subscribe(toSearch => selectTodoListAndTodoStat(false, toSearch));
+    searchTextObs.pipe(debounceTime(300)).subscribe(toSearch => selectTodoListAndTodoStat(false, toSearch));
 
-    // 模式按钮
-    const viewModeBtns = [
-        {
-            render: (checked: boolean) => (<IconKuandai size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />),
-            func: () => setViewMode(ViewMode.CASCADE),
-        },
-        {
-            render: (checked: boolean) => (<IconSousuo size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />),
-            func: () => setViewMode(ViewMode.SEARCH),
-        },
-    ];
-
-    const viewModeBtnCheckedIndex = () => [ViewMode.CASCADE, ViewMode.SEARCH].indexOf(viewMode);
-
-    // 操作按钮
-    const todoPasteBtns = [
-        {
-            render: () => (<IconShibai size={theme.iconSize1} />),
-            func: () => setTodoInAction(undefined)
-        },
-        {
-            render: () => (<IconQitadingdan size={theme.iconSize1} />),
-            func: () => {
-                if (listSelected) {
-                    switch (viewMode) {
-                        case ViewMode.CASCADE:
-                            todoOnAction(currentNode);
-                            break;
-                        case ViewMode.SEARCH:
-                            todoOnAction(rootNode);
-                            break;
-                        default: break;
-                    }
-                }
-            }
-        },
-    ];
-
-    // 待办状态按钮
-    const todoStatusBtns = () => {
-        const { childrenCount = 0, childrenFinish = 0, childrenDelete = 0 } = todoStat || {};
-        return [
-            {
-                render: (checked: boolean) => (
-                    <ButtonBox>
-                        <IconXiaolian size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
-                        <ButtonText>
-                            {childrenCount - childrenFinish - childrenDelete}
-                        </ButtonText>
-                    </ButtonBox>
-                ),
-                func: () => setTodoStatus(TodoStatus.DOING)
-            },
-            {
-                render: (checked: boolean) => (
-                    <ButtonBox>
-                        <IconZhengque size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
-                        <ButtonText>
-                            {childrenFinish}
-                        </ButtonText>
-                    </ButtonBox>
-                ),
-                func: () => setTodoStatus(TodoStatus.DONE)
-            },
-            {
-                render: (checked: boolean) => (
-                    <ButtonBox>
-                        <IconShaixuan1 size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
-                        <ButtonText>
-                            {childrenDelete}
-                        </ButtonText>
-                    </ButtonBox>
-                ),
-                func: () => setTodoStatus(TodoStatus.DELETED)
-            }
-        ];
-    };
-
-    const todoStatusBtnCheckedIndex = () => [TodoStatus.DOING, TodoStatus.DONE, TodoStatus.DELETED].indexOf(todoStatus);
-
+    // 变更待办根节点
     const changeRootNode = (todo?: ITodo) => {
         setRootNode(todo);
         setCurrentNode(todo);
+        setCurrentTodo(undefined);
+        setContextTodo(undefined);
         setNavNodes(todo ? [todo] : []);
     }
 
+    // 变更导航当前节点到待办根节点
+    const changeCurrentNodeToRoot = () => {
+        navNodes.length > 0 && changeRootNode(navNodes[0]);
+    }
+
+    // 查询待办根节点
     let selectTodoRoot = () => {
-        setCurrentNode(undefined);
+        changeRootNode(undefined);
         if (listSelected) {
             const { id: listId } = listSelected;
             window.Main.invoke(new MsgTodoSelectRoot({ listId })).then(todo => {
                 changeRootNode(todo);
             });
-        } else {
-            changeRootNode(undefined);
         }
     }
 
@@ -217,7 +148,7 @@ export const Todos = (props: ITodosProps) => {
                     }
                     break;
                 case ViewMode.SEARCH:
-                    selectTodoListAndTodoStatForSearch(content);
+                    navNodes.length === 1 && selectTodoListAndTodoStatForSearch(content);
                     break;
                 default: break;
             }
@@ -350,6 +281,86 @@ export const Todos = (props: ITodosProps) => {
         setCurrentNode(todo);
     }
 
+    // 模式按钮
+    const viewModeBtns = [
+        {
+            render: (checked: boolean) => (<IconKuandai size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />),
+            func: () => setViewMode(ViewMode.CASCADE),
+        },
+        {
+            render: (checked: boolean) => (<IconSousuo size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />),
+            func: () => setViewMode(ViewMode.SEARCH),
+        },
+    ];
+
+    const viewModeBtnCheckedIndex = () => [ViewMode.CASCADE, ViewMode.SEARCH].indexOf(viewMode);
+
+    // 操作按钮
+    const todoPasteBtns = [
+        {
+            render: () => (<IconShibai size={theme.iconSize1} />),
+            func: () => setTodoInAction(undefined)
+        },
+        {
+            render: () => (<IconQitadingdan size={theme.iconSize1} />),
+            func: () => {
+                if (listSelected) {
+                    switch (viewMode) {
+                        case ViewMode.CASCADE:
+                            todoOnAction(currentNode);
+                            break;
+                        case ViewMode.SEARCH:
+                            todoOnAction(rootNode);
+                            break;
+                        default: break;
+                    }
+                }
+            }
+        },
+    ];
+
+    // 待办状态按钮
+    const todoStatusBtns = () => {
+        const { childrenCount = 0, childrenFinish = 0, childrenDelete = 0 } = todoStat || {};
+        return [
+            {
+                render: (checked: boolean) => (
+                    <ButtonBox>
+                        <IconXiaolian size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
+                        <ButtonText>
+                            {childrenCount - childrenFinish - childrenDelete}
+                        </ButtonText>
+                    </ButtonBox>
+                ),
+                func: () => setTodoStatus(TodoStatus.DOING)
+            },
+            {
+                render: (checked: boolean) => (
+                    <ButtonBox>
+                        <IconZhengque size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
+                        <ButtonText>
+                            {childrenFinish}
+                        </ButtonText>
+                    </ButtonBox>
+                ),
+                func: () => setTodoStatus(TodoStatus.DONE)
+            },
+            {
+                render: (checked: boolean) => (
+                    <ButtonBox>
+                        <IconShaixuan1 size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
+                        <ButtonText>
+                            {childrenDelete}
+                        </ButtonText>
+                    </ButtonBox>
+                ),
+                func: () => setTodoStatus(TodoStatus.DELETED)
+            }
+        ];
+    };
+
+    const todoStatusBtnCheckedIndex = () => [TodoStatus.DOING, TodoStatus.DONE, TodoStatus.DELETED].indexOf(todoStatus);
+
     // 右键菜单
     const contextMenuItems = () => {
         const separator = { separator: true };
@@ -465,9 +476,9 @@ export const Todos = (props: ITodosProps) => {
                         <IconZengjia color={theme.color1} />
                         <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
                         <PriorityBox>
-                            {priorityColors.map((color, index) => <PriorityBtn key={index} color={color} selected={index === newTodo.priority} onClick={() => setNewTodo({ ...newTodo, priority: index })} />)}
+                            {priorityColors.map((color, index) => <PriorityBtn key={index} color={color} enabled={newTodo.content.length > 0} selected={index === newTodo.priority} onClick={() => setNewTodo({ ...newTodo, priority: index })} />)}
                         </PriorityBox>
-                        <ConfirmBtn onClick={insertTodo}>OK</ConfirmBtn>
+                        <ConfirmBtn enabled={newTodo.content.length > 0} onClick={insertTodo}>OK</ConfirmBtn>
                     </NewTodoContainer>
                 )}
             </Container>
@@ -607,7 +618,7 @@ const PriorityBox = styled.div`
     margin: 0px 4px;
 `
 
-const PriorityBtn = styled.div.attrs({} as { color: string, selected: boolean })`
+const PriorityBtn = styled.div.attrs({} as { color: string, enabled: boolean, selected: boolean })`
     width: 24px;
     height: 24px;
     border-radius: 12px;
@@ -615,15 +626,17 @@ const PriorityBtn = styled.div.attrs({} as { color: string, selected: boolean })
     background-color: ${props => props.color};
     border: 2px solid ${props => props.theme.color2};
 
-    ${props => props.selected && css`
+    ${props => props.enabled && props.selected && css`
         border: 2px solid ${props.theme.color1};
     `}
-    &:hover{
-        border: 2px solid ${props => props.theme.color1};
-    }
+    ${props => props.enabled && css`
+        &:hover{
+            border: 2px solid ${props.theme.color1};
+        }
+    `}
 `
 
-const ConfirmBtn = styled.div`
+const ConfirmBtn = styled.div.attrs({} as {enabled: boolean})`
     align-self: stretch;
     display: flex;
     align-items: center;
@@ -631,12 +644,16 @@ const ConfirmBtn = styled.div`
     font-size: ${props => props.theme.fontSize3};
     background-color: ${props => props.theme.color1};
     border-radius: 4px;
+    cursor: default;
+    background-color: ${props => props.theme.color4};
 
-    &:hover{
-        cursor: pointer;
-        color: ${props => props.theme.color1};
-        background-color: ${props => props.theme.color8};
-    }
+    ${props => props.enabled && css`
+        &:hover{
+            cursor: pointer;
+            color: ${props.theme.color1};
+            background-color: ${props.theme.color8};
+        }
+    `}
 `
 
 const todoBlank: IHasContent & IHasPriority = { content: '', priority: 0 };
