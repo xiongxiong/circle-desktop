@@ -1,7 +1,7 @@
 import { Input, InputProps } from 'antd';
-import React, { useState, useEffect, createRef } from 'react';
+import React, { useState, useEffect, createRef, useReducer, Reducer } from 'react';
 import styled, { css, StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus, IHasPriority } from '@/interface/Data';
+import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus, IHasPriority, IListBasic } from '@/interface/Data';
 import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps, MsgTodoSelectStat } from '@/interface/BridgeMsg';
 import { TodoItem } from '~/components/TodoItem';
 import { TodoNavi } from '~/components/TodoNavi';
@@ -41,6 +41,91 @@ interface ITodoInAction {
     todo: ITodoBasic
 }
 
+interface ITodosState {
+    viewMode: ViewMode, // 视图模式
+    todos: ITodo[], // 待办列表
+    rootNode: ITodo | undefined, // 导航根节点
+    currentNode: ITodo | undefined, // 导航当前节点
+    navNodes: ITodo[], // 导航节点
+    todoStat: ITodoStat, // 待办数量统计
+    currentTodo: ITodo | undefined, // 选中待办
+    contextTodo: ITodo | undefined, // 上下文菜单对应待办
+    newTodo: IHasContent & IHasPriority, // 新待办
+    todoStatus: TodoStatus, // 待办列表状态筛选
+    todoInAction: ITodoInAction | undefined, // 待办移动或复制
+}
+
+interface ITodosAction {
+    type: string,
+    payload: any,
+}
+
+const blankTodo: IHasContent & IHasPriority = { content: '', priority: 0 };
+
+const init: (listSelected?: IListBasic) => ITodosState = (listSelected?: IListBasic) => ({
+    viewMode: listSelected ? ViewMode.CASCADE : ViewMode.SEARCH,
+    todos: [],
+    rootNode: undefined,
+    currentNode: undefined,
+    navNodes: [],
+    todoStat: { childrenCount: 0, childrenFinish: 0, childrenDelete: 0 },
+    currentTodo: undefined,
+    contextTodo: undefined,
+    newTodo: blankTodo,
+    todoStatus: TodoStatus.DOING,
+    todoInAction: undefined,
+});
+
+const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action: ITodosAction) => {
+    switch (action.type) {
+        case "changeListSelected":
+            return {
+                ...state, 
+                viewMode: action.payload ? ViewMode.CASCADE : ViewMode.SEARCH,
+                rootNode: undefined,
+                currentNode: undefined,
+                navNodes: [],
+                currentTodo: undefined,
+                contextTodo: undefined,
+            };
+        case "setViewMode":
+            return {
+                ...state, 
+                viewMode: action.payload,
+                currentNode: state.rootNode,
+                navNodes: state.rootNode ? [state.rootNode] : [],
+                currentTodo: undefined,
+                contextTodo: undefined,
+            };
+        case "setTodos":
+            return {...state, todos: action.payload};
+        case "setRootNode":
+            return {
+                ...state,
+                rootNode: action.payload,
+                currentNode: action.payload,
+                navNodes: action.payload ? [action.payload] : [],
+                currentTodo: undefined,
+                contextTodo: undefined,
+            };
+        case "setCurrentNode":
+            return {...state, currentNode: action.payload};
+        case "setNavNodes":
+            return {...state, navNodes: action.payload};
+        case "setTodoStat":
+            return {...state, todoStat: action.payload};
+        case "setCurrentTodo":
+            return {...state, currentTodo: action.payload};
+        case "setContextTodo":
+            return {...state, contextTodo: action.payload};
+        case "setTodoStatus":
+            return {...state, todoStatus: action.payload};
+        case "setTodoInAction":
+            return {...state, todoInAction: action.payload};
+        default: throw new Error("TODOS STATE REDUCER : Not supported action");
+    }
+}
+
 export interface ITodosProps {
 
 }
@@ -48,79 +133,72 @@ export interface ITodosProps {
 export const Todos = (props: ITodosProps) => {
 
     const theme = useContext(ThemeContext);
-    const dispatch = useDispatch();
     const listSelected = useAppSelector(selectedList);
     const cm = createRef<ContextMenu>();
 
-    const [viewMode, setViewMode] = useState(ViewMode.CASCADE); // 视图模式
-    const [todos, setTodos] = useState([] as ITodo[]); // 待办列表
-    const [rootNode, setRootNode] = useState(undefined as ITodo | undefined);
-    const [currentNode, setCurrentNode] = useState(undefined as ITodo | undefined); // 层级导航当前节点
-    const [navNodes, setNavNodes] = useState([] as ITodo[]); // 层级导航
-    const [todoStat, setTodoStat] = useState({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 } as ITodoStat); // 待办数量统计
-    const [currentTodo, setCurrentTodo] = useState(undefined as (ITodo | undefined)); // 选中待办
-    const [contextTodo, setContextTodo] = useState(undefined as (ITodo | undefined)); // 上下文菜单对应待办
+    const [{viewMode, todos, rootNode, currentNode, navNodes, todoStat, currentTodo, contextTodo, newTodo, todoStatus, todoInAction}, dispatch] = useReducer(reducer, listSelected, init);
+
+    const changeListSelected = (listSelected?: IListBasic) => {
+        dispatch({type: "changeListSelected", payload: listSelected});
+    }
+    const setViewMode = (viewMode: ViewMode) => {
+        dispatch({type: "setViewMode", payload: viewMode});
+    }
+    const setTodos = (todos: ITodo[]) => {
+        dispatch({type: "setTodos", payload: todos});
+    }
+    const setRootNode = (todo?: ITodo) => {
+        dispatch({type: "setRootNode", payload: todo});
+    }
+    const setCurrentNode = (todo?: ITodo) => {
+        dispatch({type: "setCurrentNode", payload: todo});
+    }
+    const setNavNodes = (nodes: ITodo[]) => {
+        dispatch({type: "setNavNodes", payload: nodes});
+    }
+    const setTodoStat = (stat: ITodoStat) => {
+        dispatch({type: "setTodoStat", payload: stat});
+    }
+    const setCurrentTodo = (todo?: ITodo) => {
+        dispatch({type: "setCurrentTodo", payload: todo});
+    }
+    const setContextTodo = (todo?: ITodo) => {
+        dispatch({type: "setContextTodo", payload: todo});
+    }
+    const setNewTodo = (todo: IHasContent & IHasPriority) => {
+        dispatch({type: "setNewTodo", payload: todo});
+    }
+    const setTodoStatus = (status: TodoStatus) => {
+        dispatch({type: "setTodoStatus", payload: status});
+    }
+    const setTodoInAction = (action?: ITodoInAction) => {
+        dispatch({type: "setTodoInAction", payload: action});
+    }
+
     const [searchText, setSearchText] = createSignal<string>(); // 搜索内容
     const [useSearchText, searchTextObs] = bind(searchText); // 搜索内容观察者
-    const [newTodo, setNewTodo] = useState(todoBlank); // 新待办
-    const [todoStatus, setTodoStatus] = useState(TodoStatus.DOING); // 待办列表状态筛选
-    const [todoInAction, setTodoInAction] = useState(undefined as (ITodoInAction | undefined)); // 待办移动或复制
 
     useEffect(() => {
+        changeListSelected(listSelected);
         selectTodoRoot();
-        listSelected ? setViewMode(ViewMode.CASCADE) : setViewMode(ViewMode.SEARCH);
-        setTodoStatus(TodoStatus.DOING);
     }, [listSelected]);
 
     useEffect(() => {
-        viewMode === ViewMode.SEARCH && changeCurrentNodeToRoot();
-    }, [viewMode]);
-
-    useEffect(() => {
         selectTodoListAndTodoStat();
-        return () => {
-            selectTodoListAndTodoStat = () => { };
-        };
     }, [viewMode, currentNode, todoStatus]);
 
     const onSearchTextChange = (event: React.ChangeEvent<HTMLInputElement>) => setSearchText(event.target.value);
 
     searchTextObs.pipe(debounceTime(300)).subscribe(toSearch => selectTodoListAndTodoStat(false, toSearch));
 
-    // 变更待办根节点
-    const changeRootNode = (todo?: ITodo) => {
-        setRootNode(todo);
-        setCurrentNode(todo);
-        setCurrentTodo(undefined);
-        setContextTodo(undefined);
-        setNavNodes(todo ? [todo] : []);
-    }
-
-    // 变更导航当前节点到待办根节点
-    const changeCurrentNodeToRoot = () => {
-        navNodes.length > 0 && changeRootNode(navNodes[0]);
-    }
-
     // 查询待办根节点
-    let selectTodoRoot = () => {
-        changeRootNode(undefined);
+    const selectTodoRoot = () => {
         if (listSelected) {
             const { id: listId } = listSelected;
             window.Main.invoke(new MsgTodoSelectRoot({ listId })).then(todo => {
-                changeRootNode(todo);
+                setRootNode(todo);
             });
         }
-    }
-
-    const selectTodoListAndTodoStatForSearch = (content?: string) => {
-        console.log("CCC");
-        window.Main.invoke(new MsgTodoSelectList({ listId: listSelected?.id, content, status: todoStatus })).then((todos: ITodo[]) => {
-            setTodos(todos);
-        });
-        window.Main.invoke(new MsgTodoSelectStat({ listId: listSelected?.id, content })).then(node => {
-            const { childrenCount, childrenFinish, childrenDelete } = node || {};
-            setTodoStat({ childrenCount, childrenFinish, childrenDelete });
-        });
     }
 
     /**
@@ -128,7 +206,7 @@ export const Todos = (props: ITodosProps) => {
      * @param clearBeforeRequest 是否在查询发起前清空当前待办列表
      * @param content 要搜索的内容
      */
-    let selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false, content?: string) => {
+    const selectTodoListAndTodoStat = (clearBeforeRequest: boolean = false, content?: string) => {
         if (clearBeforeRequest) {
             setTodos([]);
             setTodoStat({ childrenCount: 0, childrenFinish: 0, childrenDelete: 0 });
@@ -138,7 +216,6 @@ export const Todos = (props: ITodosProps) => {
             switch (viewMode) {
                 case ViewMode.CASCADE:
                     if (currentNode) {
-                        console.log("CCC");
                         const { childrenCount, childrenFinish, childrenDelete } = currentNode;
                         setTodoStat({ childrenCount, childrenFinish, childrenDelete });
 
@@ -162,6 +239,16 @@ export const Todos = (props: ITodosProps) => {
         }
     }
 
+    const selectTodoListAndTodoStatForSearch = (content?: string) => {
+        window.Main.invoke(new MsgTodoSelectList({ listId: listSelected?.id, content, status: todoStatus })).then((todos: ITodo[]) => {
+            setTodos(todos);
+        });
+        window.Main.invoke(new MsgTodoSelectStat({ listId: listSelected?.id, content })).then(node => {
+            const { childrenCount, childrenFinish, childrenDelete } = node || {};
+            setTodoStat({ childrenCount, childrenFinish, childrenDelete });
+        });
+    }
+
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ ...newTodo, content: event.target.value });
 
     const insertTodo = () => {
@@ -171,7 +258,7 @@ export const Todos = (props: ITodosProps) => {
             if (newTodo.content.trim().length > 0) {
                 window.Main.invoke(new MsgTodoInsert({ ...newTodo, parentId: id, listId })).then((ok) => {
                     if (ok) {
-                        setNewTodo(todoBlank);
+                        setNewTodo(blankTodo);
                         selectTodoListAndTodoStat();
                     }
                 });
@@ -636,7 +723,7 @@ const PriorityBtn = styled.div.attrs({} as { color: string, enabled: boolean, se
     `}
 `
 
-const ConfirmBtn = styled.div.attrs({} as {enabled: boolean})`
+const ConfirmBtn = styled.div.attrs({} as { enabled: boolean })`
     align-self: stretch;
     display: flex;
     align-items: center;
@@ -656,8 +743,6 @@ const ConfirmBtn = styled.div.attrs({} as {enabled: boolean})`
         }
     `}
 `
-
-const todoBlank: IHasContent & IHasPriority = { content: '', priority: 0 };
 
 const ButtonBox = styled.div`
     display: flex;
