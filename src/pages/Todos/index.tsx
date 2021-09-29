@@ -52,6 +52,7 @@ interface ITodosState {
     navNodes: ITodo[], // 导航节点
     todoStat: ITodoStat, // 待办数量统计
     currentTodo: ITodo | undefined, // 选中待办
+    holdingTodo: ITodo | undefined, // 需要保持选中状态的待办
     contextTodo: ITodo | undefined, // 上下文菜单对应待办
     newTodo: IHasContent & IHasPriority, // 新待办
     todoStatus: TodoStatus, // 待办列表状态筛选
@@ -75,6 +76,7 @@ const init: (listSelected?: IListBasic) => ITodosState = (listSelected?: IListBa
     navNodes: [],
     todoStat: blankTodoStat,
     currentTodo: undefined,
+    holdingTodo: undefined,
     contextTodo: undefined,
     newTodo: blankTodo,
     todoStatus: TodoStatus.DOING,
@@ -93,7 +95,12 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
                 contextTodo: undefined,
             };
         case "setTodos":
-            return { ...state, todos: action.payload };
+            return { 
+                ...state, 
+                todos: action.payload,
+                currentTodo: state.holdingTodo,
+                holdingTodo: undefined,
+            };
         case "setRootNode":
             return {
                 ...state,
@@ -111,8 +118,12 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
             return { ...state, todoStat: action.payload };
         case "setCurrentTodo":
             return { ...state, currentTodo: action.payload };
+        case "setHoldingTodo":
+            return { ...state, holdingTodo: action.payload };
         case "setContextTodo":
             return { ...state, contextTodo: action.payload };
+        case "setNewTodo":
+            return { ...state, newTodo: action.payload };
         case "setTodoStatus":
             return { ...state, todoStatus: action.payload };
         case "setTodoInAction":
@@ -137,9 +148,9 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
                 currentNode: ancestors.length > 0 ? ancestors[ancestors.length - 1] : undefined,
                 navNodes: ancestors,
                 todoStat: ancestors.length > 0 ? ancestors[ancestors.length - 1] : blankTodoStat,
-                currentTodo: current,
+                holdingTodo: current,
             };
-        default: throw new Error("TODOS STATE REDUCER : Not supported action");
+        default: throw new Error(`>>> TODOS STATE REDUCER : NOT SUPPORTED ACTION -- ${action.type}`);
     }
 }
 
@@ -175,6 +186,9 @@ export const Todos = (props: ITodosProps) => {
     }
     const setCurrentTodo = (todo?: ITodo) => {
         dispatch({ type: "setCurrentTodo", payload: todo });
+    }
+    const setHoldingTodo = (todo?: ITodo) => {
+        dispatch({ type: "setHoldingTodo", payload: todo });
     }
     const setContextTodo = (todo?: ITodo) => {
         dispatch({ type: "setContextTodo", payload: todo });
@@ -543,7 +557,7 @@ export const Todos = (props: ITodosProps) => {
     }
 
     const listItemRender = (item: ITodo) => {
-        const { id, isFinish, isDelete, priority } = item;
+        const { id, isFinish, isDelete, priority, childrenFinish, childrenDelete } = item;
         const { id: idCurrent } = currentTodo || {};
         const doingCount = childrenDoing(item);
         const headBtn: () => ITodoStatusButtonProps = () => {
@@ -583,15 +597,34 @@ export const Todos = (props: ITodosProps) => {
                 default: return {};
             }
         };
+        const numStr = (num: number) => num <= 0 ? undefined : (num > 99 ? '99+' : num);
         const tailBtn: () => ITodoItemTailButtonProps = () => {
             switch (viewMode) {
                 case ViewMode.CASCADE:
-                    return {
-                        enabled: true,
-                        func: toLevNext,
-                        contentFore: <TodoItemTailBtnText>{doingCount <= 0 ? undefined : (doingCount > 99 ? '99+' : doingCount)}</TodoItemTailBtnText>,
-                        contentBack: <IconGouwu size={theme.icon_size.s} color={theme.color.white} />,
-                    };
+                    switch (todoStatus) {
+                        case TodoStatus.DOING:
+                            return {
+                                enabled: true,
+                                func: toLevNext,
+                                contentFore: <TodoItemTailBtnText>{numStr(doingCount)}</TodoItemTailBtnText>,
+                                contentBack: <IconGouwu size={theme.icon_size.s} color={theme.color.white} />,
+                            };
+                        case TodoStatus.DONE:
+                            return childrenFinish > 0 ? {
+                                enabled: true,
+                                func: toLevNext,
+                                contentFore: <TodoItemTailBtnText>{numStr(childrenFinish)}</TodoItemTailBtnText>,
+                                contentBack: <IconGouwu size={theme.icon_size.s} color={theme.color.white} />,
+                            } : {};
+                        case TodoStatus.DELETED:
+                            return childrenDelete > 0 ? {
+                                enabled: true,
+                                func: toLevNext,
+                                contentFore: <TodoItemTailBtnText>{numStr(childrenDelete)}</TodoItemTailBtnText>,
+                                contentBack: <IconGouwu size={theme.icon_size.s} color={theme.color.white} />,
+                            } : {};
+                        default: return {};
+                    }
                 case ViewMode.SEARCH:
                     return {
                         enabled: true,
@@ -645,7 +678,7 @@ export const Todos = (props: ITodosProps) => {
                         </TodoList>
                     )}
                 </Body>
-                {listSelected && !listSelected.isGroup && (
+                {listSelected && !listSelected.isGroup && (todoStatus === TodoStatus.DOING) && (
                     <NewTodoContainer>
                         <IconZengjia color={theme.color.white} />
                         <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
