@@ -18,6 +18,7 @@ interface MenuItemProps {
     label: string,
     icon: React.FunctionComponent<IconProps>,
     func: () => void,
+    selected: () => boolean,
 }
 
 export interface IListPanelProps extends IComponent {
@@ -45,11 +46,12 @@ export const ListPanel = (props: IListPanelProps) => {
             label: '搜索全部',
             icon: IconSousuo,
             func: () => dispatch(setListSelected(undefined)),
+            selected: () => listSelected === undefined,
         }
     ];
 
     const menuItemRender = (menu: MenuItemProps, index: number) => (
-        <MenuItemContainer key={index} onClick={menu.func}>
+        <MenuItemContainer key={index} selected={menu.selected()} onClick={menu.func}>
             <menu.icon size={theme.iconSize1} />
             <MenuItemText>{menu.label}</MenuItemText>
         </MenuItemContainer>

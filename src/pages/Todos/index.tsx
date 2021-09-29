@@ -640,7 +640,8 @@ const ConfirmBtn = styled.div.attrs({} as {enabled: boolean})`
     align-self: stretch;
     display: flex;
     align-items: center;
-    padding: 0px 8px;
+    padding: 4px 8px;
+    margin: 4px 4px 4px 0px;
     font-size: ${props => props.theme.fontSize3};
     background-color: ${props => props.theme.color1};
     border-radius: 4px;

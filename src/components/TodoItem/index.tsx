@@ -14,7 +14,8 @@ export interface ITodoItem extends IComponent {
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
     levNextEnabled?: boolean,
-    onLevNext: (todo: ITodo) => void,
+    onLevNext: (todo: ITodo) => void, // 层级模式进入子待办列表
+    onCascadeTarget: (todo: ITodo) => void, // 搜索模式切换到层级模式，并展示对应待办所在的位置
     onUpdateIsFinish: (todo: ITodoUpdate) => void,
     onUpdateContent: (todo: ITodoBasic) => void,
     inAction?: boolean, // 是否有待办正处于移动或者复制模式
