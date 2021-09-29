@@ -38,6 +38,8 @@ class DataService implements IDataService {
 				return dbService.todoSelectRoot(body);
 			case DataActions.TodoSelectStat:
 				return dbService.todoSelectStat(body);
+			case DataActions.TodoSelectAncestorList:
+				return dbService.todoSelectAncestorList(body);
 			case DataActions.TodoInsert:
 				return dbService.todoInsert(body);
 			case DataActions.TodoDuplicate:

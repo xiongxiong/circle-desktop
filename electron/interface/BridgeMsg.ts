@@ -79,6 +79,7 @@ export enum DataActions {
     TodoSelect = "TodoSelect",
     TodoSelectRoot = "TodoSelectRoot",
     TodoSelectStat = "TodoSelectStat", // 查询所有待办的统计信息
+    TodoSelectAncestorList = "TodoSelectAncestorList",
     TodoInsert = "TodoInsert",
     TodoDuplicate = "TodoDuplicate",
     TodoUpdate = "TodoUpdate",
@@ -132,6 +133,16 @@ export class MsgTodoSelectStat extends DataMsg {
             action: DataActions.TodoSelectStat,
             body: data
         };
+    }
+}
+
+export class MsgTodoSelectAncestorList extends DataMsg {
+    constructor(data: IHasId) {
+        super();
+        this.message = {
+            action: DataActions.TodoSelectAncestorList,
+            body: data
+        }
     }
 }
 

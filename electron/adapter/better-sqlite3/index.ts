@@ -11,6 +11,7 @@ enum StmtNames {
 	TodoSelect = 'TodoSelect',
 	TodoSelectRoot = 'TodoSelectRoot',
 	TodoSelectStat = 'TodoSelectStat',
+	TodoSelectAncestorList = "TodoSelectAncestorList",
 	TodoInsert = 'TodoInsert',
 	TodoDuplicate = 'TodoDuplicate',
 	TodoUpdate = 'TodoUpdate',
@@ -60,6 +61,7 @@ class DbService {
 		this.stmt(StmtNames.TodoSelect, 'select * from todo where id = @id');
 		this.stmt(StmtNames.TodoSelectRoot, 'select * from todo where listId = @listId and parentId = -1');
 		this.stmt(StmtNames.TodoSelectStat, "select (select count(1) from todo where coalesce(listId = @listId, 1) and coalesce(content like '%' || @content || '%', 1) and parentId != -1) as childrenCount, (select count(1) from todo where isFinish = 1 and isDelete = 0 and isAncestorDelete = 0 and coalesce(listId = @listId, 1) and coalesce(content like '%' || @content || '%', 1) and parentId != -1) as childrenFinish, (select count(1) from todo where (isDelete = 1 or isAncestorDelete = 1) and coalesce(listId = @listId, 1) and coalesce(content like '%' || @content || '%', 1) and parentId != -1) as childrenDelete");
+		this.stmt(StmtNames.TodoSelectAncestorList, "select todo.* from (select idAncestor from todo_closure where idDescendant = @id and length > 0 order by length desc) tc left join todo on tc.idAncestor = todo.id");
 		this.stmt(StmtNames.TodoInsert, 'insert into todo (content, priority, parentId, listId) values (@content, coalesce(@priority, 0), coalesce(@parentId, (select id from todo where listId = @listId and parentId = -1)), @listId)');
 		this.stmt(StmtNames.TodoDuplicateTreeSelect, 'select idAncestor, idDescendant, length from todo_closure where idAncestor in (select idDescendant from todo_closure where idAncestor = @id) and length = 1 order by idDescendant');
 		this.stmt(StmtNames.TodoDuplicate, 'insert into todo (content, parentId, listId) select content, @parentId, (select listId from todo where id = @parentId) from todo where id = @id');
@@ -112,6 +114,11 @@ class DbService {
 	todoSelectStat = (data: OHasListId & OHasContent) => {
 		const {listId, content} = data;
 		return this.stmt(StmtNames.TodoSelectStat)?.get({listId, content});
+	}
+
+	todoSelectAncestorList = (data: IHasId) => {
+		const {id} = data;
+		return this.stmt(StmtNames.TodoSelectAncestorList)?.all({id});
 	}
 
 	todoInsert = (data: ITodoInsert) => {

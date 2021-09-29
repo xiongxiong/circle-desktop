@@ -1,15 +1,14 @@
 import { Input, InputProps } from 'antd';
-import React, { useState, useEffect, createRef, useReducer, Reducer } from 'react';
+import React, { useEffect, createRef, useReducer, Reducer } from 'react';
 import styled, { css, StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus, IHasPriority, IListBasic } from '@/interface/Data';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoSelect, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps, MsgTodoSelectStat } from '@/interface/BridgeMsg';
-import { TodoItem } from '~/components/TodoItem';
+import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus, IHasPriority, IListBasic, childrenDoing } from '@/interface/Data';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps, MsgTodoSelectStat, MsgTodoSelectAncestorList } from '@/interface/BridgeMsg';
+import { ITodoItemTailBtn, TodoItem } from '~/components/TodoItem';
 import { TodoNavi } from '~/components/TodoNavi';
 import IconZengjia from '~/components/@iconfont/IconZengjia';
 import { useContext } from 'react';
 import { Empty } from '~/components/Empty';
 import { ButtonGroup } from '~/components/ButtonGroup';
-import { useDispatch } from 'react-redux';
 import IconShibai from '~/components/@iconfont/IconShibai';
 import IconQitadingdan from '~/components/@iconfont/IconQitadingdan';
 import IconXiaolian from '~/components/@iconfont/IconXiaolian';
@@ -24,7 +23,8 @@ import { createSignal } from '@react-rxjs/utils';
 import { bind } from '@react-rxjs/core';
 import { debounceTime } from 'rxjs';
 import { priorityColors } from '~/styles/Themes';
-import { serialAsync } from '~/util/SerialAsync';
+import IconGouwu from '~/components/@iconfont/IconGouwu';
+import IconTarget from '~/components/@iconfont/IconTarget';
 
 enum ViewMode {
     CASCADE,
@@ -62,13 +62,15 @@ interface ITodosAction {
 
 const blankTodo: IHasContent & IHasPriority = { content: '', priority: 0 };
 
+const blankTodoStat: ITodoStat = { childrenCount: 0, childrenFinish: 0, childrenDelete: 0 };
+
 const init: (listSelected?: IListBasic) => ITodosState = (listSelected?: IListBasic) => ({
     viewMode: listSelected ? ViewMode.CASCADE : ViewMode.SEARCH,
     todos: [],
     rootNode: undefined,
     currentNode: undefined,
     navNodes: [],
-    todoStat: { childrenCount: 0, childrenFinish: 0, childrenDelete: 0 },
+    todoStat: blankTodoStat,
     currentTodo: undefined,
     contextTodo: undefined,
     newTodo: blankTodo,
@@ -78,19 +80,9 @@ const init: (listSelected?: IListBasic) => ITodosState = (listSelected?: IListBa
 
 const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action: ITodosAction) => {
     switch (action.type) {
-        case "changeListSelected":
-            return {
-                ...state, 
-                viewMode: action.payload ? ViewMode.CASCADE : ViewMode.SEARCH,
-                rootNode: undefined,
-                currentNode: undefined,
-                navNodes: [],
-                currentTodo: undefined,
-                contextTodo: undefined,
-            };
         case "setViewMode":
             return {
-                ...state, 
+                ...state,
                 viewMode: action.payload,
                 currentNode: state.rootNode,
                 navNodes: state.rootNode ? [state.rootNode] : [],
@@ -98,7 +90,7 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
                 contextTodo: undefined,
             };
         case "setTodos":
-            return {...state, todos: action.payload};
+            return { ...state, todos: action.payload };
         case "setRootNode":
             return {
                 ...state,
@@ -109,19 +101,41 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
                 contextTodo: undefined,
             };
         case "setCurrentNode":
-            return {...state, currentNode: action.payload};
+            return { ...state, currentNode: action.payload };
         case "setNavNodes":
-            return {...state, navNodes: action.payload};
+            return { ...state, navNodes: action.payload };
         case "setTodoStat":
-            return {...state, todoStat: action.payload};
+            return { ...state, todoStat: action.payload };
         case "setCurrentTodo":
-            return {...state, currentTodo: action.payload};
+            return { ...state, currentTodo: action.payload };
         case "setContextTodo":
-            return {...state, contextTodo: action.payload};
+            return { ...state, contextTodo: action.payload };
         case "setTodoStatus":
-            return {...state, todoStatus: action.payload};
+            return { ...state, todoStatus: action.payload };
         case "setTodoInAction":
-            return {...state, todoInAction: action.payload};
+            return { ...state, todoInAction: action.payload };
+        case "changeListSelected":
+            return {
+                ...state,
+                viewMode: action.payload ? ViewMode.CASCADE : ViewMode.SEARCH,
+                rootNode: undefined,
+                currentNode: undefined,
+                navNodes: [],
+                currentTodo: undefined,
+                contextTodo: undefined,
+            };
+        case "targetCascade":
+            const {current, ancestors} = action.payload as {current: ITodo, ancestors: ITodo[]};
+            return {
+                ...state,
+                viewMode: ViewMode.CASCADE,
+                todos: [],
+                rootNode: ancestors.length > 0 ? ancestors[0] : undefined,
+                currentNode: ancestors.length > 0 ? ancestors[ancestors.length - 1] : undefined,
+                navNodes: ancestors,
+                todoStat: ancestors.length > 0 ? ancestors[ancestors.length - 1] : blankTodoStat,
+                currentTodo: current,
+            };
         default: throw new Error("TODOS STATE REDUCER : Not supported action");
     }
 }
@@ -136,43 +150,46 @@ export const Todos = (props: ITodosProps) => {
     const listSelected = useAppSelector(selectedList);
     const cm = createRef<ContextMenu>();
 
-    const [{viewMode, todos, rootNode, currentNode, navNodes, todoStat, currentTodo, contextTodo, newTodo, todoStatus, todoInAction}, dispatch] = useReducer(reducer, listSelected, init);
+    const [{ viewMode, todos, rootNode, currentNode, navNodes, todoStat, currentTodo, contextTodo, newTodo, todoStatus, todoInAction }, dispatch] = useReducer(reducer, listSelected, init);
 
-    const changeListSelected = (listSelected?: IListBasic) => {
-        dispatch({type: "changeListSelected", payload: listSelected});
-    }
     const setViewMode = (viewMode: ViewMode) => {
-        dispatch({type: "setViewMode", payload: viewMode});
+        dispatch({ type: "setViewMode", payload: viewMode });
     }
     const setTodos = (todos: ITodo[]) => {
-        dispatch({type: "setTodos", payload: todos});
+        dispatch({ type: "setTodos", payload: todos });
     }
     const setRootNode = (todo?: ITodo) => {
-        dispatch({type: "setRootNode", payload: todo});
+        dispatch({ type: "setRootNode", payload: todo });
     }
     const setCurrentNode = (todo?: ITodo) => {
-        dispatch({type: "setCurrentNode", payload: todo});
+        dispatch({ type: "setCurrentNode", payload: todo });
     }
     const setNavNodes = (nodes: ITodo[]) => {
-        dispatch({type: "setNavNodes", payload: nodes});
+        dispatch({ type: "setNavNodes", payload: nodes });
     }
     const setTodoStat = (stat: ITodoStat) => {
-        dispatch({type: "setTodoStat", payload: stat});
+        dispatch({ type: "setTodoStat", payload: stat });
     }
     const setCurrentTodo = (todo?: ITodo) => {
-        dispatch({type: "setCurrentTodo", payload: todo});
+        dispatch({ type: "setCurrentTodo", payload: todo });
     }
     const setContextTodo = (todo?: ITodo) => {
-        dispatch({type: "setContextTodo", payload: todo});
+        dispatch({ type: "setContextTodo", payload: todo });
     }
     const setNewTodo = (todo: IHasContent & IHasPriority) => {
-        dispatch({type: "setNewTodo", payload: todo});
+        dispatch({ type: "setNewTodo", payload: todo });
     }
     const setTodoStatus = (status: TodoStatus) => {
-        dispatch({type: "setTodoStatus", payload: status});
+        dispatch({ type: "setTodoStatus", payload: status });
     }
     const setTodoInAction = (action?: ITodoInAction) => {
-        dispatch({type: "setTodoInAction", payload: action});
+        dispatch({ type: "setTodoInAction", payload: action });
+    }
+    const changeListSelected = (listSelected?: IListBasic) => {
+        dispatch({ type: "changeListSelected", payload: listSelected });
+    }
+    const targetCascade = (current: ITodo, ancestors: ITodo[]) => {
+        dispatch({ type: "targetCascade", payload: { current, ancestors } });
     }
 
     const [searchText, setSearchText] = createSignal<string>(); // 搜索内容
@@ -247,6 +264,11 @@ export const Todos = (props: ITodosProps) => {
             const { childrenCount, childrenFinish, childrenDelete } = node || {};
             setTodoStat({ childrenCount, childrenFinish, childrenDelete });
         });
+    }
+
+    // 待办从搜索视图定位到层级视图
+    const onTargetCascade = (todo: ITodo) => {
+        window.Main.invoke(new MsgTodoSelectAncestorList({ id: todo.id })).then(nodes => targetCascade(todo, nodes));
     }
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ ...newTodo, content: event.target.value });
@@ -516,8 +538,29 @@ export const Todos = (props: ITodosProps) => {
     const listItemRender = (item: ITodo) => {
         const { id } = item;
         const { id: idCurrent } = currentTodo || {};
+        const doingCount = childrenDoing(item);
+        const tailBtn: () => ITodoItemTailBtn = () => {
+            switch (viewMode) {
+                case ViewMode.CASCADE:
+                    return {
+                        enabled: true,
+                        func: toLevNext,
+                        contentFore: <TodoItemTailBtnText>{doingCount <= 0 ? undefined : (doingCount > 99 ? '99+' : doingCount)}</TodoItemTailBtnText>,
+                        contentBack: <IconGouwu size={theme.iconSize2} color={theme.color1} />,
+                    };
+                case ViewMode.SEARCH:
+                    return {
+                        enabled: true,
+                        func: onTargetCascade,
+                        contentFore: <IconTarget size={theme.iconSize2} color={theme.color4} />,
+                        contentBack: <IconTarget size={theme.iconSize2} color={theme.color1} />,
+                    };
+                default:
+                    return {};
+            }
+        };
         return (
-            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} levNextEnabled={viewMode === ViewMode.CASCADE} onLevNext={toLevNext} onUpdateIsFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu} />
+            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} tailBtn={tailBtn()} onUpdateIsFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu} />
         );
     }
 
@@ -766,6 +809,11 @@ const MenuItemPriorityBtn = styled.div.attrs({} as { color: string })`
     border-radius: 8px;
     border: 1px solid;
     background-color: ${props => props.color};
+`
+
+const TodoItemTailBtnText = styled.p`
+    color: ${props => props.theme.color0};
+    font-size: ${props => props.theme.fontSize1};
 `
 
 export default Todos;

@@ -1,21 +1,25 @@
-import { childrenDoing, ITodo, ITodoBasic, ITodoUpdate, todoCanFinish } from '@/interface/Data';
-import React, { useContext, useState, useEffect, MouseEvent } from 'react';
+import { ITodo, ITodoBasic, ITodoUpdate, todoCanFinish } from '@/interface/Data';
+import React, { useContext, useState, useEffect, MouseEvent, createElement, ReactNode } from 'react';
 import styled, { css, ThemeContext } from 'styled-components';
 import { IComponent } from '~/interfaces/Component';
 import IconQitadingdan from '../@iconfont/IconQitadingdan';
 import { TodoStatusButton } from '../TodoStatusButton';
 import { priorityColors } from '~/styles/Themes';
 import IconZhengque from '../@iconfont/IconZhengque';
-import { IconButton } from '../IconButton';
-import IconGouwu from '../@iconfont/IconGouwu';
+import { IconButton, IIconProps } from '../IconButton';
+
+export interface ITodoItemTailBtn {
+    enabled?: boolean,
+    func?: (todo: ITodo) => void,
+    contentFore?: ReactNode,
+    contentBack?: ReactNode,
+}
 
 export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
-    levNextEnabled?: boolean,
-    onLevNext: (todo: ITodo) => void, // 层级模式进入子待办列表
-    onCascadeTarget: (todo: ITodo) => void, // 搜索模式切换到层级模式，并展示对应待办所在的位置
+    tailBtn: ITodoItemTailBtn,
     onUpdateIsFinish: (todo: ITodoUpdate) => void,
     onUpdateContent: (todo: ITodoBasic) => void,
     inAction?: boolean, // 是否有待办正处于移动或者复制模式
@@ -25,9 +29,8 @@ export interface ITodoItem extends IComponent {
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { id, content: initContent, comment, isFinish, isDelete, childrenCount, childrenFinish, childrenDelete, priority, childrenPriority }, isSelected = false, onClick, levNextEnabled = false, onLevNext, onUpdateIsFinish, onUpdateContent, inAction = false, onContextMenu, onAction, className } = props;
-    const doingCount = childrenDoing(todo);
-
+    const { todo, todo: { id, content: initContent, comment, isFinish, isDelete, childrenCount, childrenFinish, childrenDelete, priority, childrenPriority }, isSelected = false, onClick, tailBtn, onUpdateIsFinish, onUpdateContent, inAction = false, onContextMenu, onAction, className } = props;
+    
     const [content, setContent] = useState(initContent);
 
     useEffect(() => setContent(initContent), [initContent]);
@@ -86,16 +89,14 @@ export const TodoItem = (props: ITodoItem) => {
 
                     </Footer>
                 </ContentArea>
-                <StatBtn enabled={levNextEnabled} onClick={() => levNextEnabled && onLevNext(todo)}>
-                    <StatBtnLayer className="stat-btn-text"><p>{doingCount <= 0 ? undefined : (doingCount > 99 ? '99+' : doingCount)}</p></StatBtnLayer>
-                    <StatBtnLayer className="stat-btn-icon"><IconGouwu size={theme.iconSize2} color={theme.color1} /></StatBtnLayer>
-                </StatBtn>
+                {tailBtn && <StatBtn enabled={tailBtn.enabled} onClick={() => tailBtn.enabled && tailBtn.func && tailBtn.func(todo)}>
+                    <StatBtnLayer className="stat-btn-fore">{tailBtn.contentFore}</StatBtnLayer>
+                    <StatBtnLayer className="stat-btn-back">{tailBtn.contentBack}</StatBtnLayer>
+                </StatBtn>}
             </Container>
         </>
     );
 }
-
-
 
 const Container = styled.div.attrs({} as { isSelected: boolean })`
     display: flex;
@@ -142,17 +143,15 @@ const NaviBox = styled.div`
 
 const StatBtn = styled.div.attrs({} as { enabled: boolean })`
     width: 24px;
-    color: ${props => props.theme.color0};
-    font-size: ${props => props.theme.fontSize1};
 
     display: flex;
     justify-content: center;
     align-items: center;
 
-    & .stat-btn-text {
+    & .stat-btn-fore {
         display: flex;
     }
-    & .stat-btn-icon {
+    & .stat-btn-back {
         display: none;
     }
 
@@ -162,10 +161,10 @@ const StatBtn = styled.div.attrs({} as { enabled: boolean })`
             color: ${props.theme.color1};
             background: ${props.theme.color3};
 
-            & .stat-btn-text {
+            & .stat-btn-fore {
                 display: none;
             }
-            & .stat-btn-icon {
+            & .stat-btn-back {
                 display: flex;
             }
         }
