@@ -13,6 +13,7 @@ import { ListTree } from "../ListTree";
 import { trigger } from "~/events";
 import { Events } from "~/events/Events";
 import IconSousuo from "../@iconfont/IconSousuo";
+import { ITheme } from "~/styles/Themes";
 
 interface MenuItemProps {
     label: string,
@@ -29,7 +30,7 @@ export const ListPanel = (props: IListPanelProps) => {
 
     const {className} = props;
 
-    const theme = useContext(ThemeContext);
+    const theme: ITheme = useContext(ThemeContext);
     const dispatch = useDispatch();
     const listSelected = useAppSelector(selectedList);
 
@@ -52,7 +53,7 @@ export const ListPanel = (props: IListPanelProps) => {
 
     const menuItemRender = (menu: MenuItemProps, index: number) => (
         <MenuItemContainer key={index} selected={menu.selected()} onClick={menu.func}>
-            <menu.icon size={theme.iconSize1} />
+            <menu.icon size={theme.icon_size.xs} />
             <MenuItemText>{menu.label}</MenuItemText>
         </MenuItemContainer>
     );
@@ -96,8 +97,8 @@ export const ListPanel = (props: IListPanelProps) => {
                     <TheInput autoFocus={true} value={newTitle} placeholder={creating === Creating.LIST ? 'New List' : 'New Group'} onChange={onInputChange} onBlur={onInputBlur} onKeyPress={onInputKeyPress}/>
                 ) : (
                     <>
-                        <IconNewList size={theme.iconSize1} onClick={insertList} />
-                        <IconNewGroup size={theme.iconSize1} onClick={insertGroup} />
+                        <IconNewList size={theme.icon_size.xs} onClick={insertList} />
+                        <IconNewGroup size={theme.icon_size.xs} onClick={insertGroup} />
                     </>
                 )}
             </Footer>
@@ -115,7 +116,7 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    background-color: ${props => props.theme.color4};
+    background-color: ${props => props.theme.color.mercury};
 `
 
 const Header = styled.div`
@@ -132,14 +133,14 @@ const MenuItemContainer = styled.div.attrs({} as {selected: boolean})`
     align-items: center;
     cursor: default;
     ${props => props.selected && css`
-        color: ${props => props.theme.color1};
-        background-color: ${props => props.theme.color6};
+        color: ${props => props.theme.color.white};
+        background-color: ${props => props.theme.color.carolina_blue};
     `}
 
     &:hover {
         ${props => !props.selected && css`
-            color: ${props => props.theme.color1};
-            background-color: ${props => props.theme.color3};
+            color: ${props => props.theme.color.white};
+            background-color: ${props => props.theme.color.periwinkle};
         `}
     }
 `
@@ -155,7 +156,7 @@ const MenuItemText = styled.span`
 const Body = styled.div`
     flex: 1;
     display: flex;
-    font-size: ${props => props.theme.fontSize2};
+    font-size: ${props => props.theme.font_size.s};
     overflow-y: auto;
 
     &::-webkit-scrollbar  
@@ -171,7 +172,7 @@ const Body = styled.div`
     &::-webkit-scrollbar-thumb
     {
         border-radius: 3px;
-        background-color: ${props => props.theme.color3};  
+        background-color: ${props => props.theme.color.periwinkle};  
     }
 `
 
@@ -181,7 +182,7 @@ const Footer = styled.div`
     justify-content: space-between;
     align-items: center;
     padding: 4px 8px;
-    background-color: ${props => props.theme.color3};
+    background-color: ${props => props.theme.color.periwinkle};
 `
 
 const TheInput = styled.input`
@@ -189,7 +190,7 @@ const TheInput = styled.input`
     border: none;
     border-radius: 4px;
     font-family: inherit;
-    font-size: ${props => props.theme.fontSize1};
+    font-size: ${props => props.theme.font_size.xs};
     padding: 4px 8px;
 
     &:focus {
@@ -198,6 +199,6 @@ const TheInput = styled.input`
     }
 
     &::placeholder {
-        color: ${props => props.theme.color3};
+        color: ${props => props.theme.color.periwinkle};
     }
 `

@@ -11,6 +11,7 @@ import { Events } from "~/events/Events";
 import { IClassName } from "~/interfaces/Component";
 import { useAppSelector } from "~/store/hooks";
 import { addListExpanded, delListExpanded, expandedList, selectedList, setListSelected } from "~/store/slice/AppSlice";
+import { ITheme } from "~/styles/Themes";
 import IconDown from "../@iconfont/IconDown";
 import IconHangcheng from "../@iconfont/IconHangcheng";
 import IconMulu from "../@iconfont/IconMulu";
@@ -41,7 +42,7 @@ export const ListTree = (props: IListTreeProps) => {
 
     const { className } = props;
 
-    const theme = useContext(ThemeContext);
+    const theme: ITheme = useContext(ThemeContext);
     const dispatch = useDispatch();
     const cm = createRef<ContextMenu>();
     const listSelected = useAppSelector(selectedList);
@@ -141,9 +142,9 @@ export const ListTree = (props: IListTreeProps) => {
         return (
             <NodeContainer key={id} selected={selected} onClick={() => onListSelect(node)} onContextMenu={e => onContextMenu(e, node)}>
                 <NodePadding level={level} />
-                <IconHead size={theme.iconSize1} />
+                <IconHead size={theme.icon_size.xs} />
                 <NodeText>{title}</NodeText>
-                {IconTail && <IconTail size={theme.iconSize1} />}
+                {IconTail && <IconTail size={theme.icon_size.xs} />}
             </NodeContainer>
         );
     }
@@ -245,7 +246,7 @@ const Container = styled.div`
     flex-direction: column;
     align-items: stretch;
     overflow-y: auto;
-    font-size: ${props => props.theme.fontSize2};
+    font-size: ${props => props.theme.font_size.s};
 `
 
 const NodeContextMenu = styled(ContextMenu)`
@@ -263,14 +264,14 @@ const NodeContainer = styled.div.attrs({} as { selected: boolean })`
     align-items: center;
     cursor: default;
     ${props => props.selected && css`
-        color: ${props => props.theme.color1};
-        background-color: ${props => props.theme.color6};
+        color: ${props => props.theme.color.white};
+        background-color: ${props => props.theme.color.carolina_blue};
     `}
 
     &:hover {
         ${props => !props.selected && css`
-            color: ${props => props.theme.color1};
-            background-color: ${props => props.theme.color3};
+            color: ${props => props.theme.color.white};
+            background-color: ${props => props.theme.color.periwinkle};
         `}
     }
 `

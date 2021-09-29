@@ -1,14 +1,14 @@
-import { ITodo, ITodoBasic, ITodoUpdate, todoCanFinish } from '@/interface/Data';
+import { ITodo, ITodoBasic, ITodoUpdate, todoCanUpdateIsFinish } from '@/interface/Data';
 import React, { useContext, useState, useEffect, MouseEvent, createElement, ReactNode } from 'react';
 import styled, { css, ThemeContext } from 'styled-components';
 import { IComponent } from '~/interfaces/Component';
 import IconQitadingdan from '../@iconfont/IconQitadingdan';
-import { TodoStatusButton } from '../TodoStatusButton';
-import { priorityColors } from '~/styles/Themes';
+import { ITodoStatusButtonProps, TodoStatusButton } from '../TodoStatusButton';
+import { ITheme, priorityColors } from '~/styles/Themes';
 import IconZhengque from '../@iconfont/IconZhengque';
 import { IconButton, IIconProps } from '../IconButton';
 
-export interface ITodoItemTailBtn {
+export interface ITodoItemTailButtonProps {
     enabled?: boolean,
     func?: (todo: ITodo) => void,
     contentFore?: ReactNode,
@@ -19,8 +19,8 @@ export interface ITodoItem extends IComponent {
     todo: ITodo,
     isSelected: boolean,
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
-    tailBtn: ITodoItemTailBtn,
-    onUpdateIsFinish: (todo: ITodoUpdate) => void,
+    headBtn: ITodoStatusButtonProps,
+    tailBtn: ITodoItemTailButtonProps,
     onUpdateContent: (todo: ITodoBasic) => void,
     inAction?: boolean, // 是否有待办正处于移动或者复制模式
     onAction?: (todo: ITodoBasic) => void, // 待办粘贴操作,
@@ -29,13 +29,13 @@ export interface ITodoItem extends IComponent {
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { id, content: initContent, comment, isFinish, isDelete, childrenCount, childrenFinish, childrenDelete, priority, childrenPriority }, isSelected = false, onClick, tailBtn, onUpdateIsFinish, onUpdateContent, inAction = false, onContextMenu, onAction, className } = props;
+    const { todo, todo: { id, content: initContent, comment, isFinish, isDelete, childrenCount, childrenFinish, childrenDelete, priority, childrenPriority }, isSelected = false, onClick, headBtn, tailBtn, onUpdateContent, inAction = false, onContextMenu, onAction, className } = props;
     
     const [content, setContent] = useState(initContent);
 
     useEffect(() => setContent(initContent), [initContent]);
 
-    const theme = useContext(ThemeContext);
+    const theme: ITheme = useContext(ThemeContext);
 
     const onInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
         const { id } = todo;
@@ -65,7 +65,7 @@ export const TodoItem = (props: ITodoItem) => {
     return (
         <>
             <Container className={className} isSelected={isSelected} onClick={onContainerClick} onContextMenu={e => onContextMenu(e, todo)}>
-                <TodoStatusButton icon={IconZhengque} iconSize={12} bgColor={priorityColors[priority]} bgColorHover={theme.color6} enabled={todoCanFinish(todo)} checked={isFinish} colorUnchecked={theme.color1} onClick={() => onUpdateIsFinish({ id, isFinish: !isFinish })} />
+                <TodoStatusButton {...headBtn} />
                 <ContentArea>
                     <Header>
                         <ListName />
@@ -82,7 +82,7 @@ export const TodoItem = (props: ITodoItem) => {
                             </ContentBox>
                         )}
                         <IconGroup onClick={(e) => e.stopPropagation()}>
-                            {inAction && onAction && <IconPaste size={theme.iconSize2} onClick={() => onAction(todo)} />}
+                            {inAction && onAction && <IconPaste size={theme.icon_size.s} onClick={() => onAction(todo)} />}
                         </IconGroup>
                     </Body>
                     <Footer>
@@ -105,7 +105,7 @@ const Container = styled.div.attrs({} as { isSelected: boolean })`
     margin: 1px;
     border-radius: 4px;
     overflow: hidden;
-    background-color: ${props => props.isSelected ? props.theme.color3 : props.theme.color1};
+    background-color: ${props => props.isSelected ? props.theme.color.periwinkle : props.theme.color.white};
 `
 
 const ContentArea = styled.div`
@@ -158,8 +158,8 @@ const StatBtn = styled.div.attrs({} as { enabled: boolean })`
     ${props => props.enabled && css`
         &:hover{
             cursor: pointer;
-            color: ${props.theme.color1};
-            background: ${props.theme.color3};
+            color: ${props.theme.color.white};
+            background: ${props.theme.color.periwinkle};
 
             & .stat-btn-fore {
                 display: none;
@@ -212,19 +212,19 @@ const Content = styled.p`
     text-overflow: ellipsis;
     white-space: nowrap;
     padding: 4px 8px;
-    font-size: ${props => props.theme.fontSize1};
+    font-size: ${props => props.theme.font_size.xs};
 `
 
 const ContentInput = styled.input`
     flex: 1;
     background-color: transparent;
     border: none;
-    font-size: ${props => props.theme.fontSize1};
+    font-size: ${props => props.theme.font_size.xs};
     font-family: inherit;
     padding: 4px 8px;
 
     &:focus {
-        background-color: ${props => props.theme.color1};
+        background-color: ${props => props.theme.color.white};
         outline: none;
         border: none;
         border-radius: 4px;

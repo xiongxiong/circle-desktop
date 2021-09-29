@@ -54,8 +54,8 @@ const ItemContent = styled.a.attrs({} as { clickable: boolean })`
     ${props => props.clickable && css`
         &:hover {
             cursor: default;
-            color: ${props => props.theme.color1};
-            background-color: ${props => props.theme.color7};
+            color: ${props => props.theme.color.white};
+            background-color: ${props => props.theme.color.red};
         }
     `}
 `

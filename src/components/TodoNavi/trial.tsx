@@ -84,5 +84,5 @@ const Container = styled.div`
 `
 
 const NavContainer = styled.div`
-    background-color: ${props => props.theme.color5};
+    background-color: ${props => props.theme.color.light_gray};
 `

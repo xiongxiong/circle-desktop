@@ -35,12 +35,12 @@ const Container = styled.div.attrs({} as {disabled: boolean, padding: string})`
     border-radius: 2px;
     ${props => props.disabled && css`
         cursor: default;
-        color: ${props => props.theme.color5};
+        color: ${props => props.theme.color.light_gray};
     `}
     ${props => !props.disabled && css`
         &:hover {
             cursor: pointer;
-            background-color: ${props => props.theme.color3};
+            background-color: ${props => props.theme.color.periwinkle};
         }
     `}
 `

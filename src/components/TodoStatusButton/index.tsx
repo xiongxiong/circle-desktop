@@ -1,41 +1,83 @@
-import React from "react";
+import { ReactNode } from "react";
 import styled, { css } from "styled-components";
 import { IClassName } from "~/interfaces/Component";
-import { IconProps } from "../IconButton";
+
+export interface ITodoStatusButtonViewProps {
+    color?: string,
+    bgColor?: string,
+}
 
 export interface ITodoStatusButtonProps {
-    icon: React.FunctionComponent<IconProps>;
-    iconSize: number;
-    bgColor?: string;
-    bgColorHover?: string;
-    enabled?: boolean;
-    checked?: boolean;
-    colorChecked?: string;
-    colorUnchecked?: string;
-    onClick?: () => void;
+    width?: string,
+    height?: string,
+    enabled?: boolean,
+    onClick?: () => void,
+    contentNormal?: ReactNode,
+    contentHover?: ReactNode,
+    contentDisabled?: ReactNode,
+    vpNormal?: ITodoStatusButtonViewProps,
+    vpHover?: ITodoStatusButtonViewProps,
+    vpDisabled?: ITodoStatusButtonViewProps,
 }
 
 export const TodoStatusButton = (props: ITodoStatusButtonProps & IClassName) => {
-    const {iconSize = 12, icon, bgColor, bgColorHover="lightcyan", enabled = false, checked = false, colorChecked = "green", colorUnchecked = "white", onClick, className} = props;
-    const Icon = React.createElement(icon);
+    const { width, height, enabled, onClick, contentNormal, contentHover, contentDisabled, vpNormal, vpHover, vpDisabled, className } = props;
+
     return (
-        <Container className={className} color={bgColor} enabled={enabled} bgColorHover={bgColorHover} onClick={enabled ? onClick : undefined}>
-            {enabled && <Icon.type size={iconSize} color={checked ? colorChecked : colorUnchecked} />}
+        <Container className={className} width={width} height={height} enabled={enabled} vpNormal={vpNormal} vpHover={vpHover} vpDisabled={vpDisabled} onClick={enabled ? onClick : undefined}>
+            {enabled ? (
+                <>
+                    <Layer className="stat-btn-fore">{contentNormal}</Layer>
+                    <Layer className="stat-btn-back">{contentHover}</Layer>
+                </>
+            ) : (
+                <Layer>{contentDisabled}</Layer>
+            )}
         </Container>
     );
 }
 
-const Container = styled.div.attrs({} as {color: string, enabled: boolean, bgColorHover: string})`
-    width: 24px;
+const Container = styled.div.attrs({} as { enabled: boolean, width: string, height: string, vpNormal: ITodoStatusButtonViewProps, vpHover: ITodoStatusButtonViewProps, vpDisabled: ITodoStatusButtonViewProps })`
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: ${props => props.color};
 
-    ${props => props.enabled && css`
+    ${props => css`
+        width: ${props.width};
+        height: ${props.height};
+    `}
+
+    ${props => props.enabled ? css`
+        color: ${props.vpNormal?.color};
+        background-color: ${props.vpNormal?.bgColor};
+
+        & .stat-btn-fore {
+            display: flex;
+        }
+        & .stat-btn-back {
+            display: none;
+        }
+        
         &:hover {
             cursor: pointer;
-            background-color: ${props.bgColorHover};
+            color: ${props.vpHover?.color};
+            background-color: ${props.vpHover?.bgColor};
+
+            & .stat-btn-fore {
+                display: none;
+            }
+            & .stat-btn-back {
+                display: flex;
+            }
         }
+    ` : css`
+        color: ${props.vpDisabled?.color};
+        background-color: ${props.vpDisabled?.bgColor};
     `}
+`
+
+const Layer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
 `

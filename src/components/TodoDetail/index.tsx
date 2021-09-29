@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { MouseEvent } from "react"
 import styled, { ThemeContext } from "styled-components"
 import { IClassName } from "~/interfaces/Component";
+import { ITheme } from "~/styles/Themes";
 import IconDaohang from "../@iconfont/IconDaohang";
 import IconDingdanjihe from "../@iconfont/IconDingdanjihe";
 import IconJinrujiantou from "../@iconfont/IconJinrujiantou";
@@ -30,7 +31,7 @@ export const TodoDetail = (props: ITodoDetailProps) => {
     useEffect(() => setContent(initContent), [initContent]);
     useEffect(() => setComment(initComment), [initComment]);
 
-    const theme = useContext(ThemeContext);
+    const theme: ITheme = useContext(ThemeContext);
 
     const onContentChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setContent(event.target.value);
@@ -57,10 +58,10 @@ export const TodoDetail = (props: ITodoDetailProps) => {
     return (
         <Container className={className}>
             <Header>
-                <IconJinrujiantou size={theme.iconSize1} onClick={closePanel} />
-                {moveTodo && <IconDaohang size={theme.iconSize1} onClick={() => moveTodo(todo)} />}
-                {copyTodo && <IconDingdanjihe size={theme.iconSize1} onClick={() => copyTodo(todo)} />}
-                <IconDeletion size={theme.iconSize1} onClick={(e) => updateTodoIsDelete(e, { id, isDelete: !isDelete, childrenCount, childrenFinish, childrenDelete })} />
+                <IconJinrujiantou size={theme.icon_size.xs} onClick={closePanel} />
+                {moveTodo && <IconDaohang size={theme.icon_size.xs} onClick={() => moveTodo(todo)} />}
+                {copyTodo && <IconDingdanjihe size={theme.icon_size.xs} onClick={() => copyTodo(todo)} />}
+                <IconDeletion size={theme.icon_size.xs} onClick={(e) => updateTodoIsDelete(e, { id, isDelete: !isDelete, childrenCount, childrenFinish, childrenDelete })} />
             </Header>
             <Body>
                 <Content value={content} onChange={event => onContentChange(event)} onBlur={event => onContentFinish(event)} />

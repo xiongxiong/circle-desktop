@@ -184,7 +184,7 @@ export interface IList extends IHasId, IHasParentId, IHasTitle, IHasTimeStamp, I
 
 // helper functions
 
-export const todoCanFinish = (todo: ITodo) => {
+export const todoCanUpdateIsFinish = (todo: ITodo) => {
     const {isDelete, childrenCount, childrenFinish, childrenDelete} = todo;
     return !isDelete && (childrenCount === 0 ? true : childrenCount == childrenFinish + childrenDelete);
 }

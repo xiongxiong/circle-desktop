@@ -1,9 +1,9 @@
 import { Input, InputProps } from 'antd';
 import React, { useEffect, createRef, useReducer, Reducer } from 'react';
 import styled, { css, StyledComponent, ThemeContext } from 'styled-components';
-import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus, IHasPriority, IListBasic, childrenDoing } from '@/interface/Data';
-import { MsgTodoSelectList, MsgTodoInsert, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps, MsgTodoSelectStat, MsgTodoSelectAncestorList } from '@/interface/BridgeMsg';
-import { ITodoItemTailBtn, TodoItem } from '~/components/TodoItem';
+import { ITodo, ITodoBasic, ITodoUpdate, ITodoStat, IHasContent, TodoStatus, IHasPriority, IListBasic, childrenDoing, todoCanUpdateIsFinish } from '@/interface/Data';
+import { MsgTodoSelectList, MsgTodoInsert, MsgTodoDuplicate, MsgTodoUpdate, MsgTodoSelectRoot, MsgDialogMessageBox, IDialogButtonProps, MsgTodoSelectStat, MsgTodoSelectAncestorList, MsgTodoSelect } from '@/interface/BridgeMsg';
+import { ITodoItemTailButtonProps, TodoItem } from '~/components/TodoItem';
 import { TodoNavi } from '~/components/TodoNavi';
 import IconZengjia from '~/components/@iconfont/IconZengjia';
 import { useContext } from 'react';
@@ -11,9 +11,7 @@ import { Empty } from '~/components/Empty';
 import { ButtonGroup } from '~/components/ButtonGroup';
 import IconShibai from '~/components/@iconfont/IconShibai';
 import IconQitadingdan from '~/components/@iconfont/IconQitadingdan';
-import IconXiaolian from '~/components/@iconfont/IconXiaolian';
 import IconZhengque from '~/components/@iconfont/IconZhengque';
-import IconShaixuan1 from '~/components/@iconfont/IconShaixuan1';
 import { useAppSelector } from '~/store/hooks';
 import { selectedList } from '~/store/slice/AppSlice';
 import { ContextMenu } from 'primereact/contextmenu';
@@ -22,9 +20,14 @@ import IconSousuo from '~/components/@iconfont/IconSousuo';
 import { createSignal } from '@react-rxjs/utils';
 import { bind } from '@react-rxjs/core';
 import { debounceTime } from 'rxjs';
-import { priorityColors } from '~/styles/Themes';
+import { ITheme, priorityColors } from '~/styles/Themes';
 import IconGouwu from '~/components/@iconfont/IconGouwu';
 import IconTarget from '~/components/@iconfont/IconTarget';
+import { ITodoStatusButtonProps } from '~/components/TodoStatusButton';
+import IconShijian from '~/components/@iconfont/IconShijian';
+import IconBack from '~/components/@iconfont/IconBack';
+import IconDeleteLight from '~/components/@iconfont/IconDeleteLight';
+import IconFolderForbidLine from '~/components/@iconfont/IconFolderForbidLine';
 
 enum ViewMode {
     CASCADE,
@@ -125,7 +128,7 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
                 contextTodo: undefined,
             };
         case "targetCascade":
-            const {current, ancestors} = action.payload as {current: ITodo, ancestors: ITodo[]};
+            const { current, ancestors } = action.payload as { current: ITodo, ancestors: ITodo[] };
             return {
                 ...state,
                 viewMode: ViewMode.CASCADE,
@@ -146,7 +149,7 @@ export interface ITodosProps {
 
 export const Todos = (props: ITodosProps) => {
 
-    const theme = useContext(ThemeContext);
+    const theme: ITheme = useContext(ThemeContext);
     const listSelected = useAppSelector(selectedList);
     const cm = createRef<ContextMenu>();
 
@@ -238,6 +241,10 @@ export const Todos = (props: ITodosProps) => {
 
                         window.Main.invoke(new MsgTodoSelectList({ listId: listSelected?.id, parentId: currentNode.id, status: todoStatus })).then((todos: ITodo[]) => {
                             setTodos(todos);
+                        });
+                        window.Main.invoke(new MsgTodoSelect({ id: currentNode.id })).then(node => {
+                            const { childrenCount, childrenFinish, childrenDelete } = node || {};
+                            setTodoStat({ childrenCount, childrenFinish, childrenDelete });
                         });
                     }
                     break;
@@ -393,11 +400,11 @@ export const Todos = (props: ITodosProps) => {
     // 模式按钮
     const viewModeBtns = [
         {
-            render: (checked: boolean) => (<IconKuandai size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />),
+            render: (checked: boolean) => (<IconKuandai size={theme.icon_size.xs} color={checked ? theme.color.white : 'black'} />),
             func: () => setViewMode(ViewMode.CASCADE),
         },
         {
-            render: (checked: boolean) => (<IconSousuo size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />),
+            render: (checked: boolean) => (<IconSousuo size={theme.icon_size.xs} color={checked ? theme.color.white : 'black'} />),
             func: () => setViewMode(ViewMode.SEARCH),
         },
     ];
@@ -407,11 +414,11 @@ export const Todos = (props: ITodosProps) => {
     // 操作按钮
     const todoPasteBtns = [
         {
-            render: () => (<IconShibai size={theme.iconSize1} />),
+            render: () => (<IconShibai size={theme.icon_size.xs} />),
             func: () => setTodoInAction(undefined)
         },
         {
-            render: () => (<IconQitadingdan size={theme.iconSize1} />),
+            render: () => (<IconQitadingdan size={theme.icon_size.xs} />),
             func: () => {
                 if (listSelected) {
                     switch (viewMode) {
@@ -435,7 +442,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: (checked: boolean) => (
                     <ButtonBox>
-                        <IconXiaolian size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
+                        <IconShijian size={theme.icon_size.xs} color={checked ? theme.color.white : 'black'} />
                         <ButtonText>
                             {childrenCount - childrenFinish - childrenDelete}
                         </ButtonText>
@@ -446,7 +453,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: (checked: boolean) => (
                     <ButtonBox>
-                        <IconZhengque size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
+                        <IconZhengque size={theme.icon_size.xs} color={checked ? theme.color.white : 'black'} />
                         <ButtonText>
                             {childrenFinish}
                         </ButtonText>
@@ -457,7 +464,7 @@ export const Todos = (props: ITodosProps) => {
             {
                 render: (checked: boolean) => (
                     <ButtonBox>
-                        <IconShaixuan1 size={theme.iconSize1} color={checked ? theme.color1 : 'black'} />
+                        <IconDeleteLight size={theme.icon_size.xs} color={checked ? theme.color.white : 'black'} />
                         <ButtonText>
                             {childrenDelete}
                         </ButtonText>
@@ -536,31 +543,68 @@ export const Todos = (props: ITodosProps) => {
     }
 
     const listItemRender = (item: ITodo) => {
-        const { id } = item;
+        const { id, isFinish, isDelete, priority } = item;
         const { id: idCurrent } = currentTodo || {};
         const doingCount = childrenDoing(item);
-        const tailBtn: () => ITodoItemTailBtn = () => {
+        const headBtn: () => ITodoStatusButtonProps = () => {
+            switch (todoStatus) {
+                case TodoStatus.DOING:
+                    return {
+                        width: "24px",
+                        enabled: todoCanUpdateIsFinish(item),
+                        onClick: () => updateTodoIsFinish({ id, isFinish: !isFinish }),
+                        contentNormal: <IconShijian size={theme.icon_size.s} color={theme.color.white}/>,
+                        contentHover: <IconZhengque size={theme.icon_size.s} color={theme.color.white}/>,
+                        contentDisabled: <IconFolderForbidLine size={theme.icon_size.s} color={theme.color.jumbo}/>,
+                        vpNormal: {color: theme.color.white, bgColor: priorityColors[priority]},
+                        vpHover: {color: theme.color.white, bgColor: theme.color.blue_chill},
+                        vpDisabled: {color: theme.color.white, bgColor: priorityColors[priority]},
+                    };
+                case TodoStatus.DONE:
+                    return {
+                        width: "24px",
+                        enabled: todoCanUpdateIsFinish(item),
+                        onClick: () => updateTodoIsFinish({ id, isFinish: !isFinish }),
+                        contentNormal: <IconZhengque size={theme.icon_size.s} color={theme.color.white}/>,
+                        contentHover: <IconBack size={theme.icon_size.s} color={theme.color.white}/>,
+                        vpNormal: {color: theme.color.white, bgColor: theme.color.blue_chill},
+                        vpHover: {color: theme.color.white, bgColor: theme.color.carolina_blue},
+                    };
+                    case TodoStatus.DELETED:
+                    return {
+                        width: "24px",
+                        enabled: true,
+                        onClick: () => updateTodoIsDelete({ ...item, isDelete: !isDelete }),
+                        contentNormal: <IconDeleteLight size={theme.icon_size.s} color={theme.color.white}/>,
+                        contentHover: <IconBack size={theme.icon_size.s} color={theme.color.white}/>,
+                        vpNormal: {color: theme.color.white, bgColor: theme.color.red},
+                        vpHover: {color: theme.color.white, bgColor: theme.color.carolina_blue},
+                    };
+                default: return {};
+            }
+        };
+        const tailBtn: () => ITodoItemTailButtonProps = () => {
             switch (viewMode) {
                 case ViewMode.CASCADE:
                     return {
                         enabled: true,
                         func: toLevNext,
                         contentFore: <TodoItemTailBtnText>{doingCount <= 0 ? undefined : (doingCount > 99 ? '99+' : doingCount)}</TodoItemTailBtnText>,
-                        contentBack: <IconGouwu size={theme.iconSize2} color={theme.color1} />,
+                        contentBack: <IconGouwu size={theme.icon_size.s} color={theme.color.white} />,
                     };
                 case ViewMode.SEARCH:
                     return {
                         enabled: true,
                         func: onTargetCascade,
-                        contentFore: <IconTarget size={theme.iconSize2} color={theme.color4} />,
-                        contentBack: <IconTarget size={theme.iconSize2} color={theme.color1} />,
+                        contentFore: <IconTarget size={theme.icon_size.s} color={theme.color.mercury} />,
+                        contentBack: <IconTarget size={theme.icon_size.s} color={theme.color.white} />,
                     };
                 default:
                     return {};
             }
         };
         return (
-            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} tailBtn={tailBtn()} onUpdateIsFinish={updateTodoIsFinish} onUpdateContent={updateTodoContent} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu} />
+            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} headBtn={headBtn()} tailBtn={tailBtn()} onUpdateContent={updateTodoContent} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu} />
         );
     }
 
@@ -603,7 +647,7 @@ export const Todos = (props: ITodosProps) => {
                 </Body>
                 {listSelected && !listSelected.isGroup && (
                     <NewTodoContainer>
-                        <IconZengjia color={theme.color1} />
+                        <IconZengjia color={theme.color.white} />
                         <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
                         <PriorityBox>
                             {priorityColors.map((color, index) => <PriorityBtn key={index} color={color} enabled={newTodo.content.length > 0} selected={index === newTodo.priority} onClick={() => setNewTodo({ ...newTodo, priority: index })} />)}
@@ -631,7 +675,7 @@ const Container = styled.div`
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-    background-color: ${props => props.theme.color0};
+    background-color: ${props => props.theme.color.indigo};
 `
 
 const Header = styled.div`
@@ -640,7 +684,7 @@ const Header = styled.div`
     flex-direction: row;
     justify-content: flex-end;
     align-items: stretch;
-    font-size: ${props => props.theme.fontSize1};
+    font-size: ${props => props.theme.font_size.xs};
 `
 
 const HeaderSeparator = styled.div`
@@ -657,7 +701,7 @@ const NaviBox = styled.div`
     min-width: 160px;
     display: flex;
     align-items: center;
-    background-color: ${props => props.theme.color3};
+    background-color: ${props => props.theme.color.periwinkle};
 `
 
 const SearchBox = styled.div`
@@ -666,7 +710,7 @@ const SearchBox = styled.div`
     min-width: 160px;
     display: flex;
     align-items: center;
-    background-color: ${props => props.theme.color3};
+    background-color: ${props => props.theme.color.periwinkle};
 `
 
 const Search = styled.input`
@@ -682,7 +726,7 @@ const Search = styled.input`
     }
 
     &::placeholder {
-        color: ${props => props.theme.color1};
+        color: ${props => props.theme.color.white};
     }
 `
 
@@ -706,7 +750,7 @@ const Body = styled.div`
     &::-webkit-scrollbar-thumb
     {
         border-radius: 3px;
-        background-color: ${props => props.theme.color3};  
+        background-color: ${props => props.theme.color.periwinkle};  
     } 
 `
 
@@ -718,7 +762,7 @@ const NewTodoContainer = styled.div`
     display: flex;
     align-items: center;
     padding: 0px 0px 0px 8px;
-    background-color: ${props => props.theme.color2};
+    background-color: ${props => props.theme.color.mariner};
     border-radius: 4px;
     overflow: hidden;
 `
@@ -728,7 +772,7 @@ const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(
     border: none;
     padding: 4px 8px 4px;
     margin: 6px 0px;
-    color: ${props => props.theme.color1};
+    color: ${props => props.theme.color.white};
     background-color: transparent;
     font-family: inherit;
 
@@ -738,7 +782,7 @@ const TodoInput: StyledComponent<React.ComponentType<InputProps>, any> = styled(
     }
 
     &::placeholder {
-        color: ${props => props.theme.color3};
+        color: ${props => props.theme.color.periwinkle};
     }
 `
 
@@ -754,14 +798,14 @@ const PriorityBtn = styled.div.attrs({} as { color: string, enabled: boolean, se
     border-radius: 12px;
     margin: 0px 2px;
     background-color: ${props => props.color};
-    border: 2px solid ${props => props.theme.color2};
+    border: 2px solid ${props => props.theme.color.mariner};
 
     ${props => props.enabled && props.selected && css`
-        border: 2px solid ${props.theme.color1};
+        border: 2px solid ${props.theme.color.white};
     `}
     ${props => props.enabled && css`
         &:hover{
-            border: 2px solid ${props.theme.color1};
+            border: 2px solid ${props.theme.color.white};
         }
     `}
 `
@@ -772,23 +816,24 @@ const ConfirmBtn = styled.div.attrs({} as { enabled: boolean })`
     align-items: center;
     padding: 4px 8px;
     margin: 4px 4px 4px 0px;
-    font-size: ${props => props.theme.fontSize3};
-    background-color: ${props => props.theme.color1};
+    font-size: ${props => props.theme.font_size.m};
+    background-color: ${props => props.theme.color.white};
     border-radius: 4px;
     cursor: default;
-    background-color: ${props => props.theme.color4};
+    background-color: ${props => props.theme.color.mercury};
 
     ${props => props.enabled && css`
         &:hover{
             cursor: pointer;
-            color: ${props.theme.color1};
-            background-color: ${props.theme.color8};
+            color: ${props.theme.color.white};
+            background-color: ${props.theme.color.coral};
         }
     `}
 `
 
 const ButtonBox = styled.div`
     display: flex;
+    align-items: center;
 `
 
 const ButtonText = styled.div`
@@ -812,8 +857,8 @@ const MenuItemPriorityBtn = styled.div.attrs({} as { color: string })`
 `
 
 const TodoItemTailBtnText = styled.p`
-    color: ${props => props.theme.color0};
-    font-size: ${props => props.theme.fontSize1};
+    color: ${props => props.theme.color.indigo};
+    font-size: ${props => props.theme.font_size.xs};
 `
 
 export default Todos;

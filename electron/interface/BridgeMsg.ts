@@ -97,7 +97,7 @@ abstract class DataMsg implements IBridgeMsg {
 }
 
 export class MsgTodoSelectList extends DataMsg {
-    constructor(data?: ITodoSearch) {
+    constructor(data: ITodoSearch) {
         super();
         this.message = {
             action: DataActions.TodoSelectList,
@@ -107,7 +107,7 @@ export class MsgTodoSelectList extends DataMsg {
 }
 
 export class MsgTodoSelect extends DataMsg {
-    constructor(data?: IHasId) {
+    constructor(data: IHasId) {
         super();
         this.message = {
             action: DataActions.TodoSelect,
