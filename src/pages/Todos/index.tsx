@@ -13,7 +13,7 @@ import IconShibai from '~/components/@iconfont/IconShibai';
 import IconQitadingdan from '~/components/@iconfont/IconQitadingdan';
 import IconZhengque from '~/components/@iconfont/IconZhengque';
 import { useAppSelector } from '~/store/hooks';
-import { selectedList } from '~/store/slice/AppSlice';
+import { selectedList, setListSelected } from '~/store/slice/AppSlice';
 import { ContextMenu } from 'primereact/contextmenu';
 import IconKuandai from '~/components/@iconfont/IconKuandai';
 import IconSousuo from '~/components/@iconfont/IconSousuo';
@@ -28,6 +28,8 @@ import IconShijian from '~/components/@iconfont/IconShijian';
 import IconBack from '~/components/@iconfont/IconBack';
 import IconDeleteLight from '~/components/@iconfont/IconDeleteLight';
 import IconFolderForbidLine from '~/components/@iconfont/IconFolderForbidLine';
+import { useDispatch } from 'react-redux';
+import { ListNode } from '~/components/ListTree';
 
 enum ViewMode {
     CASCADE,
@@ -162,9 +164,10 @@ export const Todos = (props: ITodosProps) => {
 
     const theme: ITheme = useContext(ThemeContext);
     const listSelected = useAppSelector(selectedList);
+    const storeDispatch = useDispatch();
     const cm = createRef<ContextMenu>();
 
-    const [{ viewMode, todos, rootNode, currentNode, navNodes, todoStat, currentTodo, contextTodo, newTodo, todoStatus, todoInAction }, dispatch] = useReducer(reducer, listSelected, init);
+    const [{ viewMode, todos, rootNode, currentNode, navNodes, todoStat, currentTodo, holdingTodo, contextTodo, newTodo, todoStatus, todoInAction }, dispatch] = useReducer(reducer, listSelected, init);
 
     const setViewMode = (viewMode: ViewMode) => {
         dispatch({ type: "setViewMode", payload: viewMode });
@@ -207,6 +210,10 @@ export const Todos = (props: ITodosProps) => {
     }
     const targetCascade = (current: ITodo, ancestors: ITodo[]) => {
         dispatch({ type: "targetCascade", payload: { current, ancestors } });
+        
+        const {listId} = current;
+        const targetList = ListNode(listId);
+        storeDispatch(setListSelected(targetList));
     }
 
     const [searchText, setSearchText] = createSignal<string>(); // 搜索内容

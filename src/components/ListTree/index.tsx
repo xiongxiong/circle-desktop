@@ -38,6 +38,8 @@ export interface IListTreeProps extends IClassName {
 
 const map = new Map<number, INodeItem>();
 
+export const ListNode = (id: number) => map.get(id);
+
 export const ListTree = (props: IListTreeProps) => {
 
     const { className } = props;
