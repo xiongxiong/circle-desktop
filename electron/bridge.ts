@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IBridgeMsg } from './interface/BridgeMsg'
 import { env } from './utils/env';
+import log from 'electron-log';
 
 export const api = {
   /**
@@ -12,17 +13,17 @@ export const api = {
   env: env,
 
   send: (message: IBridgeMsg) => {
-    console.log("[MESSAGE] SEND : ", message);
+    log.info("[MESSAGE] SEND : ", message);
     ipcRenderer.send(message.channel, message.message);
   },
 
   sendSync: (message: IBridgeMsg) => {
-    console.log("[MESSAGE] SEND_SYNC : ", message);
+    log.info("[MESSAGE] SEND_SYNC : ", message);
     return ipcRenderer.sendSync(message.channel, message.message);
   },
 
   invoke: (message: IBridgeMsg) => {
-    console.log("[MESSAGE] INVOKE : ", message);
+    log.info("[MESSAGE] INVOKE : ", message);
     return ipcRenderer.invoke(message.channel, message.message);
   },
 
@@ -31,7 +32,7 @@ export const api = {
    */
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => {
-      console.log("[MESSAGE] RECEIVE : ", data);
+      log.info("[MESSAGE] RECEIVE : ", data);
       callback(data);
     });
   }

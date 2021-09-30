@@ -1,5 +1,6 @@
 import { DialogActions, IDialogActionMsg } from "@/interface/BridgeMsg";
 import { BrowserWindow, dialog } from "electron";
+import log from 'electron-log';
 
 export interface IDialogService {
     on: (message: IDialogActionMsg, window?: BrowserWindow) => any;
@@ -8,7 +9,7 @@ export interface IDialogService {
 class DialogService implements IDialogService {
 
     on: (message: IDialogActionMsg, window?: BrowserWindow) => any = async (message: IDialogActionMsg, window?: BrowserWindow) => {
-        console.log('message:', message);
+        log.info('message:', message);
 		const { action, body } = message;
 		switch (action) {
 			case DialogActions.MessageBox:
@@ -21,7 +22,7 @@ class DialogService implements IDialogService {
                 dialog.showErrorBox(title, content);
                 break;
 			default:
-				console.error('NOT SUPPORTED ACTION IN [ DialogActions ]');
+				log.error('NOT SUPPORTED ACTION IN [ DialogActions ]');
 		}
         return undefined;
     }

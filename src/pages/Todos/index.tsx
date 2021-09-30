@@ -150,7 +150,7 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
                 todoStat: ancestors.length > 0 ? ancestors[ancestors.length - 1] : blankTodoStat,
                 holdingTodo: current,
             };
-        default: throw new Error(`>>> TODOS STATE REDUCER : NOT SUPPORTED ACTION -- ${action.type}`);
+        default: throw new Error(`>> TODOS STATE REDUCER : NOT SUPPORTED ACTION -- ${action.type}`);
     }
 }
 

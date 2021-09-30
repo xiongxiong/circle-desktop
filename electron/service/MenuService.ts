@@ -1,5 +1,6 @@
 import { IMenuActionMsg, MenuActions } from '@/interface/BridgeMsg';
 import { BrowserWindow, Menu } from 'electron';
+import log from 'electron-log';
 
 export interface IMenuService {
 	on: (message: IMenuActionMsg, window?: BrowserWindow) => any;
@@ -7,7 +8,7 @@ export interface IMenuService {
 
 class MenuService implements IMenuService {
 	on: (message: IMenuActionMsg, window?: BrowserWindow) => any = async (message: IMenuActionMsg, window?: BrowserWindow) => {
-		console.log('message:', message);
+		log.info('message:', message);
 		const { action, body } = message;
 		switch (action) {
             case MenuActions.ContextMenu:
@@ -17,7 +18,7 @@ class MenuService implements IMenuService {
                 }
                 break;
 			default:
-				console.error('NOT SUPPORTED ACTION IN [ MenuActions ]');
+				log.error('NOT SUPPORTED ACTION IN [ MenuActions ]');
 		}
 	};
 }

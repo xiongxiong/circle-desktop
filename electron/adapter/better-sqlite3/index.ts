@@ -1,8 +1,12 @@
 import { IHasId, ITodoInsert, ITodoSearch, ITodoUpdate, ITodoDuplicate, ITodoClosure, TodoStatus, ITodoDelete, IListSearch, IListInsert, IListUpdate, IListDelete, IHasListId, OHasListId, OHasContent } from "@/interface/Data";
 import { env } from "@/utils/env";
+import log from 'electron-log';
 import { uLog } from "@/utils/log";
-import BetterSqlite3, {Database, Statement} from "better-sqlite3";
-import {initData, pragmas, initTable} from './init';
+import path from 'path';
+import fs from 'fs';
+import BetterSqlite3, { Database, Statement } from "better-sqlite3";
+
+import { initData, pragmas, initTable } from './init';
 
 enum StmtNames {
 	TableCount = 'TableCount',
@@ -23,36 +27,41 @@ enum StmtNames {
 	ListDelete = 'ListDelete',
 }
 
-
 class DbService {
 
-	private db: Database;
-	private stmtMap = new Map<StmtNames, Statement>();
+	private db?: Database;
+	private stmtMap = new Map<StmtNames, Statement | undefined>();
+	private dbPath = path.join(env.appPath(), env.dbPath());
 
 	open = () => {
-		this.db = new BetterSqlite3(env.dbFile(), env.dbOptions());
+		log.info('>>> DATABASE PATH :', this.dbPath);
+		const dbFile = path.join(this.dbPath, env.dbFile());
+		if (!fs.existsSync(dbFile)) {
+			fs.mkdirSync(this.dbPath);
+		}
+		this.db = new BetterSqlite3(dbFile, env.dbOptions());
 	}
 
 	close = () => {
-		this.db.close();
+		this.db?.close();
 	}
 
-	backup = () => this.db.backup(env.dbFileBackup());
+	backup = async () => this.db?.backup(path.join(this.dbPath, env.dbFileBackup()));
 
-	restore = async () => {}
+	restore = async () => { }
 
 	init = () => {
-		const {count = 0} = this.stmt(StmtNames.TableCount, 'SELECT COUNT(*) AS count FROM (SELECT type,name,sql,tbl_name FROM "main".sqlite_master)')?.get() || {};
-		console.log("DATABASE TABLE COUNT -- ", count);
-		
+		const { count = 0 } = this.stmt(StmtNames.TableCount, 'SELECT COUNT(*) AS count FROM (SELECT type,name,sql,tbl_name FROM "main".sqlite_master)')?.get() || {};
+		log.info("DATABASE TABLE COUNT -- ", count);
+
 		if (count === 0) {
-			console.log("DATABASE EMPTY > INIT");
-			uLog(() => this.db.transaction(() => this.db.exec(initTable)).immediate(), "INIT TABLE");
-			uLog(() => this.db.transaction(() => this.db.exec(initData)).immediate(), "INIT DATA");
+			log.info("DATABASE EMPTY > INIT");
+			uLog(() => this.db?.transaction(() => this.db?.exec(initTable)).immediate(), "INIT TABLE");
+			uLog(() => this.db?.transaction(() => this.db?.exec(initData)).immediate(), "INIT DATA");
 		}
-		uLog(() => pragmas.map(({cmd, res}) => {
-			this.db.pragma(cmd);
-			res && console.log(this.db.pragma(res, {simple: true}));
+		uLog(() => pragmas.map(({ cmd, res }) => {
+			this.db?.pragma(cmd);
+			res && log.info(this.db?.pragma(res, { simple: true }));
 		}), "PRAGMA");
 	}
 
@@ -80,7 +89,7 @@ class DbService {
 
 	private stmt = (name: StmtNames, sql?: string) => {
 		if (!this.stmtMap.get(name) && sql) {
-			this.stmtMap.set(name, this.db.prepare(sql));
+			this.stmtMap.set(name, this.db?.prepare(sql));
 		}
 		return this.stmtMap.get(name);
 	}
@@ -88,61 +97,61 @@ class DbService {
 	private booleanToNumber = (value?: boolean) => value === undefined ? undefined : value ? 1 : 0;
 
 	todoSelectList = (data: ITodoSearch) => {
-		const {content, parentId, listId, status} = data || {};
+		const { content, parentId, listId, status } = data || {};
 		switch (status) {
 			case TodoStatus.DOING:
-				return this.stmt(StmtNames.TodoSelectList)?.all({listId, content, parentId, isFinish: 0}) || [];
+				return this.stmt(StmtNames.TodoSelectList)?.all({ listId, content, parentId, isFinish: 0 }) || [];
 			case TodoStatus.DONE:
-				return this.stmt(StmtNames.TodoSelectList)?.all({listId, content, parentId, isFinish: 1}) || [];
+				return this.stmt(StmtNames.TodoSelectList)?.all({ listId, content, parentId, isFinish: 1 }) || [];
 			case TodoStatus.DELETED:
-				return this.stmt(StmtNames.TodoSelectList)?.all({listId, content, parentId, isFinish: undefined}) || [];
+				return this.stmt(StmtNames.TodoSelectList)?.all({ listId, content, parentId, isFinish: undefined }) || [];
 			default:
 				return [];
 		}
 	}
 
 	todoSelect = (data: IHasId) => {
-		const {id} = data;
-		return this.stmt(StmtNames.TodoSelect)?.get({id});
+		const { id } = data;
+		return this.stmt(StmtNames.TodoSelect)?.get({ id });
 	}
 
 	todoSelectRoot = (data: IHasListId) => {
-		const {listId} = data;
-		return this.stmt(StmtNames.TodoSelectRoot)?.get({listId});
+		const { listId } = data;
+		return this.stmt(StmtNames.TodoSelectRoot)?.get({ listId });
 	}
 
 	todoSelectStat = (data: OHasListId & OHasContent) => {
-		const {listId, content} = data;
-		return this.stmt(StmtNames.TodoSelectStat)?.get({listId, content});
+		const { listId, content } = data;
+		return this.stmt(StmtNames.TodoSelectStat)?.get({ listId, content });
 	}
 
 	todoSelectAncestorList = (data: IHasId) => {
-		const {id} = data;
-		return this.stmt(StmtNames.TodoSelectAncestorList)?.all({id});
+		const { id } = data;
+		return this.stmt(StmtNames.TodoSelectAncestorList)?.all({ id });
 	}
 
 	todoInsert = (data: ITodoInsert) => {
-		const {listId, content, priority, parentId} = data;
-		return this.db.transaction(() => (this.stmt(StmtNames.TodoInsert)?.run({listId, content, priority, parentId}).changes || 0) > 0).immediate();
+		const { listId, content, priority, parentId } = data;
+		return this.db?.transaction(() => (this.stmt(StmtNames.TodoInsert)?.run({ listId, content, priority, parentId }).changes || 0) > 0).immediate();
 	}
 
 	todoDuplicate = (data: ITodoDuplicate) => {
-		const {id, parentId} = data;
+		const { id, parentId } = data;
 		if (id === parentId) return false;
-		return this.db.transaction(() => {
+		return this.db?.transaction(() => {
 			const idMap = new Map<number, number>(); // key: oldId, value: newId
 
 			const stmt = this.stmt(StmtNames.TodoDuplicate);
-			const stmtRes = stmt?.run({id, parentId});
-			const {changes = 0, lastInsertRowid} = stmtRes || {};
+			const stmtRes = stmt?.run({ id, parentId });
+			const { changes = 0, lastInsertRowid } = stmtRes || {};
 			lastInsertRowid && idMap.set(id, parseInt(lastInsertRowid.toString()));
 
-			const nodes: ITodoClosure[] = this.stmt(StmtNames.TodoDuplicateTreeSelect)?.all({id}) || [];
+			const nodes: ITodoClosure[] = this.stmt(StmtNames.TodoDuplicateTreeSelect)?.all({ id }) || [];
 			for (const node of nodes) {
-				const {idAncestor, idDescendant: curId} = node;
+				const { idAncestor, idDescendant: curId } = node;
 				const curParentId = idMap.get(idAncestor);
-				const curRes = stmt?.run({id: curId, parentId: curParentId});
-				const {lastInsertRowid: newId} = curRes || {};
+				const curRes = stmt?.run({ id: curId, parentId: curParentId });
+				const { lastInsertRowid: newId } = curRes || {};
 				newId && idMap.set(curId, parseInt(newId.toString()));
 			}
 
@@ -151,13 +160,13 @@ class DbService {
 	}
 
 	todoUpdate = (data: ITodoUpdate) => {
-		const {id, content, comment, isFinish, isDelete, priority, parentId} = data;
-		return this.db.transaction(() => (this.stmt(StmtNames.TodoUpdate)?.run({id, content, comment, isFinish: this.booleanToNumber(isFinish), isDelete: this.booleanToNumber(isDelete), priority, parentId}).changes || 0) > 0).immediate();
+		const { id, content, comment, isFinish, isDelete, priority, parentId } = data;
+		return this.db?.transaction(() => (this.stmt(StmtNames.TodoUpdate)?.run({ id, content, comment, isFinish: this.booleanToNumber(isFinish), isDelete: this.booleanToNumber(isDelete), priority, parentId }).changes || 0) > 0).immediate();
 	}
 
 	todoDelete = (data: ITodoDelete) => {
-		const {id} = data;
-		return this.db.transaction(() => (this.stmt(StmtNames.TodoDelete)?.run({id}).changes || 0) > 0).immediate();
+		const { id } = data;
+		return this.db?.transaction(() => (this.stmt(StmtNames.TodoDelete)?.run({ id }).changes || 0) > 0).immediate();
 	}
 
 	listTreeSelect = () => {
@@ -165,24 +174,24 @@ class DbService {
 	}
 
 	listNodeSelect = (data: IListSearch) => {
-		const {parentId} = data;
-		const items = this.stmt(StmtNames.ListTreeSelect)?.all({parentId}) || [];
-		return items.map(item => ({...item, key: item.id}));
+		const { parentId } = data;
+		const items = this.stmt(StmtNames.ListTreeSelect)?.all({ parentId }) || [];
+		return items.map(item => ({ ...item, key: item.id }));
 	}
 
 	listInsert = (data: IListInsert) => {
-		const {title, parentId, isGroup = false} = data;
-		return this.db.transaction(() => (this.stmt(StmtNames.ListInsert)?.run({title, parentId, isGroup: this.booleanToNumber(isGroup)}).changes || 0) > 0).immediate();
+		const { title, parentId, isGroup = false } = data;
+		return this.db?.transaction(() => (this.stmt(StmtNames.ListInsert)?.run({ title, parentId, isGroup: this.booleanToNumber(isGroup) }).changes || 0) > 0).immediate();
 	}
 
 	listUpdate = (data: IListUpdate) => {
-		const {id, title, parentId, isDelete} = data;
-		return this.db.transaction(() => (this.stmt(StmtNames.ListUpdate)?.run({id, title, parentId, isDelete: this.booleanToNumber(isDelete)}).changes || 0) > 0).immediate();
+		const { id, title, parentId, isDelete } = data;
+		return this.db?.transaction(() => (this.stmt(StmtNames.ListUpdate)?.run({ id, title, parentId, isDelete: this.booleanToNumber(isDelete) }).changes || 0) > 0).immediate();
 	}
 
 	listDelete = (data: IListDelete) => {
-		const {id} = data;
-		return this.db.transaction(() => (this.stmt(StmtNames.ListDelete)?.run({id}).changes || 0) > 0).immediate();
+		const { id } = data;
+		return this.db?.transaction(() => (this.stmt(StmtNames.ListDelete)?.run({ id }).changes || 0) > 0).immediate();
 	}
 }
 

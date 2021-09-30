@@ -1,20 +1,64 @@
+import log from 'electron-log';
+import path from 'path';
+
+interface IAppInfo {
+    platform?: string,
+    name?: string,
+    appPath?: string,
+    dbPath?: string,
+    dbFile?: string,
+}
+
 interface IEnv {
-    isTrial: () => boolean,
-    dbFile: () => string,
-    dbOptions: () => any,
-    dbFileBackup: () => string,
+    appInfo: () => IAppInfo;
+    appName: () => string;
+    appPath: () => string;
+	isTrial: () => boolean;
+	dbPath: () => string;
+	dbFile: () => string;
+	dbOptions: () => any;
+	dbFileBackup: () => string;
 }
 
 class Env implements IEnv {
+    appInfo = () => ({
+        platform: process.platform,
+        name: this.appName(),
+        appPath: this.appPath(),
+        dbPath: this.dbPath(),
+        dbFile: this.dbFile(),
+    });
 
-    isTrial = () => !!process.env.TRIAL;
+    appName = () => 'WonderCircle';
 
-    dbFile = () => process.env.DBFILE ? process.env.DBFILE : 'db/circle.db';
+	appPath = () => {
+        let home = '';
+        log.info('>>> PLATFORM :', process.platform);
+		switch (process.platform) {
+			case 'darwin':
+				home = path.join(process.env.HOME || '', 'Library', 'Application Support');
+                break;
+			case 'win32':
+				home = process.env.APPDATA || '';
+                break;
+			case 'linux':
+				home = process.env.HOME || '';
+                break;
+			default:
+				break;
+		}
+		return path.join(home, this.appName());
+	};
 
-    dbOptions = () => ({verbose: console.log});
+	isTrial = () => !!process.env.TRIAL;
 
-    dbFileBackup = () => `db/backup-${Date.now()}.db`;
+	dbPath = () => (process.env.DBPATH ? process.env.DBPATH : 'db');
+
+	dbFile = () => (process.env.DBFILE ? process.env.DBFILE : 'circle.db');
+
+	dbOptions = () => ({ verbose: log.info });
+
+	dbFileBackup = () => `backup-${Date.now()}.db`;
 }
-
 
 export const env: IEnv = new Env();

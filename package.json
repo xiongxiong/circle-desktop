@@ -1,14 +1,14 @@
 {
-	"name": "electron-react-typescript",
-	"author": "Diego Fernandes <diego.schell.f@gmail.com>",
-	"version": "2.0.0",
-	"description": "An Electron boilerplate including TypeScript, React, Jest and ESLint.",
+	"name": "WonderCircle",
+	"author": "WonderBear <xiongxiong0619@gmail.com>",
+	"version": "0.1.0",
+	"description": "Todo management tool, to make your life different.",
 	"main": "./.webpack/main/index.js",
 	"scripts": {
-		"start": "electron-forge start",
-		"debug": "cross-env DBFILE=db/circle.db electron-forge start --inspect-electron",
-		"snap": "cross-env DBFILE=db/cc.db electron-forge start",
-		"trial": "cross-env TRIAL=true electron-forge start",
+		"start": "cross-env ASSET_PATH=/main_window DBFILE=circle-dev.db electron-forge start",
+		"debug": "cross-env ASSET_PATH=/main_window DBFILE=circle-dev.db electron-forge start --inspect-electron",
+		"snap": "cross-env ASSET_PATH=/main_window DBFILE=circle-snap.db electron-forge start",
+		"trial": "cross-env ASSET_PATH=/main_window DBFILE=circle-dev.db TRIAL=true electron-forge start",
 		"package": "electron-forge package",
 		"make": "electron-forge make",
 		"release": "electron-forge publish",
@@ -28,6 +28,7 @@
 		"better-sqlite3": "^7.4.3",
 		"css-loader": "^6.2.0",
 		"downshift": "^6.1.7",
+		"electron-log": "^4.4.1",
 		"formik": "^2.2.9",
 		"immer": "^9.0.6",
 		"primeicons": "^4.1.0",
@@ -111,12 +112,9 @@
 	"config": {
 		"forge": {
 			"packagerConfig": {
-				"name": "Electron starter",
-				"executableName": "electron-starter",
-				"icon": "assets/icon",
-				"extraResource": [
-					"assets"
-				]
+				"name": "WonderCircle",
+				"executableName": "WonderCircle",
+				"icon": "assets/icon"
 			},
 			"plugins": [
 				[
@@ -143,7 +141,7 @@
 				{
 					"name": "@electron-forge/maker-squirrel",
 					"config": {
-						"name": "Electron Starter"
+						"name": "Wonder-Circle"
 					}
 				},
 				{

@@ -1,5 +1,6 @@
 import { DataActions, IDataActionMsg } from '@/interface/BridgeMsg';
 import { dbService } from '../adapter/better-sqlite3';
+import log from 'electron-log';
 
 export interface IDataService {
 	open: () => void;
@@ -27,7 +28,7 @@ class DataService implements IDataService {
 	restore = dbService.restore;
 
 	on: (message: IDataActionMsg) => any = async (message: IDataActionMsg) => {
-		console.log('>> MESSAGE :', message);
+		log.info('>> MESSAGE :', message);
 		const { action, body } = message;
 		switch (action) {
 			case DataActions.TodoSelectList:
@@ -59,7 +60,7 @@ class DataService implements IDataService {
 			case DataActions.ListDelete:
 				return dbService.listDelete(body);
 			default:
-				console.error('NOT SUPPORTED ACTION IN [ TodoActions ]');
+				log.error('NOT SUPPORTED ACTION IN [ TodoActions ]');
 		}
 	};
 }

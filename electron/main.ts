@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 
-import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { dataService } from './service/DataService';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
-import { uLog } from './utils/log';
+import { uLog, log } from './utils/log';
 import { env } from './utils/env';
 import { themeDefault } from '~/styles/Themes';
 import path from 'path';
@@ -26,7 +26,7 @@ function createWindow() {
 		minWidth: 800,
 		height: 500,
 		minHeight: 500,
-		backgroundColor: themeDefault.color0,
+		backgroundColor: themeDefault.color.indigo,
 		webPreferences: {
 			nodeIntegration: false,
 			contextIsolation: true,
@@ -67,7 +67,7 @@ function syncMessageHandler(channel: string, event: IpcMainEvent, message: any) 
 	}
 	if (result instanceof Promise) {
 		result.then((data) => event.reply('mainMsg', data)).catch((e) => {
-			console.error(e);
+			log.error(e);
 			event.reply('mainMsg', undefined);
 		});
 	} else {
@@ -78,6 +78,7 @@ function syncMessageHandler(channel: string, event: IpcMainEvent, message: any) 
 app
 	.on('ready', createWindow)
 	.whenReady()
+	.then(() => uLog(env.appInfo, 'FETCH APP INFO'))
 	.then(() => uLog(() => installExtension(REACT_DEVELOPER_TOOLS), 'INSTALL EXTENSION REACT_DEVELOPER_TOOLS'))
 	.then(() => uLog(dataService.open, 'DATABASE CONNECT'))
 	.then(() => uLog(dataService.init, 'DATABASE INIT'))
@@ -85,7 +86,7 @@ app
 	.then(() => uLog(dataService.migrate, 'DATABASE MIGRATE'))
 	.then(() => uLog(() => dataService.prepare(), "PREPARE STAMENTS"))
 	.then(() => uLog(registerListeners, 'REGISTER LISTENERS'))
-	.catch((e) => console.error(e));
+	.catch((e) => log.error(e));
 
 app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') {
