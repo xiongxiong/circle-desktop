@@ -74,9 +74,8 @@ export const ListPanel = (props: IListPanelProps) => {
     }
 
     const onInputKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        const {id, parentId, isGroup} = listSelected || {};
         if (event.key === 'Enter' && creating && newTitle) {
-            window.Main.invoke(new MsgListInsert({title: newTitle, parentId: isGroup ? id : parentId, isGroup: creating === Creating.GROUP})).then(ok => {
+            window.Main.invoke(new MsgListInsert({title: newTitle, isGroup: creating === Creating.GROUP})).then(ok => {
                 setCreating(undefined);
                 trigger(Events.LIST_TREE_REFRESH);
             });
