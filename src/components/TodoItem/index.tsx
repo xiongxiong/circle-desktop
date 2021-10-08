@@ -46,7 +46,7 @@ export const TodoItem = (props: ITodoItem) => {
 
     const onKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
-            (event.target as HTMLInputElement).blur();
+            event.currentTarget.blur();
         }
     }
 

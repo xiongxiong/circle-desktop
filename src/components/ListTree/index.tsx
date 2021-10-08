@@ -1,9 +1,7 @@
 import { IDialogButtonProps, MsgDialogMessageBox, MsgListTreeSelect, MsgListUpdate } from "@/interface/BridgeMsg";
 import { IListBasic, IListUpdate } from "@/interface/Data";
 import { ContextMenu } from "primereact/contextmenu";
-import { createRef, useContext, MouseEvent, useLayoutEffect } from "react";
-import { useEffect } from "react";
-import { useState } from "react";
+import { createRef, useContext, MouseEvent, KeyboardEvent, useState, useEffect, ForwardedRef, forwardRef, useImperativeHandle, ChangeEvent, FocusEvent } from "react";
 import { useDispatch } from "react-redux";
 import styled, { css, ThemeContext } from "styled-components"
 import { off, on } from "~/events";
@@ -32,28 +30,32 @@ interface INodeItem extends INodeData {
     expanded: boolean,
 }
 
+export interface IListTreeRef {
+}
+
 export interface IListTreeProps extends IClassName {
-    
+
 }
 
 const map = new Map<number, INodeItem>();
 
 export const ListNode = (id: number) => map.get(id);
 
-export const ListTree = (props: IListTreeProps) => {
+const ListTreeBase = (props: IListTreeProps, ref: ForwardedRef<IListTreeRef>) => {
 
     const { className } = props;
 
     const theme: ITheme = useContext(ThemeContext);
     const dispatch = useDispatch();
-    const cm = createRef<ContextMenu>();
+    const contextMenuRef = createRef<ContextMenu>();
     const listSelected = useAppSelector(selectedList);
     const listExpanded = useAppSelector(expandedList);
 
     const [rawNodes, setRawNodes] = useState([] as INodeData[]);
     const [nodes, setNodes] = useState([] as INodeItem[]);
     const [contextNode, setContextNode] = useState(undefined as INodeData | undefined);
-    
+    const [renameMode, setRenameMode] = useState(false);
+
     useEffect(() => {
         selectTreeNodes();
         on(Events.LIST_TREE_REFRESH, selectTreeNodes);
@@ -61,8 +63,11 @@ export const ListTree = (props: IListTreeProps) => {
     }, []);
 
     useEffect(() => {
-        refreshTree(); 
+        refreshTree();
     }, [rawNodes, listSelected, listExpanded]);
+
+    useImperativeHandle(ref, () => ({
+    }));
 
     const selectTreeNodes = () => {
         window.Main.invoke(new MsgListTreeSelect()).then(nodes => setRawNodes(nodes));
@@ -118,20 +123,67 @@ export const ListTree = (props: IListTreeProps) => {
         });
     }
 
-    const menuItems = [
-        {
+    const onNodeInputClick = (e: MouseEvent<HTMLInputElement>) => {
+        e.preventDefault();
+    }
+
+    const onNodeInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+        contextNode && setContextNode({...contextNode, title: e.currentTarget.value});
+    }
+
+    const onNodeInputBlur = (e: FocusEvent<HTMLInputElement>) => {
+        setRenameMode(false);
+        if (contextNode && contextNode.title) {
+            window.Main.invoke(new MsgListUpdate({id: contextNode.id, title: contextNode.title})).then(ok => ok && selectTreeNodes());
+        }
+    }
+
+    const onNodeInputKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.currentTarget.blur();
+        }
+    }
+
+    const menuItems = () => {
+        const separator = { separator: true };
+        const actionNewGroup = {
+            label: '新建群组',
+            icon: 'pi pi-fw pi-link',
+            // command: insertGroup,
+        };
+
+        const actionNewList = {
+            label: '新建清单',
+            icon: 'pi pi-fw pi-trash',
+            // command: insertList,
+        };
+
+        const actionRenameNode = {
             label: '重命名',
             icon: 'pi pi-fw pi-link',
-        },
-        {
+            command: () => contextNode && setRenameMode(true),
+        };
+
+        const actionDeleteNode = {
             label: '删除',
             icon: 'pi pi-fw pi-trash',
-            command: () => contextNode && updateListIsDelete({id: contextNode.id, isDelete: true}),
-        },
-    ];
+            command: () => contextNode && updateListIsDelete({ id: contextNode.id, isDelete: true }),
+        };
 
-    const onContextMenu = (e: MouseEvent<HTMLDivElement>, node: INodeData) => {
-        cm.current?.show(e);
+        if (contextNode) {
+            const { isGroup } = contextNode;
+            if (isGroup) {
+                return [actionNewGroup, actionNewList, separator, actionRenameNode, separator, actionDeleteNode];
+            } else {
+                return [actionRenameNode, separator, actionDeleteNode];
+            }
+        } else {
+            return [actionNewGroup, actionNewList];
+        }
+    }
+
+    const onContextMenu = (e: MouseEvent<HTMLDivElement>, node?: INodeData) => {
+        contextMenuRef.current?.show(e);
         setContextNode(node);
     }
 
@@ -145,7 +197,7 @@ export const ListTree = (props: IListTreeProps) => {
             <NodeContainer key={id} selected={selected} onClick={() => onListSelect(node)} onContextMenu={e => onContextMenu(e, node)}>
                 <NodePadding level={level} />
                 <IconHead size={theme.icon_size.xs} />
-                <NodeText>{title}</NodeText>
+                {id === contextNode?.id ? (renameMode ? <NodeInput autoFocus value={contextNode.title} onClick={e => onNodeInputClick(e)} onChange={e => onNodeInputChange(e)} onBlur={e => onNodeInputBlur(e)} onKeyPress={e => onNodeInputKeyPress(e)}/> : <NodeText>{title}</NodeText>) : <NodeText>{title}</NodeText> }
                 {IconTail && <IconTail size={theme.icon_size.xs} />}
             </NodeContainer>
         );
@@ -153,13 +205,15 @@ export const ListTree = (props: IListTreeProps) => {
 
     return (
         <>
-            <NodeContextMenu model={menuItems} ref={cm} />
-            <Container className={className}>
+            <NodeContextMenu model={menuItems()} ref={contextMenuRef} />
+            <Container className={className} onContextMenu={e => onContextMenu(e, undefined)}>
                 {nodes.map(node => nodeRender(node))}
             </Container>
         </>
     );
 }
+
+export const ListTree = forwardRef(ListTreeBase);
 
 const initMap = (map: Map<number, INodeItem>, rawNodes: INodeData[], listSelected: IListBasic | undefined) => {
     map.clear();
@@ -252,8 +306,8 @@ const Container = styled.div`
 `
 
 const NodeContextMenu = styled(ContextMenu)`
-    font-size: 12px;
-    width: 100px;
+    font-size: ${props => props.theme.font_size.xs};
+    width: 120px;
 
     & .p-menuitem-link {
         padding: 0.5em 1em;
@@ -261,7 +315,8 @@ const NodeContextMenu = styled(ContextMenu)`
 `
 
 const NodeContainer = styled.div.attrs({} as { selected: boolean })`
-    padding: 4px 8px;
+    padding: 0px 8px;
+    height: 30px;
     display: flex;
     align-items: center;
     cursor: default;
@@ -280,6 +335,17 @@ const NodeContainer = styled.div.attrs({} as { selected: boolean })`
 
 const NodePadding = styled.div.attrs({} as { level: number })`
     width: ${props => props.level * 16}px;
+`
+
+const NodeInput = styled.input`
+    flex: 1; 
+    margin: 0px 8px;
+    font-family: inherit;
+    font-size: inherit;
+
+    &:focus {
+        outline: none;
+    }
 `
 
 const NodeText = styled.span`

@@ -30,6 +30,7 @@ import IconDeleteLight from '~/components/@iconfont/IconDeleteLight';
 import IconFolderForbidLine from '~/components/@iconfont/IconFolderForbidLine';
 import { useDispatch } from 'react-redux';
 import { ListNode } from '~/components/ListTree';
+import { IClassName } from '~/interfaces/Component';
 
 enum ViewMode {
     CASCADE,
@@ -156,16 +157,18 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
     }
 }
 
-export interface ITodosProps {
+export interface ITodosProps extends IClassName {
 
 }
 
 export const Todos = (props: ITodosProps) => {
 
+    const {className} = props;
+
     const theme: ITheme = useContext(ThemeContext);
     const listSelected = useAppSelector(selectedList);
     const storeDispatch = useDispatch();
-    const cm = createRef<ContextMenu>();
+    const contextMenuRef = createRef<ContextMenu>();
 
     const [{ viewMode, todos, rootNode, currentNode, navNodes, todoStat, currentTodo, holdingTodo, contextTodo, newTodo, todoStatus, todoInAction }, dispatch] = useReducer(reducer, listSelected, init);
 
@@ -402,7 +405,7 @@ export const Todos = (props: ITodosProps) => {
 
     const todoSelected = (event: React.MouseEvent, todo: ITodo) => {
         setCurrentTodo(todo);
-        cm.current?.hide(event);
+        contextMenuRef.current?.hide(event);
     };
 
     const todoSelectedClear = () => setCurrentTodo(undefined);
@@ -503,7 +506,7 @@ export const Todos = (props: ITodosProps) => {
         const separator = { separator: true };
         const actionPriority = {
             template: (item: any, options: any) => (
-                <MenuItemPriorityBox className="p-menuitem-link" onClick={(e) => cm.current?.hide(e)}>
+                <MenuItemPriorityBox className="p-menuitem-link" onClick={(e) => contextMenuRef.current?.hide(e)}>
                     {priorityColors.map((color, index) => <MenuItemPriorityBtn key={index} color={color} onClick={() => contextTodo && updateTodoPriority({ ...contextTodo, priority: index })} />)}
                 </MenuItemPriorityBox>
             )
@@ -560,7 +563,7 @@ export const Todos = (props: ITodosProps) => {
 
     const onTodoContextMenu = (e: React.MouseEvent<HTMLDivElement>, todo: ITodo) => {
         setContextTodo(todo);
-        cm.current?.show(e);
+        contextMenuRef.current?.show(e);
     }
 
     const listItemRender = (item: ITodo) => {
@@ -650,7 +653,7 @@ export const Todos = (props: ITodosProps) => {
 
     return (
         <>
-            <TodoContextMenu model={contextMenuItems()} ref={cm} />
+            <TodoContextMenu model={contextMenuItems()} ref={contextMenuRef} />
             <Container onClick={todoSelectedClear}>
                 <Header>
                     {listSelected && (
@@ -701,8 +704,8 @@ export const Todos = (props: ITodosProps) => {
 }
 
 const TodoContextMenu = styled(ContextMenu)`
-    font-size: 12px;
-    width: 100px;
+    font-size: ${props => props.theme.font_size.xs};
+    width: 120px;
 
     & .p-menuitem-link {
         padding: 0.5em 1em;
@@ -889,11 +892,15 @@ const MenuItemPriorityBox = styled.div`
 `
 
 const MenuItemPriorityBtn = styled.div.attrs({} as { color: string })`
-    width: 16px;
-    height: 16px;
-    border-radius: 8px;
-    border: 1px solid;
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    border: 1px solid ${props => props.color};
     background-color: ${props => props.color};
+
+    &:hover {
+        border-color: white;
+    }
 `
 
 const TodoItemTailBtnText = styled.p`

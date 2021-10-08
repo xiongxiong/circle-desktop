@@ -1,6 +1,5 @@
 import { MsgListInsert } from "@/interface/BridgeMsg";
-import { useEffect } from "react";
-import { useContext, useState } from "react";
+import { useEffect, useContext, useState } from "react";
 import { useDispatch } from "react-redux";
 import styled, { css, ThemeContext } from "styled-components";
 import { IComponent } from "~/interfaces/Component";
