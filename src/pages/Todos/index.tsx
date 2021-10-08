@@ -122,7 +122,17 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
         case "setCurrentTodo":
             return { ...state, currentTodo: action.payload };
         case "setHoldingTodo":
-            return { ...state, holdingTodo: action.payload };
+            const { current, ancestors } = action.payload as { current: ITodo, ancestors: ITodo[] };
+            return {
+                ...state,
+                viewMode: ViewMode.CASCADE,
+                todos: [],
+                rootNode: ancestors.length > 0 ? ancestors[0] : undefined,
+                currentNode: ancestors.length > 0 ? ancestors[ancestors.length - 1] : undefined,
+                navNodes: ancestors,
+                todoStat: ancestors.length > 0 ? ancestors[ancestors.length - 1] : blankTodoStat,
+                holdingTodo: current,
+            };
         case "setContextTodo":
             return { ...state, contextTodo: action.payload };
         case "setNewTodo":
@@ -140,18 +150,6 @@ const reducer: Reducer<ITodosState, ITodosAction> = (state: ITodosState, action:
                 navNodes: [],
                 currentTodo: undefined,
                 contextTodo: undefined,
-            };
-        case "targetCascade":
-            const { current, ancestors } = action.payload as { current: ITodo, ancestors: ITodo[] };
-            return {
-                ...state,
-                viewMode: ViewMode.CASCADE,
-                todos: [],
-                rootNode: ancestors.length > 0 ? ancestors[0] : undefined,
-                currentNode: ancestors.length > 0 ? ancestors[ancestors.length - 1] : undefined,
-                navNodes: ancestors,
-                todoStat: ancestors.length > 0 ? ancestors[ancestors.length - 1] : blankTodoStat,
-                holdingTodo: current,
             };
         default: throw new Error(`>> TODOS STATE REDUCER : NOT SUPPORTED ACTION -- ${action.type}`);
     }
@@ -193,8 +191,12 @@ export const Todos = (props: ITodosProps) => {
     const setCurrentTodo = (todo?: ITodo) => {
         dispatch({ type: "setCurrentTodo", payload: todo });
     }
-    const setHoldingTodo = (todo?: ITodo) => {
-        dispatch({ type: "setHoldingTodo", payload: todo });
+    const setHoldingTodo = (current: ITodo, ancestors: ITodo[]) => {
+        dispatch({ type: "setHoldingTodo", payload: { current, ancestors } });
+        
+        const {listId} = current;
+        const targetList = ListNode(listId);
+        storeDispatch(setListSelected(targetList));
     }
     const setContextTodo = (todo?: ITodo) => {
         dispatch({ type: "setContextTodo", payload: todo });
@@ -211,20 +213,17 @@ export const Todos = (props: ITodosProps) => {
     const changeListSelected = (listSelected?: IListBasic) => {
         dispatch({ type: "changeListSelected", payload: listSelected });
     }
-    const targetCascade = (current: ITodo, ancestors: ITodo[]) => {
-        dispatch({ type: "targetCascade", payload: { current, ancestors } });
-        
-        const {listId} = current;
-        const targetList = ListNode(listId);
-        storeDispatch(setListSelected(targetList));
-    }
 
     const [searchText, setSearchText] = createSignal<string>(); // 搜索内容
     const [useSearchText, searchTextObs] = bind(searchText); // 搜索内容观察者
 
     useEffect(() => {
-        changeListSelected(listSelected);
-        selectTodoRoot();
+        if (!holdingTodo) {
+            changeListSelected(listSelected);
+            selectTodoRoot();
+        } else {
+            selectTodoListAndTodoStat();
+        }
     }, [listSelected]);
 
     useEffect(() => {
@@ -299,7 +298,7 @@ export const Todos = (props: ITodosProps) => {
 
     // 待办从搜索视图定位到层级视图
     const onTargetCascade = (todo: ITodo) => {
-        window.Main.invoke(new MsgTodoSelectAncestorList({ id: todo.id })).then(nodes => targetCascade(todo, nodes));
+        window.Main.invoke(new MsgTodoSelectAncestorList({ id: todo.id })).then(nodes => setHoldingTodo(todo, nodes));
     }
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => setNewTodo({ ...newTodo, content: event.target.value });
@@ -689,7 +688,7 @@ export const Todos = (props: ITodosProps) => {
                     )}
                 </Body>
                 {listSelected && !listSelected.isGroup && (todoStatus === TodoStatus.DOING) && (
-                    <NewTodoContainer>
+                    <NewTodoContainer onKeyPress={() => console.log("XXXX")}>
                         <IconZengjia color={theme.color.white} />
                         <TodoInput size='large' placeholder='Add a Task' value={newTodo.content} onFocus={todoSelectedClear} onChange={onChange} onPressEnter={insertTodo} />
                         <PriorityBox>
