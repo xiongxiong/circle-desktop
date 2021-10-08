@@ -1,7 +1,8 @@
 import { IDialogButtonProps, MsgDialogMessageBox, MsgListInsert, MsgListTreeSelect, MsgListUpdate } from "@/interface/BridgeMsg";
 import { IListBasic, IListUpdate } from "@/interface/Data";
 import { ContextMenu } from "primereact/contextmenu";
-import { createRef, useContext, MouseEvent, KeyboardEvent, useState, useEffect, ForwardedRef, forwardRef, useImperativeHandle, ChangeEvent, FocusEvent } from "react";
+import { MenuItem } from "primereact/menuitem";
+import { SyntheticEvent, createRef, useContext, MouseEvent, KeyboardEvent, useState, useEffect, ForwardedRef, forwardRef, useImperativeHandle, ChangeEvent, FocusEvent } from "react";
 import { useDispatch } from "react-redux";
 import styled, { css, ThemeContext } from "styled-components"
 import { off, on } from "~/events";
@@ -30,6 +31,22 @@ interface INodeItem extends INodeData {
     expanded: boolean,
 }
 
+// export interface IHasLabel {
+//     label: string
+// }
+
+// export interface IHasIcon {
+//     icon: string
+// }
+
+// export interface IHasCommand {
+//     command: (event: SyntheticEvent) => void
+// }
+
+// export interface IContextMenuItem extends IHasLabel, IHasIcon, IHasCommand {
+//     items?: IContextMenuItem[]
+// }
+
 export interface IListTreeRef {
 }
 
@@ -39,7 +56,7 @@ export interface IListTreeProps extends IClassName {
 
 const map = new Map<number, INodeItem>();
 
-let rootNode: INodeData;
+let rootId: number;
 
 export const ListNode = (id: number) => map.get(id);
 
@@ -128,7 +145,7 @@ const ListTreeBase = (props: IListTreeProps, ref: ForwardedRef<IListTreeRef>) =>
     const insertNode = (isGroup: boolean) => {
         setInputNode({
             id: -2,
-            parentId: contextNode?.id || rootNode.id,
+            parentId: contextNode?.id || rootId,
             title: '',
             isGroup,
         });
@@ -136,11 +153,11 @@ const ListTreeBase = (props: IListTreeProps, ref: ForwardedRef<IListTreeRef>) =>
     }
 
     const onNodeInputClick = (e: MouseEvent<HTMLInputElement>) => {
-        e.stopPropagation(); 
+        e.stopPropagation();
     }
 
     const onNodeInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        inputNode && setInputNode({...inputNode, title: e.currentTarget.value});
+        inputNode && setInputNode({ ...inputNode, title: e.currentTarget.value });
     }
 
     const onNodeInputBlur = (e: FocusEvent<HTMLInputElement>) => {
@@ -149,7 +166,7 @@ const ListTreeBase = (props: IListTreeProps, ref: ForwardedRef<IListTreeRef>) =>
             if (inputNode.id === -2) {
                 window.Main.invoke(new MsgListInsert(inputNode)).then(ok => ok && selectTreeNodes());
             } else {
-                window.Main.invoke(new MsgListUpdate({id: inputNode.id, title: inputNode.title})).then(ok => ok && selectTreeNodes());
+                window.Main.invoke(new MsgListUpdate({ id: inputNode.id, title: inputNode.title })).then(ok => ok && selectTreeNodes());
             }
         }
     }
@@ -174,6 +191,16 @@ const ListTreeBase = (props: IListTreeProps, ref: ForwardedRef<IListTreeRef>) =>
             command: () => insertNode(false),
         };
 
+        const actionMoveTo = () => ({
+            label: '移动到',
+            icon: 'pi pi-fw pi-trash',
+            items: [getMoveToSubMenus((event, parentId) => {
+                contextMenuRef.current?.hide(event);
+                const { id } = contextNode || {};
+                id && window.Main.invoke(new MsgListUpdate({ id, parentId })).then(ok => ok && selectTreeNodes());
+            }, 'pi pi-fw pi-trash')],
+        });
+
         const actionRenameNode = {
             label: '重命名',
             icon: 'pi pi-fw pi-link',
@@ -186,12 +213,14 @@ const ListTreeBase = (props: IListTreeProps, ref: ForwardedRef<IListTreeRef>) =>
             command: () => contextNode && updateListIsDelete({ id: contextNode.id, isDelete: true }),
         };
 
+        const actionMoveToGroup = rootId === undefined ? [] : [actionMoveTo(), separator];
+
         if (contextNode) {
             const { isGroup } = contextNode;
             if (isGroup) {
-                return [actionNewGroup, actionNewList, separator, actionRenameNode, separator, actionDeleteNode];
+                return [actionNewGroup, actionNewList, separator, ...actionMoveToGroup, actionRenameNode, separator, actionDeleteNode];
             } else {
-                return [actionRenameNode, separator, actionDeleteNode];
+                return [...actionMoveToGroup, actionRenameNode, separator, actionDeleteNode];
             }
         } else {
             return [actionNewGroup, actionNewList];
@@ -213,7 +242,7 @@ const ListTreeBase = (props: IListTreeProps, ref: ForwardedRef<IListTreeRef>) =>
             <NodeContainer key={id} selected={selected} onClick={() => onListSelect(node)} onContextMenu={e => onContextMenu(e, node)}>
                 <NodePadding level={level} />
                 <IconHead size={theme.icon_size.xs} />
-                {id === inputNode?.id ? <NodeInput autoFocus value={inputNode?.title} onClick={e => onNodeInputClick(e)} onChange={e => onNodeInputChange(e)} onBlur={e => onNodeInputBlur(e)} onKeyPress={e => onNodeInputKeyPress(e)}/> : <NodeText>{title}</NodeText> }
+                {id === inputNode?.id ? <NodeInput autoFocus value={inputNode?.title} onClick={e => onNodeInputClick(e)} onChange={e => onNodeInputChange(e)} onBlur={e => onNodeInputBlur(e)} onKeyPress={e => onNodeInputKeyPress(e)} /> : <NodeText>{title}</NodeText>}
                 {IconTail && <IconTail size={theme.icon_size.xs} />}
             </NodeContainer>
         );
@@ -233,7 +262,7 @@ export const ListTree = forwardRef(ListTreeBase);
 
 const initMap = (map: Map<number, INodeItem>, rawNodes: INodeData[], listSelected: IListBasic | undefined) => {
     map.clear();
-    
+
     rawNodes.forEach(node => {
         const { id, parentId, isGroup } = node;
         let children = map.get(id)?.children || [];
@@ -247,12 +276,12 @@ const initMap = (map: Map<number, INodeItem>, rawNodes: INodeData[], listSelecte
         }
 
         if (parentId === -1) {
-            rootNode = node;
+            rootId = id;
         }
     });
 
-    if (rootNode !== undefined) {
-        const root = map.get(rootNode.id)!;
+    if (rootId !== undefined) {
+        const root = map.get(rootId)!;
         updateNodeLevel(-2, root);
     }
 }
@@ -273,8 +302,8 @@ const updateNodeLevel = (parentLevel: number, node: INodeItem) => {
 const getSawNodes = (map: Map<number, INodeItem>, listSelected: IListBasic | undefined, listExpanded: Array<number>) => {
     let sawNodes: INodeItem[] = [];
 
-    if (rootNode !== undefined) {
-        const root = map.get(rootNode.id)!;
+    if (rootId !== undefined) {
+        const root = map.get(rootId)!;
         sawNodes = appendSawNodes(sawNodes, root.children, listSelected, listExpanded);
     }
     return sawNodes;
@@ -301,6 +330,16 @@ const appendSawNodes = (sawNodes: INodeItem[], nodes: INodeItem[], listSelected:
         }
     });
     return sawNodes;
+}
+
+const getMoveToSubMenus: (command: (event: SyntheticEvent, id: number) => void, icon: string, node?: INodeItem) => MenuItem = (command: (event: SyntheticEvent, id: number) => void, icon: string, node?: INodeItem) => {
+    let current = node;
+    if (!current) {
+        current = map.get(rootId)!;
+    }
+    const { id, title, children = [] } = current;
+    const subGroups = children.filter(({isGroup}) => isGroup); 
+    return { label: title, icon, command: (params) => command(params.originalEvent, id), items: subGroups.length > 0 ? subGroups.map(item => getMoveToSubMenus(command, icon, item)) : undefined };
 }
 
 const OuterBox = styled.div`
