@@ -2,6 +2,7 @@ import { IDialogButtonProps, MsgDialogMessageBox, MsgListInsert, MsgListTreeSele
 import { IListBasic, IListUpdate } from "@/interface/Data";
 import { ContextMenu } from "primereact/contextmenu";
 import { MenuItem } from "primereact/menuitem";
+import {PrimeIcons} from "primereact/api";
 import { SyntheticEvent, createRef, useContext, MouseEvent, KeyboardEvent, useState, useEffect, ForwardedRef, forwardRef, useImperativeHandle, ChangeEvent, FocusEvent } from "react";
 import { useDispatch } from "react-redux";
 import styled, { css, ThemeContext } from "styled-components"
@@ -198,7 +199,7 @@ const ListTreeBase = (props: IListTreeProps, ref: ForwardedRef<IListTreeRef>) =>
                 contextMenuRef.current?.hide(event);
                 const { id } = contextNode || {};
                 id && window.Main.invoke(new MsgListUpdate({ id, parentId })).then(ok => ok && selectTreeNodes());
-            }, 'pi pi-fw pi-trash')],
+            }, PrimeIcons.WALLET)],
         });
 
         const actionRenameNode = {
@@ -339,7 +340,8 @@ const getMoveToSubMenus: (command: (event: SyntheticEvent, id: number) => void, 
     }
     const { id, title, children = [] } = current;
     const subGroups = children.filter(({isGroup}) => isGroup); 
-    return { label: title, icon, command: (params) => command(params.originalEvent, id), items: subGroups.length > 0 ? subGroups.map(item => getMoveToSubMenus(command, icon, item)) : undefined };
+    const titleLengthLimit = 13;
+    return { label: title.length < titleLengthLimit ? title : title.substring(0, titleLengthLimit) + "...", icon, command: (params) => command(params.originalEvent, id), items: subGroups.length > 0 ? subGroups.map(item => getMoveToSubMenus(command, icon, item)) : undefined };
 }
 
 const OuterBox = styled.div`
@@ -359,7 +361,7 @@ const Container = styled.div`
 
 const NodeContextMenu = styled(ContextMenu)`
     font-size: ${props => props.theme.font_size.xs};
-    width: 120px;
+    width: 140px;
 
     & .p-menuitem-link {
         padding: 0.5em 1em;
