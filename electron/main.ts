@@ -6,7 +6,6 @@ import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-insta
 import { uLog, log } from './utils/log';
 import { env } from './utils/env';
 import { themeDefault } from '~/styles/Themes';
-import path from 'path';
 import { IpcMainEvent } from 'electron/main';
 import { dialogService } from './service/DialogService';
 import { menuService } from './service/MenuService';
@@ -16,11 +15,8 @@ let mainWindow: BrowserWindow | undefined;
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
-const assetsPath = process.env.NODE_ENV === 'production' ? process.resourcesPath : app.getAppPath();
-
 function createWindow() {
 	mainWindow = new BrowserWindow({
-		icon: path.join(assetsPath, 'assets', 'icon.png'),
 		// titleBarStyle: 'hiddenInset',
 		width: 1000,
 		minWidth: 800,
@@ -105,3 +101,5 @@ app.on('activate', () => {
 		createWindow();
 	}
 });
+
+require('update-electron-app')({logger: require('electron-log')});
