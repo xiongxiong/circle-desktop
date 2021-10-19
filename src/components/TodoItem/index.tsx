@@ -9,7 +9,7 @@ import IconZhengque from '../@iconfont/IconZhengque';
 import { IconButton, IIconProps } from '../IconButton';
 
 export interface ITodoItemTailButtonProps {
-    enabled?: boolean,
+    enabled?: boolean, // Tail button enabled or not?
     func?: (todo: ITodo) => void,
     contentFore?: ReactNode,
     contentBack?: ReactNode,
@@ -17,7 +17,8 @@ export interface ITodoItemTailButtonProps {
 
 export interface ITodoItem extends IComponent {
     todo: ITodo,
-    isSelected: boolean,
+    editable?: boolean, // Can the content be changed?
+    isSelected: boolean, // Item selected or not?
     onClick: (event: React.MouseEvent, todo: ITodo) => void,
     headBtn: ITodoStatusButtonProps,
     tailBtn: ITodoItemTailButtonProps,
@@ -29,7 +30,7 @@ export interface ITodoItem extends IComponent {
 
 export const TodoItem = (props: ITodoItem) => {
 
-    const { todo, todo: { id, content: initContent, comment, isFinish, isDelete, childrenCount, childrenFinish, childrenDelete, priority, childrenPriority }, isSelected = false, onClick, headBtn, tailBtn, onUpdateContent, inAction = false, onContextMenu, onAction, className } = props;
+    const { todo, todo: { id, content: initContent, comment, isFinish, isDelete, childrenCount, childrenFinish, childrenDelete, priority, childrenPriority }, isSelected = false, editable = false, onClick, headBtn, tailBtn, onUpdateContent, inAction = false, onContextMenu, onAction, className } = props;
     
     const [content, setContent] = useState(initContent);
 
@@ -72,7 +73,7 @@ export const TodoItem = (props: ITodoItem) => {
                         <NaviBox />
                     </Header>
                     <Body>
-                        {isSelected ? (
+                        {isSelected && editable ? (
                             <ContentInput value={content} onChange={onChange} onBlur={onInputBlur} onKeyPress={onKeyPress} />
                         ) : (
                             <ContentBox>

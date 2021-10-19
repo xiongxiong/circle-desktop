@@ -646,7 +646,7 @@ export const Todos = (props: ITodosProps) => {
             }
         };
         return (
-            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} onClick={(event, todo) => todoSelected(event, todo)} headBtn={headBtn()} tailBtn={tailBtn()} onUpdateContent={updateTodoContent} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu} />
+            <TodoItem key={item.id} todo={item} isSelected={id === idCurrent} editable={todoStatus === TodoStatus.DOING} onClick={(event, todo) => todoSelected(event, todo)} headBtn={headBtn()} tailBtn={tailBtn()} onUpdateContent={updateTodoContent} inAction={!!todoInAction} onAction={todoOnAction} onContextMenu={onTodoContextMenu} />
         );
     }
 
